@@ -58,35 +58,38 @@ public class LoginActivity extends AppCompatActivity {
 
                         if (status) {
                             JSONObject data = json.optJSONObject("data");
-                            String role = "paciente";
-                            int userId = -1;
-
                             if (data != null) {
-                                role = data.optString("role", "paciente");
-                                userId = data.optInt("id", -1);
+                                int userId = data.optInt("id", -1);
+                                String role = data.optString("role", "paciente");
+                                String authKey = data.optString("auth_key", "");
+                                String nome = data.optString("username", "");
+
+                                Toast.makeText(this, "Login efetuado com sucesso!", Toast.LENGTH_SHORT).show();
+
+                                // 🔹 Decide para onde vai
+                                Intent intent;
+                                if (role.equalsIgnoreCase("enfermeiro")) {
+                                    intent = new Intent(this, EnfermeiroActivity.class);
+                                } else {
+                                    intent = new Intent(this, PacienteActivity.class);
+                                }
+
+                                // 🔹 Passa os dados do utilizador
+                                intent.putExtra("user_id", userId);
+                                intent.putExtra("username", nome);
+                                intent.putExtra("role", role);
+                                intent.putExtra("auth_key", authKey);
+
+                                startActivity(intent);
+                                finish();
                             }
-
-                            Toast.makeText(this, "Login efetuado com sucesso", Toast.LENGTH_SHORT).show();
-
-                            // 🔹 Redireciona conforme o tipo de utilizador
-                            Intent i;
-                            if ("enfermeiro".equalsIgnoreCase(role)) {
-                                i = new Intent(this, EnfermeiroActivity.class);
-                            } else {
-                                i = new Intent(this, PacienteActivity.class);
-                            }
-
-                            i.putExtra("user_id", userId);
-                            startActivity(i);
-                            finish();
-
                         } else {
                             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
                         }
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Toast.makeText(this, "Resposta inválida do servidor", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Erro ao processar resposta do servidor", Toast.LENGTH_SHORT).show();
                     }
                 },
                 error -> Toast.makeText(this, "Erro de ligação ao servidor", Toast.LENGTH_SHORT).show()

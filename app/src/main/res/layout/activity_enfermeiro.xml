@@ -36,7 +36,7 @@
 
         <!-- 🔸 Subtítulo -->
         <TextView
-            android:text="@string/area_do_paciente"
+            android:text="@string/area_do_enfermeiro"
             android:textColor="#006400"
             android:textSize="14sp"
             android:gravity="center"
