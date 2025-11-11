@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PacienteActivity">
+
+    <!-- 🔹 Fundo gradiente -->
+    <pt.ipleiria.estg.dei.emergencysts.GradientView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 🔹 Conteúdo principal -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="32dp">
+
+        <!-- Título -->
+        <TextView
+            android:text="EMERGENCY STS"
+            android:textStyle="bold"
+            android:textColor="#006400"
+            android:textSize="22sp"
+            android:gravity="center"
+            android:layout_marginBottom="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Subtítulo -->
+        <TextView
+            android:text="Área do Paciente"
+            android:textColor="#006400"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginBottom="36dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- 🔸 Cartão Ver Pulseira -->
+        <LinearLayout
+            android:id="@+id/cardPulseira"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="30dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:elevation="8dp"
+            android:layout_marginBottom="24dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:clipToOutline="true">
+
+            <ImageView
+                android:src="@drawable/ic_pulseira"
+                android:tint="#009E4D"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:text="Ver Pulseira"
+                android:textColor="#009E4D"
+                android:textStyle="bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

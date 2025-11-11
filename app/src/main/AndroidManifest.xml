@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EmergencySTS">
         <activity
+            android:name=".PacienteActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="false" />
         <activity

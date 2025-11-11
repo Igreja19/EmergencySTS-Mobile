@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">EmergencySTS</string>
+    <string name="app_name">\n</string>
+    <string name="login">Login</string>
+    <string name="nome_de_utilizador">Nome de utilizador</string>
+    <string name="digite_o_seu_utilizador">Digite o seu utilizador</string>
+    <string name="palavra_passe">Palavra-passe</string>
+    <string name="digite_a_sua_palavra_passe">Digite a sua palavra-passe</string>
+    <string name="emergency_sts">Emergency STS</string>
+    <string name="rea_do_paciente">Área do Paciente</string>
+    <string name="ver_pulseira">Ver Pulseira</string>
 </resources>

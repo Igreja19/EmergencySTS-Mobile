@@ -6,60 +6,87 @@
     android:layout_height="match_parent"
     tools:context=".LoginActivity">
 
+    <!-- 🔹 Fundo gradiente (classe customizada) -->
     <pt.ipleiria.estg.dei.emergencysts.GradientView
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+    />
 
+    <!-- 🔹 Conteúdo principal -->
     <LinearLayout
         android:id="@+id/login_layout"
         android:orientation="vertical"
+        android:gravity="center"
+        android:layout_gravity="center"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="10dp"
-        android:background="@android:color/transparent">
+        android:padding="32dp">
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.4">
-        </Space>
+        <!-- Ícone -->
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            app:srcCompat="@drawable/logo" />
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_marginBottom="16dp"
+            app:srcCompat="@drawable/logo"
+        />
         <Space
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.4">
+            android:layout_height="50dp"
+            android:layout_width="match_parent">
         </Space>
-        <LinearLayout
+        <!-- Campo utilizador -->
+        <TextView
+            android:text="@string/nome_de_utilizador"
+            android:textColor="#006400"
+            android:textStyle="bold"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp">
-            <Button
-                android:id="@+id/button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:layout_marginRight="10dp"
-                android:backgroundTint="@color/butaopg_Login"
-                android:text="Login" />
+            android:layout_marginBottom="4dp"
+        />
 
-            <Button
-                android:id="@+id/button2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:layout_marginLeft="10dp"
-                android:backgroundTint="@color/butaopg_Login"
-                android:text="Guest" />
-        </LinearLayout>
-        <Space
+        <EditText
+            android:id="@+id/etUsername"
+            android:hint="@string/digite_o_seu_utilizador"
+            android:background="@drawable/edittext_bg"
+            android:padding="12dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1">
-        </Space>
+            android:inputType="text"
+        />
+
+        <!-- Campo palavra-passe -->
+        <TextView
+            android:text="@string/palavra_passe"
+            android:textColor="#006400"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+        />
+
+        <EditText
+            android:id="@+id/etPassword"
+            android:hint="@string/digite_a_sua_palavra_passe"
+            android:background="@drawable/edittext_bg"
+            android:padding="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+        />
+
+        <!-- Botão de login -->
+        <Button
+            android:id="@+id/btnLogin"
+            android:text="@string/login"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:backgroundTint="#009E4D"
+            android:padding="12dp"
+            android:layout_marginTop="28dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+        />
     </LinearLayout>
 </FrameLayout>
