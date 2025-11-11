@@ -6,6 +6,8 @@
     <string name="palavra_passe">Palavra-passe</string>
     <string name="digite_a_sua_palavra_passe">Digite a sua palavra-passe</string>
     <string name="emergency_sts">Emergency STS</string>
-    <string name="rea_do_paciente">Área do Paciente</string>
+    <string name="area_do_paciente">Área do Paciente</string>
     <string name="ver_pulseira">Ver Pulseira</string>
+    <string name="ver_historico">Ver Histórico</string>
+    <string name="ver_perfil">Ver Perfil</string>
 </resources>

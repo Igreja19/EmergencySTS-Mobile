@@ -15,11 +15,11 @@
     <!-- 🔹 Conteúdo principal -->
     <LinearLayout
         android:id="@+id/login_layout"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:layout_gravity="center"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
         android:padding="32dp">
 
         <!-- Ícone -->
@@ -28,65 +28,61 @@
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:layout_marginBottom="16dp"
-            app:srcCompat="@drawable/logo"
-        />
+            app:srcCompat="@drawable/logo" />
+
         <Space
-            android:layout_height="50dp"
-            android:layout_width="match_parent">
+            android:layout_width="match_parent"
+            android:layout_height="50dp">
+
         </Space>
         <!-- Campo utilizador -->
         <TextView
-            android:text="@string/nome_de_utilizador"
-            android:textColor="#006400"
-            android:textStyle="bold"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
-        />
+            android:text="@string/nome_de_utilizador"
+            android:textColor="#006400"
+            android:textStyle="bold" />
 
         <EditText
             android:id="@+id/etUsername"
-            android:hint="@string/digite_o_seu_utilizador"
-            android:background="@drawable/edittext_bg"
-            android:padding="12dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/edittext_bg"
+            android:hint="@string/digite_o_seu_utilizador"
             android:inputType="text"
-        />
+            android:padding="12dp" />
 
         <!-- Campo palavra-passe -->
         <TextView
-            android:text="@string/palavra_passe"
-            android:textColor="#006400"
-            android:textStyle="bold"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="4dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-        />
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp"
+            android:text="@string/palavra_passe"
+            android:textColor="#006400"
+            android:textStyle="bold" />
 
         <EditText
             android:id="@+id/etPassword"
-            android:hint="@string/digite_a_sua_palavra_passe"
-            android:background="@drawable/edittext_bg"
-            android:padding="12dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/edittext_bg"
+            android:hint="@string/digite_a_sua_palavra_passe"
             android:inputType="textPassword"
-        />
+            android:padding="12dp" />
 
         <!-- Botão de login -->
         <Button
             android:id="@+id/btnLogin"
-            android:text="@string/login"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold"
-            android:textSize="20sp"
-            android:backgroundTint="#009E4D"
-            android:padding="12dp"
-            android:layout_marginTop="28dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-        />
+            android:layout_marginTop="28dp"
+            android:backgroundTint="#009E4D"
+            android:padding="12dp"
+            android:text="@string/login"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
     </LinearLayout>
 </FrameLayout>
