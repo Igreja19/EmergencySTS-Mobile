@@ -16,13 +16,13 @@
         android:usesCleartextTraffic="true">
 
         <activity
-            android:name=".EnfermeiroActivity"
+            android:name=".activities.EnfermeiroActivity"
             android:exported="false" />
         <activity
-            android:name=".PacienteActivity"
+            android:name=".activities.PacienteActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".activities.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

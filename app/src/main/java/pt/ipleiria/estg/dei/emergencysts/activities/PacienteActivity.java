@@ -1,13 +1,11 @@
-package pt.ipleiria.estg.dei.emergencysts;
+package pt.ipleiria.estg.dei.emergencysts.activities;
 
 import android.os.Bundle;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+
+import pt.ipleiria.estg.dei.emergencysts.R;
 
 public class PacienteActivity extends AppCompatActivity {
 

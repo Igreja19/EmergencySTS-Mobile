@@ -1,4 +1,4 @@
-package pt.ipleiria.estg.dei.emergencysts;
+package pt.ipleiria.estg.dei.emergencysts.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,21 +9,22 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import pt.ipleiria.estg.dei.emergencysts.R;
+import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
+
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etUsername, etPassword;
     private Button btnLogin;
 
-    // ⚙️ Endpoint da API (Yii2)
+    // ⚙️ URL da API de login (emulador usa 10.0.2.2, dispositivo físico usa IP da máquina)
     private static final String URL_LOGIN = "http://10.0.2.2/platf/EmergencySTS/advanced/backend/web/api/auth/login";
 
     @Override
@@ -47,6 +48,7 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
+        // 🔹 Pedido HTTP à API
         StringRequest request = new StringRequest(
                 Request.Method.POST,
                 URL_LOGIN,
@@ -58,6 +60,7 @@ public class LoginActivity extends AppCompatActivity {
 
                         if (status) {
                             JSONObject data = json.optJSONObject("data");
+
                             if (data != null) {
                                 int userId = data.optInt("id", -1);
                                 String role = data.optString("role", "paciente");
@@ -66,7 +69,7 @@ public class LoginActivity extends AppCompatActivity {
 
                                 Toast.makeText(this, "Login efetuado com sucesso!", Toast.LENGTH_SHORT).show();
 
-                                // 🔹 Decide para onde vai
+                                // 🔹 Decide o ecrã de destino consoante o role
                                 Intent intent;
                                 if (role.equalsIgnoreCase("enfermeiro") || role.equalsIgnoreCase("admin")) {
                                     intent = new Intent(this, EnfermeiroActivity.class);
@@ -74,7 +77,7 @@ public class LoginActivity extends AppCompatActivity {
                                     intent = new Intent(this, PacienteActivity.class);
                                 }
 
-                                // 🔹 Passa os dados do utilizador
+                                // 🔹 Envia dados para o próximo ecrã
                                 intent.putExtra("user_id", userId);
                                 intent.putExtra("username", nome);
                                 intent.putExtra("role", role);
@@ -101,9 +104,13 @@ public class LoginActivity extends AppCompatActivity {
                 params.put("password", password);
                 return params;
             }
+            @Override
+            public String getBodyContentType() {
+                return "application/x-www-form-urlencoded; charset=UTF-8";
+            }
         };
 
-        RequestQueue queue = Volley.newRequestQueue(this);
-        queue.add(request);
+        // Usa o Singleton para adicionar o pedido
+        VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
 }
