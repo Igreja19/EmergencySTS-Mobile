@@ -68,7 +68,7 @@ public class LoginActivity extends AppCompatActivity {
 
                                 // 🔹 Decide para onde vai
                                 Intent intent;
-                                if (role.equalsIgnoreCase("enfermeiro")) {
+                                if (role.equalsIgnoreCase("enfermeiro") || role.equalsIgnoreCase("admin")) {
                                     intent = new Intent(this, EnfermeiroActivity.class);
                                 } else {
                                     intent = new Intent(this, PacienteActivity.class);

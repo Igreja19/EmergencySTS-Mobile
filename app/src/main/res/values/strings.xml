@@ -11,4 +11,8 @@
     <string name="ver_historico">Ver Histórico</string>
     <string name="ver_perfil">Ver Perfil</string>
     <string name="area_do_enfermeiro">Área do Enfermeiro</string>
+    <string name="historico_triagem">Histórico Triagem</string>
+    <string name="consultar_paciente">Consultar Paciente</string>
+    <string name="mostrar_pulseira">Mostrar Pulseiras</string>
+    <string name="perfil">Ver Perfil</string>
 </resources>
