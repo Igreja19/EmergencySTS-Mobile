@@ -6,11 +6,10 @@
     android:layout_height="match_parent"
     tools:context=".activities.LoginActivity">
 
-    <!-- 🔹 Fundo gradiente (classe customizada) -->
+    <!-- 🔹 Fundo gradiente -->
     <pt.ipleiria.estg.dei.emergencysts.GradientView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-    />
+        android:layout_height="match_parent" />
 
     <!-- 🔹 Conteúdo principal -->
     <LinearLayout
@@ -30,11 +29,11 @@
             android:layout_marginBottom="16dp"
             app:srcCompat="@drawable/logo" />
 
+        <!-- Espaço -->
         <Space
             android:layout_width="match_parent"
-            android:layout_height="50dp">
+            android:layout_height="50dp" />
 
-        </Space>
         <!-- Campo utilizador -->
         <TextView
             android:layout_width="match_parent"
@@ -51,13 +50,13 @@
             android:background="@drawable/edittext_bg"
             android:hint="@string/digite_o_seu_utilizador"
             android:inputType="text"
-            android:padding="12dp" />
+            android:padding="12dp"
+            android:layout_marginBottom="16dp" />
 
         <!-- Campo palavra-passe -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:layout_marginBottom="4dp"
             android:text="@string/palavra_passe"
             android:textColor="#006400"

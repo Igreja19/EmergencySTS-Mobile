@@ -84,7 +84,6 @@ public class LoginActivity extends AppCompatActivity {
                                 intent.putExtra("auth_key", authKey);
 
                                 startActivity(intent);
-                                finish();
                             }
                         } else {
                             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

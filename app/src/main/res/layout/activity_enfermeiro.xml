@@ -4,14 +4,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.PacienteActivity">
+    tools:context=".activities.EnfermeiroActivity">
 
     <!-- 🔹 Fundo gradiente -->
     <pt.ipleiria.estg.dei.emergencysts.GradientView
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 🔹 ScrollView para permitir rolagem -->
+    <!-- 🔹 Toolbar transparente sobre o gradiente -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp"
+        app:navigationIcon="@drawable/ic_voltaratras"
+        app:navigationIconTint="@android:color/white"/>
+
+    <!-- 🔹 Conteúdo rolável -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -22,10 +33,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:gravity="center"
             android:orientation="vertical"
+            android:gravity="center"
             android:paddingHorizontal="32dp"
-            android:paddingTop="16dp"
+            android:paddingTop="64dp"
             android:paddingBottom="24dp">
 
             <!-- 🔸 Título -->
@@ -33,7 +44,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:background="@android:color/transparent"
                 android:gravity="center"
                 android:text="@string/emergency_sts"
                 android:textColor="#006400"
@@ -45,13 +55,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                android:background="@android:color/transparent"
                 android:gravity="center"
                 android:text="@string/area_do_enfermeiro"
                 android:textColor="#006400"
                 android:textSize="14sp" />
 
-            <!-- 🔸 Cartão: Ver Pulseira -->
+            <!-- 🔸 Cartão: Mostrar Pulseiras -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardMostrarPulseira"
                 android:layout_width="match_parent"
@@ -65,10 +74,10 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="28dp">
+                    android:gravity="center"
+                    android:padding="28dp"
+                    android:foreground="?attr/selectableItemBackground">
 
                     <ImageView
                         android:layout_width="56dp"
@@ -100,10 +109,10 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="28dp">
+                    android:gravity="center"
+                    android:padding="28dp"
+                    android:foreground="?attr/selectableItemBackground">
 
                     <ImageView
                         android:layout_width="56dp"
@@ -135,16 +144,16 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="28dp">
+                    android:gravity="center"
+                    android:padding="28dp"
+                    android:foreground="?attr/selectableItemBackground">
 
                     <ImageView
                         android:layout_width="56dp"
                         android:layout_height="56dp"
                         android:layout_marginBottom="8dp"
-                        android:src="@drawable/ic_perfil"
+                        android:src="@drawable/ic_historico"
                         app:tint="#009E4D" />
 
                     <TextView
@@ -169,10 +178,10 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="28dp">
+                    android:gravity="center"
+                    android:padding="28dp"
+                    android:foreground="?attr/selectableItemBackground">
 
                     <ImageView
                         android:layout_width="56dp"
@@ -189,7 +198,6 @@
                         android:textStyle="bold" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-
         </LinearLayout>
     </ScrollView>
 </FrameLayout>
