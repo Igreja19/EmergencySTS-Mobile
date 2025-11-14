@@ -1,0 +1,6 @@
+<resources>
+    <color name="green_700">#009E4D</color>   <!-- Verde principal -->
+    <color name="green_900">#006400</color>   <!-- Verde escuro -->
+    <color name="green_light">#E4FFF5</color> <!-- Fundo claro (opcional) -->
+    <color name="white">#FFFFFF</color>
+</resources>
