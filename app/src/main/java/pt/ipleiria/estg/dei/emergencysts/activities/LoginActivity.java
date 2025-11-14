@@ -25,7 +25,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnLogin;
 
     // ⚙️ URL da API de login (emulador usa 10.0.2.2, dispositivo físico usa IP da máquina)
-    private static final String URL_LOGIN = "http://10.0.2.2/platf/EmergencySTS/advanced/backend/web/api/auth/login";
+    private static final String URL_LOGIN = "http://10.251.137.67/pws/EmergencySTS/advanced/backend/web/api/auth/login";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

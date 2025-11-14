@@ -8,9 +8,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
-import pt.ipleiria.estg.dei.emergencysts.HistoricoActivity;
-import pt.ipleiria.estg.dei.emergencysts.PerfilPacienteActivity;
-import pt.ipleiria.estg.dei.emergencysts.PulseiraActivity;
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 

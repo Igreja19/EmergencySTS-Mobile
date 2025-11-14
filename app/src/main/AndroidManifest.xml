@@ -15,17 +15,17 @@
         android:theme="@style/Theme.EmergencySTS"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".MostrarPulseiraActivity"
+            android:name=".activities.MostrarPulseiraActivity"
             android:exported="false" />
         <!-- 🔹 Activities -->
         <activity
-            android:name=".PerfilPacienteActivity"
+            android:name=".activities.PerfilPacienteActivity"
             android:exported="false" />
         <activity
-            android:name=".HistoricoActivity"
+            android:name=".activities.HistoricoActivity"
             android:exported="false" />
         <activity
-            android:name=".PulseiraActivity"
+            android:name=".activities.PulseiraActivity"
             android:exported="false" />
         <activity
             android:name=".activities.EnfermeiroActivity"
