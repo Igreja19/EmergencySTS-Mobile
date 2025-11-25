@@ -25,7 +25,7 @@
             android:name=".activities.HistoricoActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.PulseiraActivity"
+            android:name=".activities.PulseirasActivity"
             android:exported="false" />
         <activity
             android:name=".activities.EnfermeiroActivity"

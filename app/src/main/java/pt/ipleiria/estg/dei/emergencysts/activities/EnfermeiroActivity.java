@@ -24,8 +24,10 @@ public class EnfermeiroActivity extends AppCompatActivity {
         cardPerfil = findViewById(R.id.cardPerfil);
 
         // 🔹 Ações
-        cardMostrarPulseira.setOnClickListener(v ->
-                Toast.makeText(this, "Abrir lista de pulseiras", Toast.LENGTH_SHORT).show());
+        cardMostrarPulseira.setOnClickListener(v -> {
+            Intent intent = new Intent(this, PulseirasActivity.class);
+            startActivity(intent);
+        });
         cardConsultarPaciente.setOnClickListener(v ->
                 Toast.makeText(this, "Abrir consulta de paciente", Toast.LENGTH_SHORT).show());
         cardHistoricoTriagem.setOnClickListener(v ->
