@@ -66,7 +66,7 @@ public class PulseiraAdapter extends BaseAdapter {
 
         holder.tvHora.setText(pulseira.getHora() != null ? pulseira.getHora() : "--:--");
 
-        holder.tvStatus.setText("Pendente");
+        holder.tvStatus.setText(pulseira.getPrioridade());
         holder.tvStatus.setBackgroundResource(R.drawable.bg_chip_pendente);
         holder.imgDot.setColorFilter(Color.parseColor("#9E9E9E"));
 

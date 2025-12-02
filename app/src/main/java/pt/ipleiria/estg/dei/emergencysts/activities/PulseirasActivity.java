@@ -1,5 +1,8 @@
 package pt.ipleiria.estg.dei.emergencysts.activities;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ListView;
@@ -40,6 +43,20 @@ public class PulseirasActivity extends AppCompatActivity {
         adapter = new PulseiraAdapter(this, pulseiras);
         listViewPulseiras.setAdapter(adapter);
 
+        listViewPulseiras.setOnItemClickListener((parent, view, position, id) -> {
+            Pulseira pulseiraSelecionada = pulseiras.get(position);
+
+            Intent intent = new Intent(PulseirasActivity.this, AtribuirPulseiraActivity.class);
+            // Passa o ID para a nova activity saber qual carregar
+            intent.putExtra("pulseira_id", pulseiraSelecionada.getId());
+
+            startActivity(intent);
+        });
+
+    }
+
+    protected void onResume() {
+        super.onResume();
         getPulseiras();
     }
 
@@ -49,8 +66,7 @@ public class PulseirasActivity extends AppCompatActivity {
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
         String accessToken = SharedPrefManager.getInstance(this).getKeyAccessToken();
 
-        // Garante que o URL está correto (ajusta se a tua API usar outro endpoint)
-        String url = baseUrl + "api/pulseira?status=Em%20espera&prioridade=Pendente&access-token=" + accessToken;
+        String url = baseUrl + "api/pulseira?status=Em%20espera&prioridade=Pendente&expand=userprofile&access-token=" + accessToken;
 
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
@@ -58,12 +74,12 @@ public class PulseirasActivity extends AppCompatActivity {
                 null,
                 response -> {
                     try {
+                        //  LER A CAIXA "DATA"
                         JSONArray data = null;
                         if (response.has("data")) {
                             data = response.getJSONArray("data");
                         } else {
-                            // Se a API retornar a lista diretamente sem "data"
-                            // data = response; // (depende da estrutura exata do JSON)
+                            data = response.optJSONArray("items");
                         }
 
                         if (data != null) {
@@ -74,50 +90,34 @@ public class PulseirasActivity extends AppCompatActivity {
                                 String nomePaciente = "Sem Nome";
                                 String snsPaciente = "---";
 
-                                // 1. Buscar dados do Paciente (Objeto aninhado)
-                                if (pulseiraJson.has("paciente") && !pulseiraJson.isNull("paciente")) {
-                                    JSONObject pacienteJson = pulseiraJson.getJSONObject("paciente");
+                                JSONObject userProfile = pulseiraJson.optJSONObject("userprofile");
 
-                                    // CORREÇÃO: Usa os nomes exatos da tua base de dados
-                                    nomePaciente = pacienteJson.optString("nome", "Desconhecido");
+                                if (userProfile != null) {
+                                    // Tenta ler o 'nome', se não tiver, tenta 'username'
+                                    nomePaciente = userProfile.optString("nome");
+                                    if (nomePaciente.isEmpty()) nomePaciente = userProfile.optString("username", "Desconhecido");
 
-                                    // Tenta buscar "sns". Se vier null ou "null", fica "---"
-                                    String tempSns = pacienteJson.optString("sns");
+                                    String tempSns = userProfile.optString("sns");
                                     if (tempSns != null && !tempSns.equals("null") && !tempSns.isEmpty()) {
                                         snsPaciente = tempSns;
                                     }
                                 }
 
-                                // 2. Tentar obter a Hora da Pulseira
-                                // Procura por campos comuns de data. Ajusta "created_at" ou "data_criacao" conforme a tua API.
+                                // DATA/HORA
                                 String rawDate = pulseiraJson.optString("tempoentrada");
-                                if (rawDate.isEmpty()) rawDate = pulseiraJson.optString("data_criacao");
-
                                 String horaFormatada = "--:--";
-                                if (!rawDate.isEmpty()) {
-                                    // Pequena lógica para extrair apenas a hora (HH:mm) da string de data
-                                    try {
-                                        // Assume formato ISO "YYYY-MM-DD HH:mm:ss"
-                                        if (rawDate.length() >= 16) {
-                                            horaFormatada = rawDate.substring(11, 16);
-                                        }
-                                    } catch (Exception e) {
-                                        horaFormatada = "??:??";
-                                    }
-                                } else {
-                                    // Se não houver data na API, usamos a hora atual do sistema como fallback
-                                    android.icu.text.SimpleDateFormat sdf = new android.icu.text.SimpleDateFormat("HH:mm");
-                                    horaFormatada = sdf.format(new java.util.Date());
+                                if (!rawDate.isEmpty() && rawDate.length() >= 16) {
+                                    horaFormatada = rawDate.substring(11, 16);
                                 }
 
-                                // 3. Criar o objeto com DADOS REAIS
+                                //  CRIAR OBJETO
                                 Pulseira pulseira = new Pulseira(
                                         pulseiraJson.optString("id"),
                                         pulseiraJson.optString("prioridade"),
                                         pulseiraJson.optString("status"),
                                         nomePaciente,
-                                        snsPaciente,     // Agora passa o SNS real
-                                        horaFormatada    // Agora passa a hora
+                                        snsPaciente,
+                                        horaFormatada
                                 );
                                 pulseiras.add(pulseira);
                             }
@@ -125,12 +125,12 @@ public class PulseirasActivity extends AppCompatActivity {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Toast.makeText(this, "Erro ao processar dados", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Erro ao processar lista", Toast.LENGTH_SHORT).show();
                     }
                     progressBar.setVisibility(View.GONE);
                 },
                 error -> {
-                    Toast.makeText(this, "Erro de rede: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Erro de rede", Toast.LENGTH_SHORT).show();
                     progressBar.setVisibility(View.GONE);
                 }
         );

@@ -14,5 +14,7 @@
     <string name="historico_triagem">Histórico Triagem</string>
     <string name="consultar_paciente">Consultar Paciente</string>
     <string name="mostrar_pulseira">Mostrar Pulseiras</string>
+    <string name="pulseiras_pendentes">Pulseiras pendentes</string>
+    <string name="pacientes_em_espera">Pacientes em espera</string>
     <string name="perfil">Ver Perfil</string>
 </resources>

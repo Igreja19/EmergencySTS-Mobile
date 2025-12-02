@@ -14,12 +14,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EmergencySTS"
         android:usesCleartextTraffic="true">
-        <activity
-            android:name=".activities.MostrarPulseiraActivity"
-            android:exported="false" />
         <!-- 🔹 Activities -->
         <activity
             android:name=".activities.PerfilPacienteActivity"
+            android:exported="false" />
+        <activity android:name=".activities.AtribuirPulseiraActivity"
             android:exported="false" />
         <activity
             android:name=".activities.HistoricoActivity"
