@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -47,44 +48,37 @@ public class PulseiraAdapter extends BaseAdapter {
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.item_pulseira, parent, false);
             holder = new ViewHolder();
-            holder.textViewNomePaciente = convertView.findViewById(R.id.textViewNomePaciente);
-            holder.textViewPrioridade = convertView.findViewById(R.id.textViewPrioridade);
+            holder.tvNome = convertView.findViewById(R.id.tvNome);
+            holder.tvSNS = convertView.findViewById(R.id.tvSNS);
+            holder.tvHora = convertView.findViewById(R.id.tvHora);
+            holder.tvStatus = convertView.findViewById(R.id.tvStatus);
+            holder.imgDot = convertView.findViewById(R.id.imgDot);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
         Pulseira pulseira = pulseiras.get(position);
-        holder.textViewNomePaciente.setText(pulseira.getNomePaciente());
-        holder.textViewPrioridade.setText(pulseira.getPrioridade());
 
-        // Define a cor do texto com base na prioridade
-        switch (pulseira.getPrioridade().toLowerCase()) {
-            case "vermelho":
-                holder.textViewPrioridade.setTextColor(Color.RED);
-                break;
-            case "laranja":
-                holder.textViewPrioridade.setTextColor(Color.rgb(255, 165, 0));
-                break;
-            case "amarelo":
-                holder.textViewPrioridade.setTextColor(Color.YELLOW);
-                break;
-            case "verde":
-                holder.textViewPrioridade.setTextColor(Color.GREEN);
-                break;
-            case "azul":
-                holder.textViewPrioridade.setTextColor(Color.BLUE);
-                break;
-            default:
-                holder.textViewPrioridade.setTextColor(Color.BLACK);
-                break;
-        }
+        holder.tvNome.setText(pulseira.getNomePaciente());
+
+        holder.tvSNS.setText("SNS: " + (pulseira.getSns() != null ? pulseira.getSns() : "---"));
+
+        holder.tvHora.setText(pulseira.getHora() != null ? pulseira.getHora() : "--:--");
+
+        holder.tvStatus.setText("Pendente");
+        holder.tvStatus.setBackgroundResource(R.drawable.bg_chip_pendente);
+        holder.imgDot.setColorFilter(Color.parseColor("#9E9E9E"));
+
 
         return convertView;
     }
 
     private static class ViewHolder {
-        TextView textViewNomePaciente;
-        TextView textViewPrioridade;
+        TextView tvNome;
+        TextView tvSNS;
+        TextView tvHora;
+        TextView tvStatus;
+        ImageView imgDot;
     }
 }
