@@ -6,6 +6,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
+
+import pt.ipleiria.estg.dei.emergencysts.ConsultarPaciente;
 import pt.ipleiria.estg.dei.emergencysts.R;
 
 public class EnfermeiroActivity extends AppCompatActivity {
@@ -28,8 +30,10 @@ public class EnfermeiroActivity extends AppCompatActivity {
             Intent intent = new Intent(this, PulseirasActivity.class);
             startActivity(intent);
         });
-        cardConsultarPaciente.setOnClickListener(v ->
-                Toast.makeText(this, "Abrir consulta de paciente", Toast.LENGTH_SHORT).show());
+        cardConsultarPaciente.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ConsultarPaciente.class);
+            startActivity(intent);
+        });
         cardHistoricoTriagem.setOnClickListener(v ->
                 Toast.makeText(this, "Abrir histórico de triagens", Toast.LENGTH_SHORT).show());
         cardPerfil.setOnClickListener(v ->
