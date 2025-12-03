@@ -15,9 +15,14 @@
         android:theme="@style/Theme.EmergencySTS"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".ConsultarPaciente"
+            android:name=".activities.PerfilActivity"
             android:exported="false" />
-        <!-- 🔹 Activities -->
+        <activity
+            android:name=".activities.DetalhesPacienteActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.ConsultarPacienteActivity"
+            android:exported="false" />
         <activity
             android:name=".activities.PerfilPacienteActivity"
             android:exported="false" />

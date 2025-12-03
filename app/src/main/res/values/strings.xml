@@ -18,4 +18,5 @@
     <string name="pacientes_em_espera">Pacientes em espera</string>
     <string name="perfil">Ver Perfil</string>
     <string name="digite_um_nif_para_pesquisar">Digite um NIF para pesquisar</string>
+    <string name="logout">Logout</string>
 </resources>

@@ -1,5 +1,6 @@
-package pt.ipleiria.estg.dei.emergencysts;
+package pt.ipleiria.estg.dei.emergencysts.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
@@ -18,13 +20,15 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
-public class ConsultarPaciente extends AppCompatActivity {
+public class ConsultarPacienteActivity extends AppCompatActivity {
 
     private EditText edtNif;
-    private LinearLayout emptyState, resultCard;
+    private LinearLayout emptyState;
+    private CardView resultCard;
     private TextView tvNome, tvNif, tvSns;
     private ImageView btnBack;
 
@@ -44,7 +48,7 @@ public class ConsultarPaciente extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
 
-        // Quando escrever 9 dígitos → procurar
+        // Quando escrever 9 dígitos
         edtNif.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
@@ -52,16 +56,12 @@ public class ConsultarPaciente extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 String nif = s.toString();
-
                 if (nif.isEmpty()) {
                     emptyState.setVisibility(View.VISIBLE);
                     resultCard.setVisibility(View.GONE);
                     return;
                 }
-
-                if (nif.length() == 9) {
-                    searchPaciente(nif);
-                }
+                if (nif.length() == 9) searchPaciente(nif);
             }
         });
     }
@@ -74,13 +74,14 @@ public class ConsultarPaciente extends AppCompatActivity {
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
         String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
 
-        String url = baseUrl + "api/paciente?nif=" + nif + "&access-token=" + token;
+        // CORREÇÃO IMPORTANTE
+        String url = baseUrl + "api/paciente?nif=" + nif + "&auth_key=" + token;
 
         JsonArrayRequest request = new JsonArrayRequest(
                 Request.Method.GET,
                 url,
                 null,
-                response -> handleResponse(response),
+                this::handleResponse,
                 error -> showNotFound()
         );
 
@@ -88,24 +89,45 @@ public class ConsultarPaciente extends AppCompatActivity {
     }
 
     private void handleResponse(JSONArray array) {
-        if (array.length() == 0) {
-            showNotFound();
-            return;
-        }
+
+        System.out.println("🔥 JSON RECEBIDO: " + array.toString());
+
+        if (array.length() == 0) { showNotFound(); return; }
 
         try {
             JSONObject data = array.getJSONObject(0);
 
-            String nome = data.optString("nome", "Desconhecido");
-            String nif = data.optString("nif", "---");
-            String sns = data.optString("sns", "---");
+            // Tenta ler de userprofile OU do root
+            JSONObject u = data.optJSONObject("userprofile");
+            if (u == null) u = data;
 
+            final String nome     = u.optString("nome", "Desconhecido");
+            final String nif      = u.optString("nif", "---");
+            final String sns      = u.optString("sns", "---");
+            final String telefone = u.optString("telefone", "---");
+            final String morada   = u.optString("morada", "---");
+            final String genero   = u.optString("genero", "---");
+            final String dataNasc = u.optString("datanascimento", "---");
+
+            // Atualizar UI
             tvNome.setText(nome);
             tvNif.setText("NIF: " + nif);
             tvSns.setText("SNS: " + sns);
 
             resultCard.setVisibility(View.VISIBLE);
             emptyState.setVisibility(View.GONE);
+
+            resultCard.setOnClickListener(v -> {
+                Intent intent = new Intent(ConsultarPacienteActivity.this, DetalhesPacienteActivity.class);
+                intent.putExtra("nome", nome);
+                intent.putExtra("nif", nif);
+                intent.putExtra("sns", sns);
+                intent.putExtra("telefone", telefone);
+                intent.putExtra("morada", morada);
+                intent.putExtra("genero", genero);
+                intent.putExtra("datanascimento", dataNasc);
+                startActivity(intent);
+            });
 
         } catch (Exception e) {
             e.printStackTrace();
