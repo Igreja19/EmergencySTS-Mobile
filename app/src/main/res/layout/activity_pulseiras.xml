@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".activities.PulseirasActivity">
 
     <pt.ipleiria.estg.dei.emergencysts.GradientView
@@ -14,24 +15,48 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingTop="32dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
 
+        <!-- Linha: seta + título -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_voltaratras"
+                app:tint="@android:color/white"
+                android:padding="4dp"/>
+
+            <TextView
+                android:id="@+id/txtTitulo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="@string/pulseiras_pendentes"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+        <!-- Subtítulo -->
         <TextView
+            android:id="@+id/txtSubtitulo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/pulseiras_pendentes"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
-            android:textColor="@android:color/white"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
             android:text="@string/pacientes_em_espera"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"
+            android:textSize="14sp"/>
     </LinearLayout>
+
 
     <ListView
         android:id="@+id/listViewPulseiras"
@@ -39,8 +64,8 @@
         android:layout_height="match_parent"
         android:layout_below="@id/header_layout"
         android:clipToPadding="false"
-        android:divider="@null"
-        android:dividerHeight="0dp"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="16dp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingBottom="16dp"

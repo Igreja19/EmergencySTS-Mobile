@@ -5,6 +5,7 @@ import static androidx.core.content.ContextCompat.startActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -36,6 +37,9 @@ public class PulseirasActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pulseiras);
+
+        ImageView btnback = findViewById(R.id.btnBack);
+        btnback.setOnClickListener(v -> finish());
 
         listViewPulseiras = findViewById(R.id.listViewPulseiras);
         progressBar = findViewById(R.id.progressBar);

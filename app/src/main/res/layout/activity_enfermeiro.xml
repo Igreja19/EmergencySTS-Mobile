@@ -11,17 +11,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 🔹 Toolbar transparente sobre o gradiente -->
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        android:paddingTop="16dp"
-        android:paddingBottom="8dp"
-        app:navigationIcon="@drawable/ic_voltaratras"
-        app:navigationIconTint="@android:color/white"/>
-
     <!-- 🔹 Conteúdo rolável -->
     <ScrollView
         android:layout_width="match_parent"
