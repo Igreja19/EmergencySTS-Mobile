@@ -2,6 +2,7 @@ package pt.ipleiria.estg.dei.emergencysts.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
+import pt.ipleiria.estg.dei.emergencysts.modelo.User;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
@@ -30,105 +32,84 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        // Se já tiver token, vai direto para a Activity correta sem pedir pass
+        if (SharedPrefManager.getInstance(this).isLoggedIn()) {
+            User user = SharedPrefManager.getInstance(this).getUser();
+            redirecionarPorRole(user.getRole());
+            return;
+        }
+
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
-        btnLogin   = findViewById(R.id.btnLogin);
+        btnLogin = findViewById(R.id.btnLogin);
 
-        // Define o URL base do servidor (para o emulador é 10.0.2.2)
-        SharedPrefManager.getInstance(this).saveServerUrl("http://10.0.2.2/EmergencySTS/advanced/backend/web/");
 
         btnLogin.setOnClickListener(v -> loginUser());
     }
 
     private void loginUser() {
-        // Obtemos os textos dos campos
         final String username = etUsername.getText().toString().trim();
         final String password = etPassword.getText().toString().trim();
 
-        // Validação simples
         if (username.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Preencha todos os campos", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Montar o URL
         String url = SharedPrefManager.getInstance(this).getServerUrl() + "api/auth/login";
 
-        StringRequest request = new StringRequest(
-                Request.Method.POST,
-                url,
+        StringRequest request = new StringRequest(Request.Method.POST, url,
                 response -> {
                     try {
-                        // DEBUG: Para ver no Logcat o que o servidor respondeu
-                        System.out.println("LOGIN RESPOSTA: " + response);
-
                         JSONObject json = new JSONObject(response);
                         boolean status = json.optBoolean("status", false);
 
                         if (status) {
+                            // A tua API devolve os dados dentro de "data"
                             JSONObject data = json.optJSONObject("data");
 
                             if (data != null) {
-                                // CORREÇÃO 1: O seu JSON usa "user_id", não "id"
+                                // 1. LER DADOS (Mantendo a tua lógica robusta)
                                 int userId = data.optInt("user_id", -1);
-                                if (userId == -1) {
-                                    userId = data.optInt("id", -1); // Fallback
-                                }
+                                if (userId == -1) userId = data.optInt("id", -1);
 
-                                // CORREÇÃO 2: O seu JSON usa "token", não "access_token"
-                                String accessToken = data.optString("token");
-
-                                // Caso a API mude no futuro, mantemos estas tentativas:
-                                if (accessToken.isEmpty()) {
-                                    accessToken = data.optString("access_token");
-                                }
-                                if (accessToken.isEmpty()) {
-                                    accessToken = data.optString("auth_key");
-                                }
+                                String token = data.optString("token");
+                                if (token.isEmpty()) token = data.optString("access_token");
+                                if (token.isEmpty()) token = data.optString("auth_key");
 
                                 String role = data.optString("role", "paciente");
+                                String email = data.optString("email", ""); // Se a API enviar email
 
-                                // Validação do Token
-                                if (accessToken.isEmpty()) {
-                                    Toast.makeText(this, "Erro: Token não encontrado na resposta!", Toast.LENGTH_LONG).show();
+                                if (token.isEmpty()) {
+                                    Toast.makeText(this, "Erro: Token inválido", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
 
-                                System.out.println("TOKEN GUARDADO: " + accessToken);
+                                // 2. CRIAR OBJETO USER (Isto é o que muda!)
+                                // Estamos a criar o objeto para guardar de forma estruturada
+                                User user = new User(userId, username, email, role);
 
-                                // Guardar na memória do telemóvel
-                                SharedPrefManager.getInstance(this).saveUser(userId, username, role, accessToken);
+                                // 3. GUARDAR SESSÃO (Usando o novo método userLogin)
+                                SharedPrefManager.getInstance(this).userLogin(user, token);
 
-                                Toast.makeText(this, "Login efetuado com sucesso!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, "Bem-vindo " + username + "!", Toast.LENGTH_SHORT).show();
 
-                                // Redirecionar
-                                Intent intent;
-                                if (role.equalsIgnoreCase("enfermeiro") || role.equalsIgnoreCase("admin")) {
-                                    intent = new Intent(this, EnfermeiroActivity.class);
-                                } else {
-                                    // Certifique-se que tem a PacienteActivity criada
-                                    intent = new Intent(this, PacienteActivity.class);
-                                }
-                                startActivity(intent);
-                                finish(); // Fecha o Login para não voltar atrás
+                                // 4. REDIRECIONAR
+                                redirecionarPorRole(role);
                             }
                         } else {
-                            String message = json.optString("message", "Credenciais Inválidas");
-                            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                            String msg = json.optString("message", "Dados incorretos"); // Tenta ler msg de erro da API
+                            if (msg.equals("null")) msg = "Credenciais Inválidas"; // Fallback visual
+                            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
                         }
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Toast.makeText(this, "Erro JSON: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Erro ao processar resposta", Toast.LENGTH_SHORT).show();
                     }
                 },
                 error -> {
-                    // Trata erro de rede
-                    String errMessage = "Erro de ligação ao servidor";
-                    if (error.networkResponse != null) {
-                        errMessage += " (Code " + error.networkResponse.statusCode + ")";
-                    }
-                    Toast.makeText(this, errMessage, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Erro de ligação ao servidor", Toast.LENGTH_SHORT).show();
                 }
         ) {
             @Override
@@ -138,13 +119,19 @@ public class LoginActivity extends AppCompatActivity {
                 params.put("password", password);
                 return params;
             }
-
-            @Override
-            public String getBodyContentType() {
-                return "application/x-www-form-urlencoded; charset=UTF-8";
-            }
         };
 
         VolleySingleton.getInstance(this).addToRequestQueue(request);
+    }
+
+    private void redirecionarPorRole(String role) {
+        Intent intent;
+        if (role != null && (role.equalsIgnoreCase("enfermeiro") || role.equalsIgnoreCase("admin") || role.equalsIgnoreCase("medico"))) {
+            intent = new Intent(this, EnfermeiroActivity.class);
+        } else {
+            intent = new Intent(this, PacienteActivity.class);
+        }
+        startActivity(intent);
+        finish(); // Fecha o Login para não voltar para trás
     }
 }

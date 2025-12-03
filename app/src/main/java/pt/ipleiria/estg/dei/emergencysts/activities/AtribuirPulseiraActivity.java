@@ -21,7 +21,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
+import pt.ipleiria.estg.dei.emergencysts.modelo.Pulseira; // Importante
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
+import pt.ipleiria.estg.dei.emergencysts.utils.PulseiraJsonParser; // Importante
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
 public class AtribuirPulseiraActivity extends AppCompatActivity {
@@ -38,14 +40,44 @@ public class AtribuirPulseiraActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_atribuir_pulseira);
 
-        //  Inicializar as Views
-        // Dados Paciente
+        //inicializr views
+        inicializarCampos();
+
+        //  Configurar Spinner
+        String[] cores = {"Selecione a Prioridade...", "Vermelho", "Laranja", "Amarelo", "Verde", "Azul"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, cores);
+        spinnerPrioridade.setAdapter(adapter);
+
+        //  Receber ID e Carregar
+        pulseiraId = getIntent().getStringExtra("pulseira_id");
+        if (pulseiraId == null) {
+            Toast.makeText(this, "Erro: ID em falta", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        carregarDadosTriagem();
+
+        // Listeners
+        ImageView btnVoltar = findViewById(R.id.btnVoltar);
+        if (btnVoltar != null) btnVoltar.setOnClickListener(v -> finish());
+
+        btnAtribuir.setOnClickListener(v -> {
+            String prioridade = spinnerPrioridade.getSelectedItem().toString();
+            if (prioridade.equals("Selecione a Prioridade...")) {
+                Toast.makeText(this, "Selecione uma cor.", Toast.LENGTH_SHORT).show();
+            } else {
+                guardarAtribuicao(prioridade);
+            }
+        });
+    }
+
+    private void inicializarCampos() {
         etNome = findViewById(R.id.etNome);
         etDataNasc = findViewById(R.id.etDataNasc);
         etSNS = findViewById(R.id.etSNS);
         etTelefone = findViewById(R.id.etTelefone);
 
-        // Dados Triagem
         etMotivo = findViewById(R.id.etMotivo);
         etQueixa = findViewById(R.id.etQueixa);
         etDescricao = findViewById(R.id.etDescricao);
@@ -56,33 +88,6 @@ public class AtribuirPulseiraActivity extends AppCompatActivity {
 
         spinnerPrioridade = findViewById(R.id.spinnerPrioridade);
         btnAtribuir = findViewById(R.id.btnAtribuir);
-        ImageView btnVoltar = findViewById(R.id.btnVoltar);
-
-        //  Configurar Spinner
-        String[] cores = {"Selecione a Prioridade...", "Vermelho", "Laranja", "Amarelo", "Verde", "Azul"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, cores);
-        spinnerPrioridade.setAdapter(adapter);
-
-        // Receber ID
-        pulseiraId = getIntent().getStringExtra("pulseira_id");
-        if (pulseiraId == null) {
-            finish();
-            return;
-        }
-
-        carregarDadosTriagem();
-
-        // Listeners
-        btnVoltar.setOnClickListener(v -> finish());
-
-        btnAtribuir.setOnClickListener(v -> {
-            String prioridadeSelecionada = spinnerPrioridade.getSelectedItem().toString();
-            if (prioridadeSelecionada.equals("Selecione a Prioridade...")) {
-                Toast.makeText(this, "Selecione uma cor.", Toast.LENGTH_SHORT).show();
-            } else {
-                guardarAtribuicao(prioridadeSelecionada);
-            }
-        });
     }
 
     private void carregarDadosTriagem() {
@@ -93,45 +98,29 @@ public class AtribuirPulseiraActivity extends AppCompatActivity {
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
                 response -> {
-                    try {
-                        //  DESEMBRULHAR
-                        JSONObject dadosPulseira = response;
-                        if (response.has("data")) {
-                            dadosPulseira = response.getJSONObject("data");
-                        }
+                    //devolve objeto pulseira inteiro
+                    Pulseira p = PulseiraJsonParser.parserJsonPulseira(response);
 
-                        //  DADOS DO PACIENTE (Preencher os campos verdes)
-                        JSONObject userProfile = dadosPulseira.optJSONObject("userprofile");
+                    if (p != null) {
+                        // Preencher Dados do Paciente
+                        etNome.setText(p.getNomePaciente());
+                        etDataNasc.setText(p.getDataNascimento());
+                        etSNS.setText(p.getSns());
+                        etTelefone.setText(p.getTelefone());
 
-                        if (userProfile != null) {
-                            etNome.setText(userProfile.optString("nome", "Sem Nome"));
-                            etDataNasc.setText(userProfile.optString("datanascimento", "--"));
-                            etSNS.setText(userProfile.optString("sns", "--"));
-                            etTelefone.setText(userProfile.optString("telefone", "--"));
-                        } else {
-                            etNome.setText("Não encontrado");
-                        }
-
-                        // DADOS DA TRIAGEM
-                        JSONObject triagem = dadosPulseira.optJSONObject("triagem");
-
-                        if (triagem != null) {
-                            etMotivo.setText(triagem.optString("motivoconsulta", "-"));
-                            etQueixa.setText(triagem.optString("queixaprincipal", "-"));
-                            etDescricao.setText(triagem.optString("descricaosintomas", "-"));
-                            etInicio.setText(triagem.optString("iniciosintomas", "-"));
-                            etDor.setText(triagem.optString("intensidadedor", "-"));
-                            etAlergias.setText(triagem.optString("alergias", "Não"));
-                            etMedicacao.setText(triagem.optString("medicacao", "Nenhuma"));
-                        } else {
-                            etDescricao.setText("Sem dados de triagem.");
-                        }
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        // Preencher Triagem
+                        etMotivo.setText(p.getMotivo());
+                        etQueixa.setText(p.getQueixa());
+                        etDescricao.setText(p.getDescricao());
+                        etInicio.setText(p.getInicioSintomas());
+                        etDor.setText(p.getDor());
+                        etAlergias.setText(p.getAlergias());
+                        etMedicacao.setText(p.getMedicacao());
+                    } else {
+                        Toast.makeText(this, "Erro ao ler dados da pulseira", Toast.LENGTH_SHORT).show();
                     }
                 },
-                error -> Toast.makeText(this, "Erro API", Toast.LENGTH_SHORT).show()
+                error -> Toast.makeText(this, "Erro de ligação à API", Toast.LENGTH_SHORT).show()
         );
         VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
@@ -139,15 +128,14 @@ public class AtribuirPulseiraActivity extends AppCompatActivity {
     private void guardarAtribuicao(String cor) {
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
         String accessToken = SharedPrefManager.getInstance(this).getKeyAccessToken();
-
         String url = baseUrl + "api/pulseira/" + pulseiraId + "?access-token=" + accessToken;
 
         StringRequest request = new StringRequest(Request.Method.PUT, url,
                 response -> {
-                    Toast.makeText(this, "Atribuída com sucesso!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Pulseira atribuída com sucesso!", Toast.LENGTH_LONG).show();
                     finish();
                 },
-                error -> Toast.makeText(this, "Erro ao guardar", Toast.LENGTH_SHORT).show()
+                error -> Toast.makeText(this, "Erro ao guardar atribuição", Toast.LENGTH_SHORT).show()
         ) {
             @Override
             public Map<String, String> getHeaders() {
