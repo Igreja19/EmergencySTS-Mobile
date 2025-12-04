@@ -4,7 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import pt.ipleiria.estg.dei.emergencysts.activities.ConfigActivity;
+import pt.ipleiria.estg.dei.emergencysts.activities.EnfermeiroActivity;
 import pt.ipleiria.estg.dei.emergencysts.activities.LoginActivity;
+import pt.ipleiria.estg.dei.emergencysts.activities.PacienteActivity;
 import pt.ipleiria.estg.dei.emergencysts.modelo.User;
 
 public class SharedPrefManager {
@@ -17,6 +20,8 @@ public class SharedPrefManager {
     private static final String KEY_USERNAME = "key_username";
     private static final String KEY_EMAIL = "key_email";
     private static final String KEY_ROLE = "key_role";
+
+    private static final String KEY_SERVER_URL = "key_server_url";
 
     private static SharedPrefManager instance;
     private static Context ctx;
@@ -32,11 +37,10 @@ public class SharedPrefManager {
         return instance;
     }
 
-    // --- MÉTODOS DE LOGIN ---
 
-    /**
-     * Guarda os dados do utilizador (Objeto User) e o token
-     */
+    // -----------------------------
+    // 🔐 LOGIN E UTILIZADORES
+    // -----------------------------
     public void userLogin(User user, String accessToken) {
         SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -47,20 +51,14 @@ public class SharedPrefManager {
         editor.putString(KEY_ROLE, user.getRole());
         editor.putString(KEY_ACCESS_TOKEN, accessToken);
 
-        editor.apply(); // 'apply' é assíncrono e mais rápido que 'commit'
+        editor.apply();
     }
 
-    /**
-     * Verifica se o utilizador está logado (se tem token)
-     */
     public boolean isLoggedIn() {
         SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         return sharedPreferences.getString(KEY_ACCESS_TOKEN, null) != null;
     }
 
-    /**
-     * Recupera o Utilizador logado como um Objeto User
-     */
     public User getUser() {
         SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         return new User(
@@ -71,35 +69,84 @@ public class SharedPrefManager {
         );
     }
 
-    /**
-     * Devolve apenas o Token (para cabeçalhos de API)
-     */
     public String getKeyAccessToken() {
         SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         return sharedPreferences.getString(KEY_ACCESS_TOKEN, null);
     }
 
-    /**
-     * Faz Logout: limpa os dados e redireciona para o LoginActivity
-     */
     public void logout() {
         SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
         editor.apply();
 
-        // Redireciona para o Login e limpa o histórico de navegação
         Intent intent = new Intent(ctx, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         ctx.startActivity(intent);
     }
 
-    // --- ENDEREÇO DO SERVIDOR ---
 
-    // Podes manter o teu método dinâmico se preferires,
-    // mas aqui fica configurado para o IP que usaste anteriormente.
+    // -----------------------------
+    // 🌐 CONFIGURAÇÃO DO SERVIDOR
+    // -----------------------------
+    public void setServerUrl(String url) {
+        SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        sharedPreferences.edit().putString(KEY_SERVER_URL, url).apply();
+    }
+
     public String getServerUrl() {
-        // IP que usaste noutros ficheiros (Atualiza se mudar!)
-        return "http://10.0.2.2/EmergencySTS/advanced/backend/web/";
+        SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+
+        return sharedPreferences.getString(KEY_SERVER_URL,
+                "http://10.0.2.2/platf/EmergencySTS/advanced/backend/web/");
+    }
+
+    public boolean hasServerConfigured() {
+        SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        String url = sharedPreferences.getString(KEY_SERVER_URL, null);
+        return url != null && !url.isEmpty();
+    }
+
+
+    // -----------------------------
+    // 🚀 NOVO MÉTODO: NAVEGAÇÃO AO INICIAR A APP
+    // -----------------------------
+    public void navigateOnStart(Context context) {
+
+        // 1️⃣ NÃO TEM SERVIDOR CONFIGURADO → IR PARA CONFIG
+        if (!hasServerConfigured()) {
+            Intent i = new Intent(context, ConfigActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            context.startActivity(i);
+            return;
+        }
+
+        // 2️⃣ SERVIDOR OK, MAS UTILIZADOR NÃO LOGADO → LOGIN
+        if (!isLoggedIn()) {
+            Intent i = new Intent(context, LoginActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            context.startActivity(i);
+            return;
+        }
+
+        // 3️⃣ UTILIZADOR LOGADO → ABRIR ATIVIDADE POR ROLE
+        User user = getUser();
+        Intent next;
+
+        switch (user.getRole()) {
+            case "enfermeiro":
+                next = new Intent(context, EnfermeiroActivity.class);
+                break;
+
+            case "paciente":
+                next = new Intent(context, PacienteActivity.class);
+                break;
+
+            default:
+                next = new Intent(context, LoginActivity.class);
+        }
+
+        next.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        context.startActivity(next);
     }
 }

@@ -24,7 +24,9 @@ public class PerfilActivity extends AppCompatActivity {
         setContentView(R.layout.activity_perfil);
 
         // 🔗 Ligação ao XML
-        btnBack     = findViewById(R.id.btnBack);
+        btnBack = findViewById(R.id.btnBack);
+        ImageView btnSettings = findViewById(R.id.btnSettings);
+
         tvNome      = findViewById(R.id.tvNomeCompleto);
         tvEmail     = findViewById(R.id.tvEmail);
         tvDataNasc  = findViewById(R.id.tvDataNasc);
@@ -36,10 +38,16 @@ public class PerfilActivity extends AppCompatActivity {
 
         btnLogout   = findViewById(R.id.btnLogout);
 
-        // 🔙 Voltar atrás
+        // 🔙 Botão voltar
         btnBack.setOnClickListener(v -> finish());
 
-        // 📌 Carregar dados gravados localmente
+        // ⚙️ Botão configurações → abrir ConfigActivity
+        btnSettings.setOnClickListener(v -> {
+            Intent intent = new Intent(PerfilActivity.this, ConfigActivity.class);
+            startActivity(intent);
+        });
+
+        // 📌 Preencher dados locais
         carregarDadosLocais();
 
         // 🔐 Logout
@@ -49,14 +57,10 @@ public class PerfilActivity extends AppCompatActivity {
     }
 
     private void carregarDadosLocais() {
-
         User user = SharedPrefManager.getInstance(this).getUser();
 
-        if (user == null) {
-            return;
-        }
+        if (user == null) return;
 
-        // Evitar textos null
         tvNome.setText(user.getNomeCompleto() != null ? user.getNomeCompleto() : "---");
         tvEmail.setText(user.getEmail() != null ? user.getEmail() : "---");
         tvDataNasc.setText(user.getDataNascimento() != null ? user.getDataNascimento() : "---");

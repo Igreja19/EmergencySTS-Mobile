@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- 🔥 GRADIENT BACKGROUND -->
+    <pt.ipleiria.estg.dei.emergencysts.GradientView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- CONTEÚDO -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- ⭐ HEADER COM BOTÃO DE VOLTAR -->
+            <RelativeLayout
+                android:id="@+id/header"
+                android:layout_width="match_parent"
+                android:layout_height="90dp"
+                android:background="#12A84C"
+                android:paddingTop="20dp"
+                android:elevation="8dp">
+
+                <!-- Botão voltar -->
+                <ImageView
+                    android:id="@+id/btnBack"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_voltaratras"
+                    app:tint="#FFFFFF" />
+
+                <!-- Título -->
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:text="@string/configura_o_da_api"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:layout_centerVertical="true"
+                    android:layout_centerHorizontal="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+            </RelativeLayout>
+
+            <!-- ÍCONE DO SERVIDOR -->
+            <ImageView
+                android:src="@drawable/ic_server"
+                android:layout_gravity="center"
+                android:layout_marginBottom="16dp"
+                android:layout_width="80dp"
+                android:layout_height="80dp" />
+
+            <!-- TÍTULO DO CARTÃO -->
+            <TextView
+                android:text="Configuração do Servidor"
+                android:gravity="center"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp"
+                android:textColor="#333"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <!-- CARD CONFIG -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="20dp"
+                android:elevation="8dp"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <!-- CAMPO URL -->
+                    <TextView
+                        android:text="URL do Servidor"
+                        android:textColor="#333"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <EditText
+                        android:id="@+id/editServerUrl"
+                        android:background="@drawable/rounded_input"
+                        android:hint="ex.: http://192.168.1.100/EmergencySTS/advanced/backend/web/"
+                        android:padding="14dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:text="Introduz o endereço do servidor\nExemplo: 10.0.2.2 ou IP local da máquina"
+                        android:textColor="#777"
+                        android:textSize="12sp"
+                        android:layout_marginTop="6dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <!-- BOTÃO RESET -->
+                    <Button
+                        android:id="@+id/btnReset"
+                        android:text="Reset"
+                        android:layout_marginTop="20dp"
+                        android:background="@drawable/rounded_button_gray"
+                        android:textAllCaps="false"
+                        android:textColor="#FFF"
+                        android:padding="14dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <!-- BOTÃO GUARDAR -->
+                    <Button
+                        android:id="@+id/btnSave"
+                        android:text="Guardar Configuração"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/rounded_button"
+                        android:textAllCaps="false"
+                        android:textColor="#FFF"
+                        android:padding="14dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </ScrollView>
+
+</RelativeLayout>

@@ -19,4 +19,5 @@
     <string name="perfil">Ver Perfil</string>
     <string name="digite_um_nif_para_pesquisar">Digite um NIF para pesquisar</string>
     <string name="logout">Logout</string>
+    <string name="configura_o_da_api">Configuração da API</string>
 </resources>

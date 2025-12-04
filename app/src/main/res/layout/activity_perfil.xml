@@ -1,51 +1,64 @@
-<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 🎨 FUNDO GRADIENTE (cobre tudo) -->
+    <!-- Fundo GRADIENT -->
     <pt.ipleiria.estg.dei.emergencysts.GradientView
         android:id="@+id/gradientBg"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 📜 CONTEÚDO SCROLLAVEL -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="16dp"
         android:fillViewport="true">
 
-        <!-- COLUNA PRINCIPAL -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- 🔙 Cabeçalho -->
-            <LinearLayout
+            <!-- INSERE AQUI O HEADER NOVO -->
+            <!-- ⭐ HEADER MODERNO -->
+            <RelativeLayout
+                android:id="@+id/header"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:layout_height="60dp"
+                android:paddingHorizontal="12dp"
+                android:background="@android:color/transparent">
 
                 <ImageView
                     android:id="@+id/btnBack"
                     android:layout_width="28dp"
                     android:layout_height="28dp"
                     android:src="@drawable/ic_voltaratras"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
                     app:tint="#333" />
 
                 <TextView
+                    android:id="@+id/tvHeaderTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Perfil do Enfermeiro"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:layout_marginStart="12dp"
-                    android:textColor="#222" />
-            </LinearLayout>
+                    android:textColor="#222"
+                    android:layout_centerInParent="true" />
+
+                <ImageView
+                    android:id="@+id/btnSettings"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:src="@drawable/ic_settings"
+                    app:tint="#333"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true" />
+
+            </RelativeLayout>
+
 
             <!-- 🟢 Ícone grande no topo -->
             <LinearLayout
