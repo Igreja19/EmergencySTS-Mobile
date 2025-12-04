@@ -40,7 +40,7 @@ public class SharedPrefManager {
 
 
     // -----------------------------------------------------
-    // 🔐 LOGIN & USER
+    // LOGIN & USER
     // -----------------------------------------------------
 
     public void userLogin(User user, String accessToken) {
@@ -87,7 +87,7 @@ public class SharedPrefManager {
 
 
     // -----------------------------------------------------
-    // 🌐 CONFIGURAÇÃO DO SERVIDOR
+    // CONFIGURAÇÃO DO SERVIDOR
     // -----------------------------------------------------
 
     public void setServerBase(String baseUrl) {
@@ -106,7 +106,7 @@ public class SharedPrefManager {
 
     public String getServerBase() {
         return ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-                .getString(KEY_SERVER_BASE, "");
+                .getString(KEY_SERVER_BASE, "http://172.22.21.215");
     }
 
     public String getApiPath() {
@@ -114,7 +114,7 @@ public class SharedPrefManager {
                 .getString(KEY_API_PATH, "/EmergencySTS/advanced/backend/web/");
     }
 
-    // 🔥 URL COMPLETO FINAL GERADO AQUI
+    // URL COMPLETO FINAL GERADO AQUI
     public String getServerUrl() {
         return getServerBase() + getApiPath();
     }
@@ -127,12 +127,12 @@ public class SharedPrefManager {
 
 
     // -----------------------------------------------------
-    // 🚀 NAVEGAÇÃO AO INICIAR A APP
+    // NAVEGAÇÃO AO INICIAR A APP
     // -----------------------------------------------------
 
     public void navigateOnStart(Context context) {
 
-        // 1️⃣ Não tem config → ConfigActivity
+        // Não tem config → ConfigActivity
         if (!hasServerConfigured()) {
             Intent i = new Intent(context, ConfigActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -140,7 +140,7 @@ public class SharedPrefManager {
             return;
         }
 
-        // 2️⃣ Tem config mas não login → LoginActivity
+        // Tem config mas não login → LoginActivity
         if (!isLoggedIn()) {
             Intent i = new Intent(context, LoginActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -148,7 +148,7 @@ public class SharedPrefManager {
             return;
         }
 
-        // 3️⃣ User logado → atividade por role
+        // 3️User logado → atividade por role
         User user = getUser();
         Intent next;
 

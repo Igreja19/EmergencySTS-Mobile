@@ -34,7 +34,6 @@ public class ConfigActivity extends AppCompatActivity {
         editServerIp.setText(pref.getServerBase());
         editApiPath.setText(pref.getApiPath()); // já tem valor por defeito
 
-
         // Reset aos campos
         btnReset.setOnClickListener(v -> {
             editServerIp.setText("");

@@ -2,6 +2,7 @@ package pt.ipleiria.estg.dei.emergencysts.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -26,7 +27,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText etUsername, etPassword;
     private Button btnLogin;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
