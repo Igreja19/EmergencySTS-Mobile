@@ -11,6 +11,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Botão voltar -->
+    <ImageView
+        android:id="@+id/btnAtras"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_centerVertical="true"
+        android:src="@drawable/ic_voltaratras"
+        app:tint="#FFFFFF" />
+
     <!-- 🔹 Conteúdo principal -->
     <LinearLayout
         android:id="@+id/login_layout"

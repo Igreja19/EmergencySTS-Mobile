@@ -29,19 +29,16 @@ public class ConfigActivity extends AppCompatActivity {
         editApiPath  = findViewById(R.id.editApiPath);
         btnSave      = findViewById(R.id.btnSave);
         btnReset     = findViewById(R.id.btnReset);
-        ImageView btnBack = findViewById(R.id.btnBack);
 
         // Preencher valores guardados
         editServerIp.setText(pref.getServerBase());
         editApiPath.setText(pref.getApiPath()); // já tem valor por defeito
 
-        // Botão voltar
-        btnBack.setOnClickListener(v -> finish());
 
         // Reset aos campos
         btnReset.setOnClickListener(v -> {
             editServerIp.setText("");
-            editApiPath.setText("/platf/EmergencySTS/advanced/backend/web/");
+            editApiPath.setText("/EmergencySTS/advanced/backend/web/");
         });
 
         // Guardar dados
@@ -61,10 +58,10 @@ public class ConfigActivity extends AppCompatActivity {
 
             Toast.makeText(this, "Configuração guardada!", Toast.LENGTH_SHORT).show();
 
-            // Avança para login
+            //Inicia login
             Intent i = new Intent(ConfigActivity.this, LoginActivity.class);
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(i);
+            finish(); // Fecha a ConfigActivity
         });
     }
 }

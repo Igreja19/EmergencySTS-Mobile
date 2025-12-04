@@ -111,7 +111,7 @@ public class SharedPrefManager {
 
     public String getApiPath() {
         return ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-                .getString(KEY_API_PATH, "/platf/EmergencySTS/advanced/backend/web/");
+                .getString(KEY_API_PATH, "/EmergencySTS/advanced/backend/web/");
     }
 
     // 🔥 URL COMPLETO FINAL GERADO AQUI
