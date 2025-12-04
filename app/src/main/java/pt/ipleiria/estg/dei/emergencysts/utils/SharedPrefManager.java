@@ -13,15 +13,16 @@ import pt.ipleiria.estg.dei.emergencysts.modelo.User;
 public class SharedPrefManager {
 
     private static final String PREF_NAME = "emergencysts_pref";
-    private static final String KEY_ACCESS_TOKEN = "key_access_token";
 
-    // Chaves para os dados do Utilizador
+    private static final String KEY_ACCESS_TOKEN = "key_access_token";
     private static final String KEY_ID = "key_id";
     private static final String KEY_USERNAME = "key_username";
     private static final String KEY_EMAIL = "key_email";
     private static final String KEY_ROLE = "key_role";
 
-    private static final String KEY_SERVER_URL = "key_server_url";
+    // 🌐 NOVOS CAMPOS PARA CONFIG
+    private static final String KEY_SERVER_BASE = "key_server_base"; // apenas IP / domínio
+    private static final String KEY_API_PATH = "key_api_path";       // caminho backend
 
     private static SharedPrefManager instance;
     private static Context ctx;
@@ -38,47 +39,46 @@ public class SharedPrefManager {
     }
 
 
-    // -----------------------------
-    // 🔐 LOGIN E UTILIZADORES
-    // -----------------------------
+    // -----------------------------------------------------
+    // 🔐 LOGIN & USER
+    // -----------------------------------------------------
+
     public void userLogin(User user, String accessToken) {
-        SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+        SharedPreferences sp = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor e = sp.edit();
 
-        editor.putInt(KEY_ID, user.getId());
-        editor.putString(KEY_USERNAME, user.getUsername());
-        editor.putString(KEY_EMAIL, user.getEmail());
-        editor.putString(KEY_ROLE, user.getRole());
-        editor.putString(KEY_ACCESS_TOKEN, accessToken);
+        e.putInt(KEY_ID, user.getId());
+        e.putString(KEY_USERNAME, user.getUsername());
+        e.putString(KEY_EMAIL, user.getEmail());
+        e.putString(KEY_ROLE, user.getRole());
+        e.putString(KEY_ACCESS_TOKEN, accessToken);
 
-        editor.apply();
+        e.apply();
     }
 
     public boolean isLoggedIn() {
-        SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        return sharedPreferences.getString(KEY_ACCESS_TOKEN, null) != null;
+        SharedPreferences sp = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        return sp.getString(KEY_ACCESS_TOKEN, null) != null;
     }
 
     public User getUser() {
-        SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        SharedPreferences sp = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         return new User(
-                sharedPreferences.getInt(KEY_ID, -1),
-                sharedPreferences.getString(KEY_USERNAME, null),
-                sharedPreferences.getString(KEY_EMAIL, null),
-                sharedPreferences.getString(KEY_ROLE, null)
+                sp.getInt(KEY_ID, -1),
+                sp.getString(KEY_USERNAME, null),
+                sp.getString(KEY_EMAIL, null),
+                sp.getString(KEY_ROLE, null)
         );
     }
 
     public String getKeyAccessToken() {
-        SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        return sharedPreferences.getString(KEY_ACCESS_TOKEN, null);
+        SharedPreferences sp = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        return sp.getString(KEY_ACCESS_TOKEN, null);
     }
 
     public void logout() {
-        SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();
-        editor.apply();
+        SharedPreferences sp = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        sp.edit().clear().apply();
 
         Intent intent = new Intent(ctx, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -86,34 +86,53 @@ public class SharedPrefManager {
     }
 
 
-    // -----------------------------
+    // -----------------------------------------------------
     // 🌐 CONFIGURAÇÃO DO SERVIDOR
-    // -----------------------------
-    public void setServerUrl(String url) {
-        SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putString(KEY_SERVER_URL, url).apply();
+    // -----------------------------------------------------
+
+    public void setServerBase(String baseUrl) {
+        ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putString(KEY_SERVER_BASE, baseUrl)
+                .apply();
     }
 
+    public void setApiPath(String path) {
+        ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putString(KEY_API_PATH, path)
+                .apply();
+    }
+
+    public String getServerBase() {
+        return ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                .getString(KEY_SERVER_BASE, "");
+    }
+
+    public String getApiPath() {
+        return ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                .getString(KEY_API_PATH, "/platf/EmergencySTS/advanced/backend/web/");
+    }
+
+    // 🔥 URL COMPLETO FINAL GERADO AQUI
     public String getServerUrl() {
-        SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-
-        return sharedPreferences.getString(KEY_SERVER_URL,
-                "http://10.0.2.2/platf/EmergencySTS/advanced/backend/web/");
+        return getServerBase() + getApiPath();
     }
 
+    // Verificar se já existe configuração
     public boolean hasServerConfigured() {
-        SharedPreferences sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        String url = sharedPreferences.getString(KEY_SERVER_URL, null);
-        return url != null && !url.isEmpty();
+        String base = getServerBase();
+        return base != null && !base.isEmpty();
     }
 
 
-    // -----------------------------
-    // 🚀 NOVO MÉTODO: NAVEGAÇÃO AO INICIAR A APP
-    // -----------------------------
+    // -----------------------------------------------------
+    // 🚀 NAVEGAÇÃO AO INICIAR A APP
+    // -----------------------------------------------------
+
     public void navigateOnStart(Context context) {
 
-        // 1️⃣ NÃO TEM SERVIDOR CONFIGURADO → IR PARA CONFIG
+        // 1️⃣ Não tem config → ConfigActivity
         if (!hasServerConfigured()) {
             Intent i = new Intent(context, ConfigActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -121,7 +140,7 @@ public class SharedPrefManager {
             return;
         }
 
-        // 2️⃣ SERVIDOR OK, MAS UTILIZADOR NÃO LOGADO → LOGIN
+        // 2️⃣ Tem config mas não login → LoginActivity
         if (!isLoggedIn()) {
             Intent i = new Intent(context, LoginActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -129,7 +148,7 @@ public class SharedPrefManager {
             return;
         }
 
-        // 3️⃣ UTILIZADOR LOGADO → ABRIR ATIVIDADE POR ROLE
+        // 3️⃣ User logado → atividade por role
         User user = getUser();
         Intent next;
 

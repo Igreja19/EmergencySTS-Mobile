@@ -14,7 +14,7 @@ import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
 public class ConfigActivity extends AppCompatActivity {
 
-    private EditText editServerUrl;
+    private EditText editServerIp, editApiPath;
     private Button btnSave, btnReset;
 
     @Override
@@ -24,34 +24,44 @@ public class ConfigActivity extends AppCompatActivity {
 
         SharedPrefManager pref = SharedPrefManager.getInstance(this);
 
-        editServerUrl = findViewById(R.id.editServerUrl);
-        btnSave       = findViewById(R.id.btnSave);
-        btnReset      = findViewById(R.id.btnReset);
+        // Ligação aos campos
+        editServerIp = findViewById(R.id.editServerIp);
+        editApiPath  = findViewById(R.id.editApiPath);
+        btnSave      = findViewById(R.id.btnSave);
+        btnReset     = findViewById(R.id.btnReset);
         ImageView btnBack = findViewById(R.id.btnBack);
 
-        // Preencher campo (se houver valor guardado)
-        editServerUrl.setText(pref.getServerUrl());
+        // Preencher valores guardados
+        editServerIp.setText(pref.getServerBase());
+        editApiPath.setText(pref.getApiPath()); // já tem valor por defeito
 
         // Botão voltar
         btnBack.setOnClickListener(v -> finish());
 
-        // Limpar campo
-        btnReset.setOnClickListener(v -> editServerUrl.setText(""));
+        // Reset aos campos
+        btnReset.setOnClickListener(v -> {
+            editServerIp.setText("");
+            editApiPath.setText("/platf/EmergencySTS/advanced/backend/web/");
+        });
 
-        // Guardar configuração
+        // Guardar dados
         btnSave.setOnClickListener(v -> {
-            String url = editServerUrl.getText().toString().trim();
 
-            if (!url.startsWith("http")) {
-                editServerUrl.setError("O URL deve começar por http ou https");
+            String base = editServerIp.getText().toString().trim();
+            String path = editApiPath.getText().toString().trim();
+
+            if (!base.startsWith("http")) {
+                editServerIp.setError("O URL deve começar por http:// ou https://");
                 return;
             }
 
-            pref.setServerUrl(url);
+            // Guarda valores
+            pref.setServerBase(base);
+            pref.setApiPath(path);
 
             Toast.makeText(this, "Configuração guardada!", Toast.LENGTH_SHORT).show();
 
-            // Vai para login
+            // Avança para login
             Intent i = new Intent(ConfigActivity.this, LoginActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(i);
