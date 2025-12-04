@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,13 +41,18 @@ public class LoginActivity extends AppCompatActivity {
         }
 
 
-
+        ImageView btnBack = findViewById(R.id.btnBack);
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
 
 
         btnLogin.setOnClickListener(v -> loginUser());
+        btnBack.setOnClickListener(v -> {
+            Intent i = new Intent(this, ConfigActivity.class);
+            startActivity(i);
+            finish();
+        });
     }
 
     private void loginUser() {

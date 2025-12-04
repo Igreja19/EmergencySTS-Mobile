@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 🌈 FUNDO GRADIENT -->
+    <!-- FUNDO GRADIENT -->
     <pt.ipleiria.estg.dei.emergencysts.GradientView
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!-- ⭐ HEADER MODERNO -->
+            <!-- HEADER MODERNO -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="90dp"
@@ -28,15 +28,6 @@
                 android:paddingTop="24dp"
                 android:paddingHorizontal="16dp"
                 android:elevation="6dp">
-
-                <!-- Botão voltar -->
-                <ImageView
-                    android:id="@+id/btnBack"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_centerVertical="true"
-                    android:src="@drawable/ic_voltaratras"
-                    app:tint="#FFFFFF" />
 
                 <!-- Título centrado -->
                 <TextView

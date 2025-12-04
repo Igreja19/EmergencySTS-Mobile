@@ -29,14 +29,10 @@ public class ConfigActivity extends AppCompatActivity {
         editApiPath  = findViewById(R.id.editApiPath);
         btnSave      = findViewById(R.id.btnSave);
         btnReset     = findViewById(R.id.btnReset);
-        ImageView btnBack = findViewById(R.id.btnBack);
 
         // Preencher valores guardados
         editServerIp.setText(pref.getServerBase());
         editApiPath.setText(pref.getApiPath()); // já tem valor por defeito
-
-        // Botão voltar
-        btnBack.setOnClickListener(v -> finish());
 
         // Reset aos campos
         btnReset.setOnClickListener(v -> {
