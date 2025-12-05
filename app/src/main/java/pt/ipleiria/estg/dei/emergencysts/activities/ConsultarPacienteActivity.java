@@ -90,7 +90,7 @@ public class ConsultarPacienteActivity extends AppCompatActivity {
 
     private void handleResponse(JSONArray array) {
 
-        System.out.println("🔥 JSON RECEBIDO: " + array.toString());
+        System.out.println("JSON RECEBIDO: " + array.toString());
 
         if (array.length() == 0) { showNotFound(); return; }
 

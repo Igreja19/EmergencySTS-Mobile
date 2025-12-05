@@ -32,8 +32,10 @@ public class EnfermeiroActivity extends AppCompatActivity {
             Intent intent = new Intent(this, ConsultarPacienteActivity.class);
             startActivity(intent);
         });
-        cardHistoricoTriagem.setOnClickListener(v ->
-                Toast.makeText(this, "Abrir histórico de triagens", Toast.LENGTH_SHORT).show());
+        cardHistoricoTriagem.setOnClickListener(v ->{
+            Intent intent = new Intent(this, HistoricoActivity.class);
+            startActivity(intent);
+        });
         cardPerfil.setOnClickListener(v -> {
             Intent intent = new Intent(this, PerfilActivity.class);
             startActivity(intent);

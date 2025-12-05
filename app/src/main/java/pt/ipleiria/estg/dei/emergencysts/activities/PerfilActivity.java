@@ -23,7 +23,7 @@ public class PerfilActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_perfil);
 
-        // 🔗 Ligação ao XML
+        // Ligação ao XML
         btnBack = findViewById(R.id.btnBack);
         ImageView btnSettings = findViewById(R.id.btnSettings);
 
@@ -38,19 +38,19 @@ public class PerfilActivity extends AppCompatActivity {
 
         btnLogout   = findViewById(R.id.btnLogout);
 
-        // 🔙 Botão voltar
+        // Botão voltar
         btnBack.setOnClickListener(v -> finish());
 
-        // ⚙️ Botão configurações → abrir ConfigActivity
+        // ⚙Botão configurações → abrir ConfigActivity
         btnSettings.setOnClickListener(v -> {
             Intent intent = new Intent(PerfilActivity.this, ConfigActivity.class);
             startActivity(intent);
         });
 
-        // 📌 Preencher dados locais
+        // Preencher dados locais
         carregarDadosLocais();
 
-        // 🔐 Logout
+        // Logout
         btnLogout.setOnClickListener(v -> {
             SharedPrefManager.getInstance(this).logout();
         });

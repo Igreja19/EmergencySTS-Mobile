@@ -15,7 +15,7 @@ import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 public class ConfigActivity extends AppCompatActivity {
 
     private EditText editServerIp, editApiPath;
-    private Button btnSave, btnReset;
+    private Button btnSave;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,17 +28,11 @@ public class ConfigActivity extends AppCompatActivity {
         editServerIp = findViewById(R.id.editServerIp);
         editApiPath  = findViewById(R.id.editApiPath);
         btnSave      = findViewById(R.id.btnSave);
-        btnReset     = findViewById(R.id.btnReset);
 
         // Preencher valores guardados
         editServerIp.setText(pref.getServerBase());
         editApiPath.setText(pref.getApiPath()); // já tem valor por defeito
 
-        // Reset aos campos
-        btnReset.setOnClickListener(v -> {
-            editServerIp.setText("");
-            editApiPath.setText("/EmergencySTS/advanced/backend/web/");
-        });
 
         // Guardar dados
         btnSave.setOnClickListener(v -> {

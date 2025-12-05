@@ -16,6 +16,9 @@
         android:theme="@style/Theme.EmergencySTS"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".activities.DetalhesTriagemActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.PerfilActivity"
             android:exported="false" />
         <activity
@@ -44,7 +47,7 @@
             android:exported="false" />
         <activity
             android:name=".activities.LoginActivity"
-            android:exported="false"/>
+            android:exported="false" />
         <activity
             android:name=".activities.ConfigActivity"
             android:exported="true">
@@ -54,7 +57,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
     </application>
 
 </manifest>

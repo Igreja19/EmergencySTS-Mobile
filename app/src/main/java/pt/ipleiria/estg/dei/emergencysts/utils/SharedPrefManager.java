@@ -125,10 +125,7 @@ public class SharedPrefManager {
         return base != null && !base.isEmpty();
     }
 
-
-    // -----------------------------------------------------
     // NAVEGAÇÃO AO INICIAR A APP
-    // -----------------------------------------------------
 
     public void navigateOnStart(Context context) {
 
@@ -148,7 +145,7 @@ public class SharedPrefManager {
             return;
         }
 
-        // 3️User logado → atividade por role
+        // User logado → atividade por role
         User user = getUser();
         Intent next;
 
