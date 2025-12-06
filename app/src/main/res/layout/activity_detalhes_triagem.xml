@@ -360,7 +360,7 @@
         </ScrollView>
 
         <!-- BOTÃO FINAL -->
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnApagar"
             android:layout_width="match_parent"
             android:layout_height="60dp"
@@ -371,8 +371,8 @@
             android:textColor="#FFFFFF"
             android:textStyle="bold"
             android:textAllCaps="false"
-            android:background="@drawable/btn_red"
-            android:backgroundTint="@null"/>
+            android:background="@drawable/btn_red" />
+
 
     </LinearLayout>
 
