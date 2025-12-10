@@ -33,6 +33,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        /*
         // NÃO use navigateOnStart(this) aqui, pois cria um loop.
         // Use apenas a verificação se está logado:
         if (SharedPrefManager.getInstance(this).isLoggedIn()) {
@@ -44,6 +45,8 @@ public class LoginActivity extends AppCompatActivity {
             finish();
             return;
         }
+
+         */
 
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);

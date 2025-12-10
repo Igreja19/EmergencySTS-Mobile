@@ -74,7 +74,7 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
         String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
 
-        String url = baseUrl + "/api/triagem/" + triagemId + "?auth_key=" + token;
+        String url = baseUrl + "api/triagem/" + triagemId + "?auth_key=" + token;
 
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
