@@ -35,7 +35,7 @@ public class PacienteActivity extends AppCompatActivity {
         cardPerfil = findViewById(R.id.cardPerfil);
 
         // 🔹 Obter o nome do utilizador guardado
-        String username = SharedPrefManager.getInstance(this).getUser().getUsername();
+        String username = SharedPrefManager.getInstance(this).getEnfermeiro().getUsername();
 
         tvTitulo.setText("Emergency STS");
         tvSubtitulo.setText("Área do Paciente");

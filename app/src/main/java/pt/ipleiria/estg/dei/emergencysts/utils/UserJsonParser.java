@@ -1,11 +1,11 @@
 package pt.ipleiria.estg.dei.emergencysts.utils;
 
 import org.json.JSONObject;
-import pt.ipleiria.estg.dei.emergencysts.modelo.User;
+import pt.ipleiria.estg.dei.emergencysts.modelo.Enfermeiro;
 
 public class UserJsonParser {
 
-    public static User parseLogin(JSONObject response) {
+    public static Enfermeiro parseLogin(JSONObject response) {
         try {
             // Verifica se o user vem dentro de "data" ou na raiz
             JSONObject userJson = response.optJSONObject("user");
@@ -23,7 +23,7 @@ public class UserJsonParser {
                 String role = userJson.optString("role");
                 if (role.isEmpty()) role = "utente"; // Fallback
 
-                return new User(id, username, email, role);
+                return new Enfermeiro(id, username, email, role);
             }
         } catch (Exception e) {
             e.printStackTrace();

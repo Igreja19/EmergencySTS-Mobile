@@ -2,7 +2,6 @@ package pt.ipleiria.estg.dei.emergencysts.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -19,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
-import pt.ipleiria.estg.dei.emergencysts.modelo.User;
+import pt.ipleiria.estg.dei.emergencysts.modelo.Enfermeiro;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
@@ -33,7 +32,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        /*
+
         // NÃO use navigateOnStart(this) aqui, pois cria um loop.
         // Use apenas a verificação se está logado:
         if (SharedPrefManager.getInstance(this).isLoggedIn()) {
@@ -45,8 +44,6 @@ public class LoginActivity extends AppCompatActivity {
             finish();
             return;
         }
-
-         */
 
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
@@ -102,8 +99,8 @@ public class LoginActivity extends AppCompatActivity {
                                 String email = data.optString("email", "");
 
                                 if (!token.isEmpty()) {
-                                    User user = new User(userId, username, email, role);
-                                    SharedPrefManager.getInstance(this).userLogin(user, token);
+                                    Enfermeiro enfermeiro = new Enfermeiro(userId, username, email, role);
+                                    SharedPrefManager.getInstance(this).userLogin(enfermeiro, token);
 
                                     Toast.makeText(this, "Login efetuado!", Toast.LENGTH_SHORT).show();
 

@@ -1,5 +1,6 @@
 package pt.ipleiria.estg.dei.emergencysts.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -16,11 +17,11 @@ import org.json.JSONObject;
 import java.util.Calendar;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
-import pt.ipleiria.estg.dei.emergencysts.modelo.Paciente;
+import pt.ipleiria.estg.dei.emergencysts.modelo.Enfermeiro;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
-public class PerfilPacienteActivity extends AppCompatActivity {
+public class PerfilEnfermeiroActivity extends AppCompatActivity {
 
     private ImageView btnBack;
     private TextView tvNome, tvEmail, tvDataNasc, tvIdade, tvTelefone, tvSns, tvNif, tvMorada;
@@ -29,10 +30,10 @@ public class PerfilPacienteActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_perfil_paciente);
+        setContentView(R.layout.activity_perfil_enfermeiro);
 
-        // Ligação ao XML
         btnBack     = findViewById(R.id.btnBack);
+        ImageView btnSettings = findViewById(R.id.btnSettings);
 
         tvNome      = findViewById(R.id.tvNomeCompleto);
         tvEmail     = findViewById(R.id.tvEmail);
@@ -45,26 +46,31 @@ public class PerfilPacienteActivity extends AppCompatActivity {
 
         btnLogout   = findViewById(R.id.btnLogout);
 
-        // Botão voltar
         btnBack.setOnClickListener(v -> finish());
 
-        // Carregar perfil do paciente logado
-        carregarPerfilPaciente();
+        btnSettings.setOnClickListener(v ->
+                startActivity(new Intent(PerfilEnfermeiroActivity.this, ConfigActivity.class))
+        );
 
-        // Logout
+        carregarPerfilEnfermeiro();
+
         btnLogout.setOnClickListener(v -> SharedPrefManager.getInstance(this).logout());
     }
 
-    //          CARREGAR PERFIL DO PACIENTE LOGADO
-    private void carregarPerfilPaciente() {
 
+    // ---------------------------------------------------------
+    //        CARREGA PERFIL DO ENFERMEIRO LOGADO
+    // ---------------------------------------------------------
+    private void carregarPerfilEnfermeiro() {
+
+        Enfermeiro stored = SharedPrefManager.getInstance(this).getEnfermeiro();
         String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
 
         if (!baseUrl.endsWith("/")) baseUrl += "/";
 
-        // ENDPOINT CORRETO — devolve exatamente 1 paciente
-        String url = baseUrl + "api/paciente/perfil?auth_key=" + token;
+        // ENDPOINT correto tal como fizemos no paciente
+        String url = baseUrl + "api/enfermeiro/perfil?auth_key=" + token;
 
         JsonObjectRequest req = new JsonObjectRequest(
                 Request.Method.GET,
@@ -72,7 +78,7 @@ public class PerfilPacienteActivity extends AppCompatActivity {
                 null,
                 response -> {
                     try {
-                        JSONObject data = response; // endpoint devolve objeto único
+                        JSONObject data = response;
 
                         String nome   = data.optString("nome", "---");
                         String email  = data.optString("email", "---");
@@ -92,24 +98,18 @@ public class PerfilPacienteActivity extends AppCompatActivity {
                         tvMorada.setText(morada);
                         tvIdade.setText(calcularIdade(nasc) + " anos");
 
-                        // Atualizar o objeto Paciente local
-                        Paciente p = new Paciente(
-                                SharedPrefManager.getInstance(this).getEnfermeiro().getId(),
-                                SharedPrefManager.getInstance(this).getEnfermeiro().getUsername(),
-                                email,
-                                "paciente",
-                                nome,
-                                nasc,
-                                tel,
-                                sns,
-                                nif,
-                                morada
-                        );
+                        // Atualizar objeto local
+                        stored.setNome(nome);
+                        stored.setEmail(email);
+                        stored.setDataNascimento(nasc);
+                        stored.setTelefone(tel);
+                        stored.setSns(sns);
+                        stored.setNif(nif);
+                        stored.setMorada(morada);
 
-                        SharedPrefManager.getInstance(this).savePaciente(p);
+                        SharedPrefManager.getInstance(this).saveEnfermeiro(stored);
 
                     } catch (Exception e) {
-                        e.printStackTrace();
                         Toast.makeText(this, "Erro ao processar dados do perfil.", Toast.LENGTH_SHORT).show();
                     }
                 },
@@ -119,7 +119,10 @@ public class PerfilPacienteActivity extends AppCompatActivity {
         VolleySingleton.getInstance(this).addToRequestQueue(req);
     }
 
-    //          CALCULAR IDADE (YYYY-MM-DD)
+
+    // ---------------------------------------------------------
+    //     CALCULAR IDADE (YYYY-MM-DD)
+    // ---------------------------------------------------------
     private int calcularIdade(String data) {
         try {
             if (data == null || data.trim().isEmpty()) return 0;
@@ -139,9 +142,8 @@ public class PerfilPacienteActivity extends AppCompatActivity {
 
             int idade = anoAtual - ano;
 
-            if (mesAtual < mes || (mesAtual == mes && diaAtual < dia)) {
+            if (mesAtual < mes || (mesAtual == mes && diaAtual < dia))
                 idade--;
-            }
 
             return idade;
 

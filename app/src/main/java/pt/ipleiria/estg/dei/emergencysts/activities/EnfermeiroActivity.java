@@ -2,7 +2,7 @@ package pt.ipleiria.estg.dei.emergencysts.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
@@ -37,7 +37,7 @@ public class EnfermeiroActivity extends AppCompatActivity {
             startActivity(intent);
         });
         cardPerfil.setOnClickListener(v -> {
-            Intent intent = new Intent(this, PerfilActivity.class);
+            Intent intent = new Intent(this, PerfilEnfermeiroActivity.class);
             startActivity(intent);
         });
     }

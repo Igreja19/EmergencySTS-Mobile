@@ -135,7 +135,7 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
             }
 
             // ----- ENFERMEIRO RESPONSÁVEL -----
-            tvEnfermeiro.setText("Enf. " + SharedPrefManager.getInstance(this).getUser().getUsername());
+            tvEnfermeiro.setText("Enf. " + SharedPrefManager.getInstance(this).getEnfermeiro().getUsername());
 
         } catch (Exception e) {
             e.printStackTrace();

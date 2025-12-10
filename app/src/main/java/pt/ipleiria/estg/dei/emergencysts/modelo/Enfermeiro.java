@@ -2,7 +2,7 @@ package pt.ipleiria.estg.dei.emergencysts.modelo;
 
 import java.util.Calendar;
 
-public class Paciente {
+public class Enfermeiro {
 
     private int userId;
     private String username;
@@ -10,23 +10,29 @@ public class Paciente {
     private String role;
 
     private String nome;
-    private String dataNascimento;     // formato: YYYY-MM-DD
+    private String dataNascimento; // formato YYYY-MM-DD
     private String telefone;
     private String sns;
     private String nif;
     private String morada;
+
+
+    // ---------------------------------------------------------
     //  CONSTRUTOR BÁSICO
-    public Paciente(int userId, String username, String email, String role) {
+    // ---------------------------------------------------------
+    public Enfermeiro(int userId, String username, String email, String role) {
         this.userId = userId;
         this.username = username;
         this.email = email;
         this.role = role;
     }
 
+    // ---------------------------------------------------------
     //  CONSTRUTOR COMPLETO
-    public Paciente(int userId, String username, String email, String role,
-                    String nome, String dataNascimento,
-                    String telefone, String sns, String nif, String morada) {
+    // ---------------------------------------------------------
+    public Enfermeiro(int userId, String username, String email, String role,
+                      String nome, String dataNascimento,
+                      String telefone, String sns, String nif, String morada) {
 
         this(userId, username, email, role);
 
@@ -38,7 +44,10 @@ public class Paciente {
         this.morada = morada;
     }
 
+
+    // ---------------------------------------------------------
     //  GETTERS
+    // ---------------------------------------------------------
     public int getId() { return userId; }
     public String getUsername() { return username; }
     public String getEmail() { return email; }
@@ -51,7 +60,10 @@ public class Paciente {
     public String getNif() { return nif; }
     public String getMorada() { return morada; }
 
-    //  Cálculo de idade
+
+    // ---------------------------------------------------------
+    //  CALCULAR IDADE
+    // ---------------------------------------------------------
     public String getIdadeFormatada() {
 
         try {
@@ -83,7 +95,11 @@ public class Paciente {
             return "-- anos";
         }
     }
+
+
+    // ---------------------------------------------------------
     //  SETTERS
+    // ---------------------------------------------------------
     public void setNome(String nome) { this.nome = nome; }
     public void setDataNascimento(String dataNascimento) { this.dataNascimento = dataNascimento; }
     public void setTelefone(String telefone) { this.telefone = telefone; }

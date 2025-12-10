@@ -19,7 +19,7 @@
             android:name=".activities.DetalhesTriagemActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.PerfilActivity"
+            android:name=".activities.PerfilEnfermeiroActivity"
             android:exported="false" />
         <activity
             android:name=".activities.DetalhesPacienteActivity"

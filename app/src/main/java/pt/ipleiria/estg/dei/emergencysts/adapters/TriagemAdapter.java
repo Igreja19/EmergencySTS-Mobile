@@ -104,7 +104,7 @@ public class TriagemAdapter extends BaseAdapter {
         // ---------------------------
         // ENFERMEIRO = utilizador atual
         // ---------------------------
-        String enfermeiroAtual = SharedPrefManager.getInstance(context).getUser().getUsername();
+        String enfermeiroAtual = SharedPrefManager.getInstance(context).getEnfermeiro().getUsername();
         holder.tvEnfermeiro.setText("Enf. " + enfermeiroAtual);
 
         // ---------------------------
