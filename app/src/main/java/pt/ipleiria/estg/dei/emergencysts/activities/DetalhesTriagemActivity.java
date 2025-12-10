@@ -21,7 +21,7 @@ import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
 public class DetalhesTriagemActivity extends AppCompatActivity {
 
-    private TextView tvNome, tvNomeValor, tvDataNascimento, tvSNS, tvTelefoneValor;
+    private TextView tvNomeValor, tvDataNascimento, tvSNS, tvTelefoneValor;
     private TextView tvMotivo, tvQueixa, tvDescricao, tvInicio, tvDor, tvAlergias, tvMedicacao;
     private TextView tvPrioridade, tvEnfermeiro, tvData, tvHora;
     private View dotPrioridade;
@@ -41,15 +41,11 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
             return;
         }
 
-        initUI();
-        loadTriagem();
-
-        ImageView btnBack = findViewById(R.id.btnBack);
-        btnBack.setOnClickListener(v -> finish());
+        initViews();
+        getTriagem();
     }
 
-    private void initUI() {
-        tvNome = findViewById(R.id.tvNome);
+    private void initViews() {
         tvNomeValor = findViewById(R.id.tvNomeValor);
         tvDataNascimento = findViewById(R.id.tvDataNascimento);
         tvSNS = findViewById(R.id.tvSNS);
@@ -64,61 +60,68 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         tvMedicacao = findViewById(R.id.tvMedicacao);
 
         tvPrioridade = findViewById(R.id.tvPrioridade);
+        dotPrioridade = findViewById(R.id.dotPrioridade);
+
         tvEnfermeiro = findViewById(R.id.tvEnfermeiro);
         tvData = findViewById(R.id.tvData);
         tvHora = findViewById(R.id.tvHora);
 
-        dotPrioridade = findViewById(R.id.dotPrioridade);
-
-        Button btnApagar = findViewById(R.id.btnApagar);
-        btnApagar.setOnClickListener(v -> confirmarApagar());
+        ImageView btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> finish());
     }
 
-    private void loadTriagem() {
+    private void getTriagem() {
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
         String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
+
         String url = baseUrl + "/api/triagem/" + triagemId + "?auth_key=" + token;
 
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
                 url,
                 null,
-                this::parseAndFill,
-                error -> Toast.makeText(this, "Erro ao carregar detalhes.", Toast.LENGTH_SHORT).show()
+                response -> bindData(response),
+                error -> Toast.makeText(this, "Erro ao carregar triagem.", Toast.LENGTH_SHORT).show()
         );
 
         VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
 
-    private void parseAndFill(JSONObject json) {
+    private void bindData(JSONObject json) {
         try {
-            // USERPROFILE
+            // ----- USERPROFILE -----
             JSONObject up = json.optJSONObject("userprofile");
             if (up != null) {
-                tvNomeValor.setText(up.optString("nome", "-"));
-                tvDataNascimento.setText(up.optString("datanascimento", "-"));
+                tvNomeValor.setText(up.optString("nome", ""));
+
                 tvSNS.setText(up.optString("sns", "-"));
+                tvDataNascimento.setText(up.optString("datanascimento", "-"));
                 tvTelefoneValor.setText(up.optString("telefone", "-"));
-            } else {
-                tvNomeValor.setText("-");
-                tvDataNascimento.setText("-");
-                tvSNS.setText("-");
-                tvTelefoneValor.setText("-");
             }
 
-            // INFO CLÍNICA
+            // ----- TRIAGEM -----
             tvMotivo.setText(json.optString("motivoconsulta", "-"));
             tvQueixa.setText(json.optString("queixaprincipal", "-"));
             tvDescricao.setText(json.optString("descricaosintomas", "-"));
             tvInicio.setText(json.optString("iniciosintomas", "-"));
-            tvDor.setText(String.valueOf(json.optInt("intensidadedor", 0)));
             tvAlergias.setText(json.optString("alergias", "-"));
             tvMedicacao.setText(json.optString("medicacao", "-"));
 
-            // PULSEIRA
+            // Intensidade dor → tens o campo
+            tvDor.setText(String.valueOf(json.optInt("intensidadedor", 0)));
+
+            // ----- DATA + HORA -----
+            String dataHora = json.optString("datatriagem", "");
+            if (dataHora.contains(" ")) {
+                String[] partes = dataHora.split(" ");
+                tvData.setText(formatData(partes[0]));
+                tvHora.setText(partes[1].substring(0, 5));
+            }
+
+            // ----- PULSEIRA -----
             JSONObject pulseira = json.optJSONObject("pulseira");
             if (pulseira != null) {
-                String prioridade = pulseira.optString("prioridade", "-");
+                String prioridade = pulseira.optString("prioridade", "Pendente");
                 tvPrioridade.setText(prioridade);
 
                 switch (prioridade.toLowerCase()) {
@@ -129,52 +132,18 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
                     case "azul":     dotPrioridade.setBackgroundResource(R.drawable.circle_blue); break;
                     default:         dotPrioridade.setBackgroundResource(R.drawable.circle_gray);
                 }
-
-                tvEnfermeiro.setText(pulseira.optString("responsavel", "—"));
-            } else {
-                tvPrioridade.setText("-");
-                dotPrioridade.setBackgroundResource(R.drawable.circle_gray);
-                tvEnfermeiro.setText("—");
             }
 
-            // DATA E HORA
-            String data = json.optString("datatriagem", "");
-            if (data.length() >= 16) {
-                tvData.setText(data.substring(0, 10));
-                tvHora.setText(data.substring(11, 16));
-            }
+            // ----- ENFERMEIRO RESPONSÁVEL -----
+            tvEnfermeiro.setText("Enf. " + SharedPrefManager.getInstance(this).getUser().getUsername());
 
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Erro ao processar dados.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void confirmarApagar() {
-        new AlertDialog.Builder(this)
-                .setTitle("Apagar Triagem")
-                .setMessage("Tem a certeza que deseja apagar esta triagem?")
-                .setPositiveButton("Sim", (dialog, which) -> apagarTriagem())
-                .setNegativeButton("Cancelar", null)
-                .show();
-    }
-
-    private void apagarTriagem() {
-        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
-        String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
-        String url = baseUrl + "/api/triagem/" + triagemId + "?auth_key=" + token;
-
-        JsonObjectRequest request = new JsonObjectRequest(
-                Request.Method.DELETE,
-                url,
-                null,
-                response -> {
-                    Toast.makeText(this, "Triagem apagada.", Toast.LENGTH_SHORT).show();
-                    finish();
-                },
-                error -> Toast.makeText(this, "Erro ao apagar triagem.", Toast.LENGTH_SHORT).show()
-        );
-
-        VolleySingleton.getInstance(this).addToRequestQueue(request);
+    private String formatData(String data) {
+        String[] p = data.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
     }
 }
