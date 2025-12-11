@@ -36,9 +36,21 @@ public class LoginActivity extends AppCompatActivity {
         // NÃO use navigateOnStart(this) aqui, pois cria um loop.
         // Use apenas a verificação se está logado:
         if (SharedPrefManager.getInstance(this).isLoggedIn()) {
-            // Se já tem login, vai para a Main (Dashboard)
-            // Assumi que tem um método openMainActivity ou pode chamar o Intent direto
-            Intent intent = new Intent(this, EnfermeiroActivity.class);
+
+            // 1. Ir buscar os dados do utilizador guardado (para saber a role)
+            Enfermeiro user = SharedPrefManager.getInstance(this).getEnfermeiroBase();
+            String role = user.getRole();
+
+            Intent intent;
+
+            // 2. Decidir o destino com base na role
+            if (role != null && role.equalsIgnoreCase("paciente")) {
+                intent = new Intent(this, PacienteActivity.class);
+            } else {
+                // Assume Enfermeiro (ou Admin) por defeito
+                intent = new Intent(this, EnfermeiroActivity.class);
+            }
+
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
