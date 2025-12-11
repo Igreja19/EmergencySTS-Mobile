@@ -22,7 +22,6 @@ public class TriagemJsonParser {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return lista;
     }
 
@@ -31,17 +30,17 @@ public class TriagemJsonParser {
         Triagem t = new Triagem();
 
         // TRIAGEM
-                t.id = json.optInt("id");
-        t.motivoconsulta      = safe(json, "motivoconsulta", "-");
-        t.queixaprincipal     = safe(json, "queixaprincipal", "-");
-        t.descricaosintomas   = safe(json, "descricaosintomas", "-");
-        t.iniciosintomas      = safe(json, "iniciosintomas", "-");
-        t.alergias            = safe(json, "alergias", "-");
-        t.medicacao           = safe(json, "medicacao", "-");
-        t.datatriagem         = safe(json, "datatriagem", "");
+        t.id = json.optInt("id");
+        t.motivoconsulta    = safe(json, "motivoconsulta", "-");
+        t.queixaprincipal   = safe(json, "queixaprincipal", "-");
+        t.descricaosintomas = safe(json, "descricaosintomas", "-");
+        t.iniciosintomas    = safe(json, "iniciosintomas", "-");
+        t.alergias          = safe(json, "alergias", "-");
+        t.medicacao         = safe(json, "medicacao", "-");
+        t.datatriagem       = safe(json, "datatriagem", "");
 
         // USERPROFILE
-                JSONObject up = json.optJSONObject("userprofile");
+        JSONObject up = json.optJSONObject("userprofile");
         t.userprofile = new Triagem.UserProfile();
 
         if (up != null) {
@@ -51,18 +50,18 @@ public class TriagemJsonParser {
             t.userprofile.sns   = safe(up, "sns", "---");
         } else {
             t.userprofile.nome = "Sem nome";
-            t.userprofile.sns = "---";
+            t.userprofile.sns  = "---";
         }
 
         // PULSEIRA
-                JSONObject p = json.optJSONObject("pulseira");
+        JSONObject p = json.optJSONObject("pulseira");
         t.pulseira = new Triagem.Pulseira();
 
         if (p != null) {
-            t.pulseira.id        = p.optInt("id");
-            t.pulseira.codigo    = safe(p, "codigo", "-");
-            t.pulseira.prioridade = safe(p, "prioridade", "Pendente");
-            t.pulseira.status    = safe(p, "status", "Concluída");
+            t.pulseira.id           = p.optInt("id");
+            t.pulseira.codigo       = safe(p, "codigo", "-");
+            t.pulseira.prioridade   = safe(p, "prioridade", "Pendente");
+            t.pulseira.status       = safe(p, "status", "Concluída");
             t.pulseira.tempoentrada = safe(p, "tempoentrada", "");
         } else {
             t.pulseira.codigo = "-";
@@ -70,12 +69,22 @@ public class TriagemJsonParser {
             t.pulseira.status = "Concluída";
         }
 
+        // CONSULTA
+        JSONObject c = json.optJSONObject("consulta");
+        t.consulta = new Triagem.Consulta();
+
+        if (c != null) {
+            t.consulta.id     = c.optInt("id");
+            t.consulta.estado = safe(c, "estado", "Em curso");
+        } else {
+            t.consulta.estado = "Em curso";
+        }
+
         return t;
     }
 
-    // Evita null, vazio ou "null"
     private static String safe(JSONObject json, String key, String defaultValue) {
-        if (json == null || key == null) return defaultValue;
+        if (json == null) return defaultValue;
 
         String value = json.optString(key, defaultValue);
         if (value == null || value.trim().isEmpty() || value.equalsIgnoreCase("null"))

@@ -37,6 +37,8 @@ dependencies {
     implementation(libs.constraintlayout)
 
     implementation("com.android.volley:volley:1.2.1")
+    implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+    implementation("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

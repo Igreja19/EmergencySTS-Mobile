@@ -12,7 +12,7 @@ public class Triagem {
     public String medicacao;
     public String datatriagem;
 
-    // OBJETO USERPROFILE
+    // USERPROFILE
     public UserProfile userprofile;
 
     public static class UserProfile {
@@ -22,7 +22,7 @@ public class Triagem {
         public String sns;
     }
 
-    // OBJETO PULSEIRA ASSOCIADA
+    // PULSEIRA
     public Pulseira pulseira;
 
     public static class Pulseira {
@@ -31,5 +31,13 @@ public class Triagem {
         public String prioridade;
         public String status;
         public String tempoentrada;
+    }
+
+    // CONSULTA ASSOCIADA
+    public Consulta consulta;
+
+    public static class Consulta {
+        public int id;
+        public String estado;
     }
 }

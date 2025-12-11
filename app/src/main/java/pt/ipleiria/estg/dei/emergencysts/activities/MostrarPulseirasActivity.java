@@ -1,6 +1,11 @@
 package pt.ipleiria.estg.dei.emergencysts.activities;
 
+import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -19,6 +24,7 @@ import java.util.ArrayList;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.adapters.PulseiraAdapter;
+import pt.ipleiria.estg.dei.emergencysts.mqtt.MqttClientManager;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Pulseira;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
 import pt.ipleiria.estg.dei.emergencysts.utils.PulseiraBDHelper;
@@ -32,14 +38,15 @@ public class MostrarPulseirasActivity extends AppCompatActivity {
     private PulseiraAdapter adapter;
     private ArrayList<Pulseira> pulseiras = new ArrayList<>();
 
+    private MqttClientManager mqtt;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mostrar_pulseiras);
 
-        // Configuração da UI
-        ImageView btnback = findViewById(R.id.btnBack);
-        btnback.setOnClickListener(v -> finish());
+        ImageView btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> finish());
 
         listViewPulseiras = findViewById(R.id.listViewPulseiras);
         progressBar = findViewById(R.id.progressBar);
@@ -47,78 +54,100 @@ public class MostrarPulseirasActivity extends AppCompatActivity {
         adapter = new PulseiraAdapter(this, pulseiras);
         listViewPulseiras.setAdapter(adapter);
 
-        // Clique num item da lista -> Vai para AtribuirPulseira
-        listViewPulseiras.setOnItemClickListener((parent, view, position, id) -> {
-            Pulseira pulseiraSelecionada = pulseiras.get(position);
-            Intent intent = new Intent(MostrarPulseirasActivity.this, AtribuirPulseiraActivity.class);
-            intent.putExtra("pulseira_id", pulseiraSelecionada.getId());
+        listViewPulseiras.setOnItemClickListener((parent, view, pos, id) -> {
+            Pulseira p = pulseiras.get(pos);
+            Intent intent = new Intent(this, AtribuirPulseiraActivity.class);
+            intent.putExtra("pulseira_id", p.getId());
             startActivity(intent);
         });
+
+        mqtt = MqttClientManager.getInstance(this);
+        mqtt.connect(this);
+        mqtt.subscribe("pulseira/atualizada/#");
+        mqtt.subscribe("pulseira/criada/#");
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     protected void onResume() {
         super.onResume();
         getPulseiras();
+
+        IntentFilter filter = new IntentFilter("MQTT_MESSAGE");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(mqttReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(mqttReceiver, filter);
+        }
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(mqttReceiver);
+    }
+
+    private final BroadcastReceiver mqttReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context ctx, Intent intent) {
+            String topic = intent.getStringExtra("topic");
+            if (topic == null) return;
+
+            if (topic.startsWith("pulseira/atualizada/") ||
+                    topic.startsWith("pulseira/criada/")) {
+
+                getPulseiras();
+                Toast.makeText(ctx, "Pulseiras atualizadas", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
 
     private void getPulseiras() {
         progressBar.setVisibility(View.VISIBLE);
 
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
-        String accessToken = SharedPrefManager.getInstance(this).getKeyAccessToken();
+        String authKey = SharedPrefManager.getInstance(this).getKeyAccessToken();
 
-        String url = baseUrl + "api/pulseira?status=Em%20espera&prioridade=Pendente&expand=userprofile&access-token=" + accessToken;
+        String url = baseUrl +
+                "api/pulseira?status=Em%20espera&prioridade=Pendente&expand=userprofile&auth_key=" +
+                authKey;
 
-        JsonObjectRequest request = new JsonObjectRequest(
+        JsonObjectRequest req = new JsonObjectRequest(
                 Request.Method.GET,
                 url,
                 null,
                 response -> {
-                    // --- SUCESSO (TEM INTERNET) ---
                     try {
-                        // Lógica do envelope "data" (Caso a API devolva { "data": [...] })
-                        JSONArray data = null;
-                        if (response.has("data")) {
-                            data = response.getJSONArray("data");
-                        } else {
-                            // Tenta buscar "items" ou assume que é o próprio response se fosse array (mas aqui é JsonObjectRequest)
-                            data = response.optJSONArray("items");
-                        }
+                        JSONArray data = response.has("data")
+                                ? response.getJSONArray("data")
+                                : response.optJSONArray("items");
+
                         if (data != null) {
-
-                            //  USAR O PARSER
-                            ArrayList<Pulseira> novasPulseiras = PulseiraJsonParser.parserJsonPulseiras(data);
-
-                            // Atualizar a lista visual
+                            ArrayList<Pulseira> novas = PulseiraJsonParser.parserJsonPulseiras(data);
                             pulseiras.clear();
-                            pulseiras.addAll(novasPulseiras);
+                            pulseiras.addAll(novas);
                             adapter.notifyDataSetChanged();
 
-                            // Apaga o que estava lá e mete a lista nova
                             PulseiraBDHelper db = PulseiraBDHelper.getInstance(this);
                             db.removeAllPulseiras();
-                            for (Pulseira p : novasPulseiras) {
-                                db.adicionarPulseira(p);
-                            }
+                            for (Pulseira p : novas) db.adicionarPulseira(p);
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Toast.makeText(this, "Erro ao processar dados da API", Toast.LENGTH_SHORT).show();
-                    }
+
+                    } catch (Exception ignored) {}
+
                     progressBar.setVisibility(View.GONE);
                 },
                 error -> {
-                    // --- ERRO (MODO OFFLINE) ---
                     progressBar.setVisibility(View.GONE);
-                    // Se a net falhar, carregamos do SQLite
-                    PulseiraBDHelper db = PulseiraBDHelper.getInstance(this);
-                    ArrayList<Pulseira> offlineList = db.getAllPulseiras();
 
-                    if (!offlineList.isEmpty()) {
-                        pulseiras.clear();
-                        pulseiras.addAll(offlineList);
-                        adapter.notifyDataSetChanged();
+                    PulseiraBDHelper db = PulseiraBDHelper.getInstance(this);
+                    ArrayList<Pulseira> offline = db.getAllPulseiras();
+
+                    pulseiras.clear();
+                    pulseiras.addAll(offline);
+                    adapter.notifyDataSetChanged();
+
+                    if (!offline.isEmpty()) {
                         Toast.makeText(this, "Sem internet. A mostrar dados guardados.", Toast.LENGTH_LONG).show();
                     } else {
                         Toast.makeText(this, "Sem internet e sem dados locais.", Toast.LENGTH_SHORT).show();
@@ -126,6 +155,6 @@ public class MostrarPulseirasActivity extends AppCompatActivity {
                 }
         );
 
-        VolleySingleton.getInstance(this).addToRequestQueue(request);
+        VolleySingleton.getInstance(this).addToRequestQueue(req);
     }
 }
