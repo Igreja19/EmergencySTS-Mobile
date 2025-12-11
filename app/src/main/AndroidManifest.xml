@@ -37,7 +37,7 @@
             android:name=".activities.HistoricoActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.PulseirasActivity"
+            android:name=".activities.MostrarPulseirasActivity"
             android:exported="false" />
         <activity
             android:name=".activities.EnfermeiroActivity"

@@ -25,7 +25,7 @@ public class EnfermeiroActivity extends AppCompatActivity {
 
         // 🔹 Ações
         cardMostrarPulseira.setOnClickListener(v -> {
-            Intent intent = new Intent(this, PulseirasActivity.class);
+            Intent intent = new Intent(this, MostrarPulseirasActivity.class);
             startActivity(intent);
         });
         cardConsultarPaciente.setOnClickListener(v -> {

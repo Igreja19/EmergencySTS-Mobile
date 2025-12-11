@@ -43,7 +43,7 @@ public class PacienteActivity extends AppCompatActivity {
         Toast.makeText(this, "Bem-vindo, " + username + "!", Toast.LENGTH_LONG).show();
 
         // 🔹 Eventos de clique
-        cardPulseira.setOnClickListener(v -> startActivity(new Intent(this, PulseirasActivity.class)));
+        cardPulseira.setOnClickListener(v -> startActivity(new Intent(this, MostrarPulseirasActivity.class)));
         cardHistorico.setOnClickListener(v -> startActivity(new Intent(this, HistoricoActivity.class)));
         cardPerfil.setOnClickListener(v -> startActivity(new Intent(this, PerfilPacienteActivity.class)));
     }

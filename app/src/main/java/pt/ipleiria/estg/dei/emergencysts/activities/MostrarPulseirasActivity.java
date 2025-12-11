@@ -25,7 +25,7 @@ import pt.ipleiria.estg.dei.emergencysts.utils.PulseiraBDHelper;
 import pt.ipleiria.estg.dei.emergencysts.utils.PulseiraJsonParser;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
-public class PulseirasActivity extends AppCompatActivity {
+public class MostrarPulseirasActivity extends AppCompatActivity {
 
     private ListView listViewPulseiras;
     private ProgressBar progressBar;
@@ -35,7 +35,7 @@ public class PulseirasActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_pulseiras);
+        setContentView(R.layout.activity_mostrar_pulseiras);
 
         // Configuração da UI
         ImageView btnback = findViewById(R.id.btnBack);
@@ -50,7 +50,7 @@ public class PulseirasActivity extends AppCompatActivity {
         // Clique num item da lista -> Vai para AtribuirPulseira
         listViewPulseiras.setOnItemClickListener((parent, view, position, id) -> {
             Pulseira pulseiraSelecionada = pulseiras.get(position);
-            Intent intent = new Intent(PulseirasActivity.this, AtribuirPulseiraActivity.class);
+            Intent intent = new Intent(MostrarPulseirasActivity.this, AtribuirPulseiraActivity.class);
             intent.putExtra("pulseira_id", pulseiraSelecionada.getId());
             startActivity(intent);
         });
