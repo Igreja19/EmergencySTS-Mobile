@@ -21,6 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
+import pt.ipleiria.estg.dei.emergencysts.modelo.Paciente;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
@@ -89,45 +90,42 @@ public class ConsultarPacienteActivity extends AppCompatActivity {
     }
 
     private void handleResponse(JSONArray array) {
-
         System.out.println("JSON RECEBIDO: " + array.toString());
 
-        if (array.length() == 0) { showNotFound(); return; }
+        if (array.length() == 0) {
+            showNotFound();
+            return;
+        }
 
         try {
-            JSONObject data = array.getJSONObject(0);
+            // Usa o novo Parser para converter o primeiro resultado
+            JSONObject jsonPaciente = array.getJSONObject(0);
+            Paciente p = pt.ipleiria.estg.dei.emergencysts.utils.PacienteJsonParser.parserJsonPaciente(jsonPaciente);
 
-            // Tenta ler de userprofile OU do root
-            JSONObject u = data.optJSONObject("userprofile");
-            if (u == null) u = data;
+            if (p != null) {
+                // Atualizar UI com os dados do objeto Paciente
+                tvNome.setText(p.getNome());
+                tvNif.setText("NIF: " + p.getNif());
+                tvSns.setText("SNS: " + p.getSns());
 
-            final String nome     = u.optString("nome", "Desconhecido");
-            final String nif      = u.optString("nif", "---");
-            final String sns      = u.optString("sns", "---");
-            final String telefone = u.optString("telefone", "---");
-            final String morada   = u.optString("morada", "---");
-            final String genero   = u.optString("genero", "---");
-            final String dataNasc = u.optString("datanascimento", "---");
+                resultCard.setVisibility(View.VISIBLE);
+                emptyState.setVisibility(View.GONE);
 
-            // Atualizar UI
-            tvNome.setText(nome);
-            tvNif.setText("NIF: " + nif);
-            tvSns.setText("SNS: " + sns);
-
-            resultCard.setVisibility(View.VISIBLE);
-            emptyState.setVisibility(View.GONE);
-
-            resultCard.setOnClickListener(v -> {
-                Intent intent = new Intent(ConsultarPacienteActivity.this, DetalhesPacienteActivity.class);
-                intent.putExtra("nome", nome);
-                intent.putExtra("nif", nif);
-                intent.putExtra("sns", sns);
-                intent.putExtra("telefone", telefone);
-                intent.putExtra("morada", morada);
-                intent.putExtra("genero", genero);
-                intent.putExtra("datanascimento", dataNasc);
-                startActivity(intent);
-            });
+                // Passar dados para a próxima atividade via Intent
+                resultCard.setOnClickListener(v -> {
+                    Intent intent = new Intent(ConsultarPacienteActivity.this, DetalhesPacienteActivity.class);
+                    intent.putExtra("nome", p.getNome());
+                    intent.putExtra("nif", p.getNif());
+                    intent.putExtra("sns", p.getSns());
+                    intent.putExtra("telefone", p.getTelefone());
+                    intent.putExtra("morada", p.getMorada());
+                    // intent.putExtra("genero", p.getGenero()); // Se tiveres o campo género no modelo
+                    intent.putExtra("datanascimento", p.getDataNascimento());
+                    startActivity(intent);
+                });
+            } else {
+                showNotFound();
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
