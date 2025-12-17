@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.activities.DetalhesTriagemActivity;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Triagem;
+import pt.ipleiria.estg.dei.emergencysts.listeners.TriagemListener;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
 public class TriagemAdapter extends BaseAdapter {
@@ -21,11 +22,13 @@ public class TriagemAdapter extends BaseAdapter {
     private final Context context;
     private final ArrayList<Triagem> triagens;
     private final LayoutInflater inflater;
+    private final TriagemListener listener;
 
-    public TriagemAdapter(Context context, ArrayList<Triagem> triagens) {
+    public TriagemAdapter(Context context, ArrayList<Triagem> triagens, TriagemListener listener) {
         this.context = context;
         this.triagens = triagens;
         this.inflater = LayoutInflater.from(context);
+        this.listener = listener;
     }
 
     @Override
@@ -136,6 +139,16 @@ public class TriagemAdapter extends BaseAdapter {
         } else {
             holder.dotPrioridade.setBackgroundResource(R.drawable.circle_gray);
         }
+
+        convertView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (listener != null) {
+                    // Envia o ID da triagem para quem estiver a ouvir (a Activity)
+                    listener.onTriagemClick(t.id);
+                }
+            }
+        });
 
         return convertView;
     }

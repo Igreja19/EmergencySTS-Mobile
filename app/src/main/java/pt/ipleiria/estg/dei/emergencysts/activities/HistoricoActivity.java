@@ -25,11 +25,12 @@ import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.adapters.TriagemAdapter;
 import pt.ipleiria.estg.dei.emergencysts.mqtt.MqttClientManager;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Triagem;
+import pt.ipleiria.estg.dei.emergencysts.listeners.TriagemListener;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 import pt.ipleiria.estg.dei.emergencysts.utils.TriagemJsonParser;
 
-public class HistoricoActivity extends AppCompatActivity {
+public class HistoricoActivity extends AppCompatActivity implements TriagemListener {
 
     private ListView listViewTriagens;
     private TextView tvTotalTriagens;
@@ -45,15 +46,9 @@ public class HistoricoActivity extends AppCompatActivity {
         listViewTriagens = findViewById(R.id.listViewTriagens);
         tvTotalTriagens = findViewById(R.id.tvTotalTriagens);
 
-        adapter = new TriagemAdapter(this, triagens);
+        adapter = new TriagemAdapter(this, triagens, this);
         listViewTriagens.setAdapter(adapter);
 
-        listViewTriagens.setOnItemClickListener((parent, view, position, id) -> {
-            Triagem t = triagens.get(position);
-            Intent intent = new Intent(this, DetalhesTriagemActivity.class);
-            intent.putExtra("triagem_id", t.id);
-            startActivity(intent);
-        });
 
         ImageView btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
@@ -149,6 +144,14 @@ public class HistoricoActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "Erro ao processar dados.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    public void onTriagemClick(int id) {
+        // Esta lógica vem para aqui, vinda da Interface
+        Intent intent = new Intent(this, DetalhesTriagemActivity.class);
+        intent.putExtra("triagem_id", id);
+        startActivity(intent);
     }
 
 }
