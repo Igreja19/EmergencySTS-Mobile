@@ -16,6 +16,12 @@
         android:theme="@style/Theme.EmergencySTS"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".activities.EditarPerfilPacienteActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.EditarPerfilEnfermeiroActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.DetalhesTriagemActivity"
             android:exported="false" />
         <activity

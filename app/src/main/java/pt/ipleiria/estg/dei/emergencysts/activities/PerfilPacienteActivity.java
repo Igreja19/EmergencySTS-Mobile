@@ -1,11 +1,13 @@
 package pt.ipleiria.estg.dei.emergencysts.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
@@ -25,6 +27,7 @@ public class PerfilPacienteActivity extends AppCompatActivity {
     private ImageView btnBack;
     private TextView tvNome, tvEmail, tvDataNasc, tvIdade, tvTelefone, tvSns, tvNif, tvMorada;
     private Button btnLogout;
+    private ImageView btnEditar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,19 +46,62 @@ public class PerfilPacienteActivity extends AppCompatActivity {
         tvNif       = findViewById(R.id.tvNif);
         tvMorada    = findViewById(R.id.tvMorada);
 
+        btnEditar   = findViewById(R.id.btnEditar);
         btnLogout   = findViewById(R.id.btnLogout);
 
         // Botão voltar
         btnBack.setOnClickListener(v -> finish());
 
-        // Carregar perfil do paciente logado
+        // Carregar dados da API (para garantir que temos os dados mais recentes do servidor)
         carregarPerfilPaciente();
 
+        // Abrir página de editar
+        btnEditar.setOnClickListener(v -> {
+            Intent intent = new Intent(PerfilPacienteActivity.this, EditarPerfilPacienteActivity.class);
+            startActivity(intent);
+        });
+
         // Logout
-        btnLogout.setOnClickListener(v -> SharedPrefManager.getInstance(this).logout());
+        btnLogout.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Terminar sessão")
+                    .setMessage("Tem a certeza que deseja sair?")
+                    .setPositiveButton("Sim", (dialog, which) -> {
+                        SharedPrefManager.getInstance(this).logout();
+                    })
+                    .setNegativeButton("Não", null)
+                    .show();
+        });
     }
 
-    //          CARREGAR PERFIL DO PACIENTE LOGADO
+    // --- CORREÇÃO DO BUG DE REFRESH ---
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Sempre que a janela aparece (ou volta de editar), atualiza os textos
+        // com o que está guardado localmente nas SharedPreferences.
+        atualizarDadosInterface();
+    }
+
+    // Método auxiliar para preencher os TextViews com os dados locais
+    private void atualizarDadosInterface() {
+        Paciente p = SharedPrefManager.getInstance(this).getPaciente();
+
+        if (p != null) {
+            tvNome.setText(p.getNome());
+            tvEmail.setText(p.getEmail());
+            tvDataNasc.setText(p.getDataNascimento());
+            tvTelefone.setText(p.getTelefone());
+            tvSns.setText(p.getSns());
+            tvNif.setText(p.getNif());
+            tvMorada.setText(p.getMorada());
+
+            // Recalcular idade baseado na data guardada
+            tvIdade.setText(calcularIdade(p.getDataNascimento()) + " anos");
+        }
+    }
+
+    //          CARREGAR PERFIL DO PACIENTE LOGADO DA API
     private void carregarPerfilPaciente() {
 
         String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
@@ -63,7 +109,6 @@ public class PerfilPacienteActivity extends AppCompatActivity {
 
         if (!baseUrl.endsWith("/")) baseUrl += "/";
 
-        // ENDPOINT CORRETO — devolve exatamente 1 paciente
         String url = baseUrl + "api/paciente/perfil?auth_key=" + token;
 
         JsonObjectRequest req = new JsonObjectRequest(
@@ -72,7 +117,7 @@ public class PerfilPacienteActivity extends AppCompatActivity {
                 null,
                 response -> {
                     try {
-                        JSONObject data = response; // endpoint devolve objeto único
+                        JSONObject data = response;
 
                         String nome   = data.optString("nome", "---");
                         String email  = data.optString("email", "---");
@@ -82,20 +127,17 @@ public class PerfilPacienteActivity extends AppCompatActivity {
                         String nif    = data.optString("nif", "---");
                         String morada = data.optString("morada", "---");
 
-                        // Preencher UI
-                        tvNome.setText(nome);
-                        tvEmail.setText(email);
-                        tvDataNasc.setText(nasc);
-                        tvTelefone.setText(tel);
-                        tvSns.setText(sns);
-                        tvNif.setText(nif);
-                        tvMorada.setText(morada);
-                        tvIdade.setText(calcularIdade(nasc) + " anos");
+                        // --- CORREÇÃO DE OBJETO ---
+                        // Estavas a usar .getEnfermeiro().getId(), o que dava erro se for paciente.
+                        // Vamos buscar os dados base do Paciente atual.
+                        Paciente currentP = SharedPrefManager.getInstance(this).getPaciente();
+                        int userId = currentP.getId();
+                        String username = currentP.getUsername();
 
-                        // Atualizar o objeto Paciente local
-                        Paciente p = new Paciente(
-                                SharedPrefManager.getInstance(this).getEnfermeiro().getId(),
-                                SharedPrefManager.getInstance(this).getEnfermeiro().getUsername(),
+                        // Criar objeto atualizado
+                        Paciente pUpdated = new Paciente(
+                                userId,
+                                username,
                                 email,
                                 "paciente",
                                 nome,
@@ -106,14 +148,22 @@ public class PerfilPacienteActivity extends AppCompatActivity {
                                 morada
                         );
 
-                        SharedPrefManager.getInstance(this).savePaciente(p);
+                        // 1. Guardar localmente
+                        SharedPrefManager.getInstance(this).savePaciente(pUpdated);
+
+                        // 2. Atualizar o ecrã
+                        atualizarDadosInterface();
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Toast.makeText(this, "Erro ao processar dados do perfil.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Erro ao processar dados.", Toast.LENGTH_SHORT).show();
                     }
                 },
-                error -> Toast.makeText(this, "Erro ao comunicar com o servidor.", Toast.LENGTH_SHORT).show()
+                error -> {
+                    // Se falhar a net, pelo menos mostramos o que temos guardado
+                    atualizarDadosInterface();
+                    Toast.makeText(this, "Erro ao atualizar perfil.", Toast.LENGTH_SHORT).show();
+                }
         );
 
         VolleySingleton.getInstance(this).addToRequestQueue(req);
