@@ -6,6 +6,7 @@ import android.widget.TextView;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
@@ -52,7 +53,16 @@ public class PerfilPacienteActivity extends AppCompatActivity {
         carregarPerfilPaciente();
 
         // Logout
-        btnLogout.setOnClickListener(v -> SharedPrefManager.getInstance(this).logout());
+        btnLogout.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                .setTitle("Terminar sessão")
+                .setMessage("Tem a certeza que deseja sair?")
+                .setPositiveButton("Sim", (dialog, which) -> {
+                    SharedPrefManager.getInstance(this).logout();
+                })
+                .setNegativeButton("Não", null)
+                .show();
+        });
     }
 
     //          CARREGAR PERFIL DO PACIENTE LOGADO

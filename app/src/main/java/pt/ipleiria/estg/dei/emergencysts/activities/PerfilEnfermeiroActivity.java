@@ -2,11 +2,12 @@ package pt.ipleiria.estg.dei.emergencysts.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ImageView;
+import android.widget.ImageView; // Importante ser ImageView
 import android.widget.TextView;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
@@ -23,7 +24,7 @@ import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
 public class PerfilEnfermeiroActivity extends AppCompatActivity {
 
-    private ImageView btnBack;
+    private ImageView btnBack, btnSettings, btnEditar; // Declarar tudo aqui
     private TextView tvNome, tvEmail, tvDataNasc, tvIdade, tvTelefone, tvSns, tvNif, tvMorada;
     private Button btnLogout;
 
@@ -32,8 +33,10 @@ public class PerfilEnfermeiroActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_perfil_enfermeiro);
 
+        // --- INICIALIZAÇÃO DOS COMPONENTES ---
         btnBack     = findViewById(R.id.btnBack);
-        ImageView btnSettings = findViewById(R.id.btnSettings);
+        btnSettings = findViewById(R.id.btnSettings);
+        btnEditar   = findViewById(R.id.btnEditar); // FALTAVA ISTO!
 
         tvNome      = findViewById(R.id.tvNomeCompleto);
         tvEmail     = findViewById(R.id.tvEmail);
@@ -46,17 +49,41 @@ public class PerfilEnfermeiroActivity extends AppCompatActivity {
 
         btnLogout   = findViewById(R.id.btnLogout);
 
+        // --- CLIQUES ---
         btnBack.setOnClickListener(v -> finish());
 
         btnSettings.setOnClickListener(v ->
                 startActivity(new Intent(PerfilEnfermeiroActivity.this, ConfigActivity.class))
         );
 
-        carregarPerfilEnfermeiro();
+        // Abrir página de editar
+        btnEditar.setOnClickListener(v -> {
+            Intent intent = new Intent(PerfilEnfermeiroActivity.this, EditarPerfilEnfermeiroActivity.class);
+            startActivity(intent);
+        });
 
-        btnLogout.setOnClickListener(v -> SharedPrefManager.getInstance(this).logout());
+        // Logout com confirmação
+        btnLogout.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Terminar Sessão")
+                    .setMessage("Tem a certeza que deseja sair?")
+                    .setPositiveButton("Sim", (dialog, which) -> {
+                        SharedPrefManager.getInstance(this).logout();
+                    })
+                    .setNegativeButton("Não", null)
+                    .show();
+        });
+
+        // Carrega dados iniciais
+        carregarPerfilEnfermeiro();
     }
 
+    // Importante: Recarregar dados ao voltar da edição
+    @Override
+    protected void onResume() {
+        super.onResume();
+        carregarPerfilEnfermeiro();
+    }
 
     // ---------------------------------------------------------
     //        CARREGA PERFIL DO ENFERMEIRO LOGADO
@@ -69,7 +96,6 @@ public class PerfilEnfermeiroActivity extends AppCompatActivity {
 
         if (!baseUrl.endsWith("/")) baseUrl += "/";
 
-        // ENDPOINT correto tal como fizemos no paciente
         String url = baseUrl + "api/enfermeiro/perfil?auth_key=" + token;
 
         JsonObjectRequest req = new JsonObjectRequest(
@@ -113,40 +139,30 @@ public class PerfilEnfermeiroActivity extends AppCompatActivity {
                         Toast.makeText(this, "Erro ao processar dados do perfil.", Toast.LENGTH_SHORT).show();
                     }
                 },
-                error -> Toast.makeText(this, "Erro ao comunicar com o servidor.", Toast.LENGTH_SHORT).show()
+                error -> {
+                    // Opcional: não mostrar erro se for apenas falha de rede temporária no onResume
+                    // Toast.makeText(this, "Erro ao comunicar com o servidor.", Toast.LENGTH_SHORT).show();
+                }
         );
 
         VolleySingleton.getInstance(this).addToRequestQueue(req);
     }
 
-
-    // ---------------------------------------------------------
-    //     CALCULAR IDADE (YYYY-MM-DD)
-    // ---------------------------------------------------------
     private int calcularIdade(String data) {
         try {
             if (data == null || data.trim().isEmpty()) return 0;
-
             String[] p = data.split("-");
             if (p.length != 3) return 0;
-
             int ano = Integer.parseInt(p[0]);
             int mes = Integer.parseInt(p[1]);
             int dia = Integer.parseInt(p[2]);
-
             Calendar hoje = Calendar.getInstance();
-
             int anoAtual = hoje.get(Calendar.YEAR);
             int mesAtual = hoje.get(Calendar.MONTH) + 1;
             int diaAtual = hoje.get(Calendar.DAY_OF_MONTH);
-
             int idade = anoAtual - ano;
-
-            if (mesAtual < mes || (mesAtual == mes && diaAtual < dia))
-                idade--;
-
+            if (mesAtual < mes || (mesAtual == mes && diaAtual < dia)) idade--;
             return idade;
-
         } catch (Exception ignored) {
             return 0;
         }
