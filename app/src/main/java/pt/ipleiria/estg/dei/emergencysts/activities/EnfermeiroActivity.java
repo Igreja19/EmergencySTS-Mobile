@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
+import pt.ipleiria.estg.dei.emergencysts.fragments.PerfilFragment;
 import pt.ipleiria.estg.dei.emergencysts.mqtt.MqttClientManager;
 
 public class EnfermeiroActivity extends AppCompatActivity {
@@ -40,7 +41,11 @@ public class EnfermeiroActivity extends AppCompatActivity {
         cardMostrarPulseira.setOnClickListener(v -> startActivity(new Intent(this, MostrarPulseirasActivity.class)));
         cardConsultarPaciente.setOnClickListener(v -> startActivity(new Intent(this, ConsultarPacienteActivity.class)));
         cardHistoricoTriagem.setOnClickListener(v -> startActivity(new Intent(this, HistoricoActivity.class)));
-        cardPerfil.setOnClickListener(v -> startActivity(new Intent(this, PerfilEnfermeiroActivity.class)));
+
+        cardPerfil.setOnClickListener(v -> {
+            Intent intent = new Intent(EnfermeiroActivity.this, PerfilEnfermeiroActivity.class);
+            startActivity(intent);
+        });
     }
 
     private final BroadcastReceiver mqttReceiver = new BroadcastReceiver() {
