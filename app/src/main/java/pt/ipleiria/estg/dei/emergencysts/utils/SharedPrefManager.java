@@ -228,6 +228,7 @@ public class SharedPrefManager {
     // -------------------------------------------------------
     public void navigateOnStart(Context context) {
 
+        // Verifica configurações
         if (!hasServerConfigured()) {
             Intent i = new Intent(context, ConfigActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -235,6 +236,7 @@ public class SharedPrefManager {
             return;
         }
 
+        //  Verifica se tem login
         if (!isLoggedIn()) {
             Intent i = new Intent(context, LoginActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -242,20 +244,34 @@ public class SharedPrefManager {
             return;
         }
 
+        //  Verifica a Role para encaminhar
         Enfermeiro u = getEnfermeiro();
+        String role = u.getRole();
+
+        // Proteção contra nulos
+        if (role == null) role = "";
+
         Intent next;
 
-        switch (u.getRole()) {
-            case "enfermeiro":
-                next = new Intent(context, EnfermeiroActivity.class);
-                break;
-
+        // Normaliza para minúsculas para evitar erros (ex: "Enfermeiro" vs "enfermeiro")
+        switch (role.toLowerCase()) {
             case "paciente":
+            case "utente": // Caso a API use outro termo
                 next = new Intent(context, PacienteActivity.class);
                 break;
 
+            case "enfermeiro":
+            case "medico":
+            case "admin":
+            case "administrador":
+                next = new Intent(context, EnfermeiroActivity.class);
+                break;
+
             default:
-                next = new Intent(context, LoginActivity.class);
+                // Se a role for desconhecida mas estiver logado, assume Enfermeiro por defeito
+                // para evitar o loop de voltar ao LoginActivity
+                next = new Intent(context, EnfermeiroActivity.class);
+                break;
         }
 
         next.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

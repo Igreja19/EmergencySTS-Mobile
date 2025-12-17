@@ -37,13 +37,13 @@ public class LoginActivity extends AppCompatActivity {
         // Use apenas a verificação se está logado:
         if (SharedPrefManager.getInstance(this).isLoggedIn()) {
 
-            // 1. Ir buscar os dados do utilizador guardado (para saber a role)
+            // Ir buscar os dados do utilizador guardado (para saber a role)
             Enfermeiro user = SharedPrefManager.getInstance(this).getEnfermeiroBase();
             String role = user.getRole();
 
             Intent intent;
 
-            // 2. Decidir o destino com base na role
+            // Decidir o destino com base na role
             if (role != null && role.equalsIgnoreCase("paciente")) {
                 intent = new Intent(this, PacienteActivity.class);
             } else {
