@@ -88,20 +88,17 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
 
         String url = baseUrl + "api/enfermeiro/" + userId + "?auth_key=" + token;
 
-        StringRequest request = new StringRequest(Request.Method.POST, url, // POST simulando PUT
+        StringRequest request = new StringRequest(Request.Method.PUT, url,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     Toast.makeText(this, "Perfil atualizado com sucesso!", Toast.LENGTH_LONG).show();
-
-                    // Atualizar dados locais para refletir a mudança imediatamente
                     atualizarSharedPrefsLocalmente();
-
-                    // Fechar e voltar ao perfil
                     finish();
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
-                    String erro = "Erro ao atualizar";
+                    // O erro 405 desaparece agora. Se der outro erro (ex: 400), é problema nos parâmetros.
+                    String erro = "Erro ao atualizar: " + error.getMessage();
                     if (error.networkResponse != null) {
                         erro += " (Cód: " + error.networkResponse.statusCode + ")";
                     }
