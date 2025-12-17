@@ -12,25 +12,29 @@ public class PacienteJsonParser {
      */
     public static Paciente parserJsonPaciente(JSONObject json) {
         try {
-            // Verifica se os dados estão dentro de "userprofile" ou na raiz
+            // Verifica se os dados estão dentro de "userprofile", "data" ou na raiz
             JSONObject u = json.optJSONObject("userprofile");
+            if (u == null) u = json.optJSONObject("data"); // Fallback para a estrutura que vimos nos logs
             if (u == null) u = json;
 
-            // Dados base do utilizador (se disponíveis)
-            int id = json.optInt("id", -1);
+            // Dados base do utilizador
+            int id = json.optInt("user_id", json.optInt("id", -1));
             String username = json.optString("username", "---");
-            String email = json.optString("email", "---");
+            String email = json.optString("email", u.optString("email", "---"));
 
             // Dados do perfil
             String nome = u.optString("nome", "Desconhecido");
             String dataNascimento = u.optString("datanascimento", "---");
+            String genero = u.optString("genero", "M"); // <--- EXTRAIR O GÉNERO
             String telefone = u.optString("telefone", "---");
             String sns = u.optString("sns", "---");
             String nif = u.optString("nif", "---");
             String morada = u.optString("morada", "---");
 
-            // Cria e devolve o objeto
-            return new Paciente(id, username, email, "paciente", nome, dataNascimento, telefone, sns, nif, morada);
+            // Cria o objeto usando o novo construtor que inclui o género
+            return new Paciente(id, username, email, "paciente",
+                    nome, dataNascimento, genero,
+                    telefone, sns, nif, morada);
 
         } catch (Exception e) {
             e.printStackTrace();

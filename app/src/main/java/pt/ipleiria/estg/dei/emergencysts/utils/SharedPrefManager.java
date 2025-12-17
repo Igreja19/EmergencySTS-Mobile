@@ -29,6 +29,7 @@ public class SharedPrefManager {
     private static final String KEY_PAC_NASC = "pac_nasc";
     private static final String KEY_PAC_TEL = "pac_tel";
     private static final String KEY_PAC_SNS = "pac_sns";
+    private static final String KEY_PAC_GENERO = "pac_genero";
     private static final String KEY_PAC_NIF = "pac_nif";
     private static final String KEY_PAC_MORADA = "pac_morada";
 
@@ -132,7 +133,7 @@ public class SharedPrefManager {
     public void savePaciente(Paciente p) {
         SharedPreferences.Editor e = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
 
-        e.putInt(KEY_PAC_ID, p.getId());
+        e.putInt(KEY_PAC_ID, p.getId()); // AQUI GUARDAS O ID 22
         e.putString(KEY_PAC_NOME, p.getNome());
         e.putString(KEY_PAC_EMAIL, p.getEmail());
         e.putString(KEY_PAC_NASC, p.getDataNascimento());
@@ -148,13 +149,17 @@ public class SharedPrefManager {
         SharedPreferences sp = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         Enfermeiro base = getEnfermeiroBase();
 
+        // ID do Paciente (usar -1 como fallback para segurança)
+        int idPaciente = sp.getInt(KEY_PAC_ID, -1);
+
         return new Paciente(
-                sp.getInt(KEY_PAC_ID, base.getId()),
+                idPaciente,
                 base.getUsername(),
                 sp.getString(KEY_PAC_EMAIL, base.getEmail()),
                 base.getRole(),
                 sp.getString(KEY_PAC_NOME, "---"),
                 sp.getString(KEY_PAC_NASC, "---"),
+                sp.getString(KEY_PAC_GENERO, "M"),
                 sp.getString(KEY_PAC_TEL, "---"),
                 sp.getString(KEY_PAC_SNS, "---"),
                 sp.getString(KEY_PAC_NIF, "---"),
@@ -248,15 +253,13 @@ public class SharedPrefManager {
         Enfermeiro u = getEnfermeiro();
         String role = u.getRole();
 
-        // Proteção contra nulos
         if (role == null) role = "";
 
         Intent next;
 
-        // Normaliza para minúsculas para evitar erros (ex: "Enfermeiro" vs "enfermeiro")
         switch (role.toLowerCase()) {
             case "paciente":
-            case "utente": // Caso a API use outro termo
+            case "utente":
                 next = new Intent(context, PacienteActivity.class);
                 break;
 
@@ -268,8 +271,6 @@ public class SharedPrefManager {
                 break;
 
             default:
-                // Se a role for desconhecida mas estiver logado, assume Enfermeiro por defeito
-                // para evitar o loop de voltar ao LoginActivity
                 next = new Intent(context, EnfermeiroActivity.class);
                 break;
         }
