@@ -12,6 +12,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
+import pt.ipleiria.estg.dei.emergencysts.listeners.PulseiraListener;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Pulseira;
 
 public class PulseiraAdapter extends BaseAdapter {
@@ -19,11 +20,13 @@ public class PulseiraAdapter extends BaseAdapter {
     private Context context;
     private ArrayList<Pulseira> pulseiras;
     private LayoutInflater inflater;
+    private PulseiraListener listener;
 
-    public PulseiraAdapter(Context context, ArrayList<Pulseira> pulseiras) {
+    public PulseiraAdapter(Context context, ArrayList<Pulseira> pulseiras, PulseiraListener listener) {
         this.context = context;
         this.pulseiras = pulseiras;
         this.inflater = LayoutInflater.from(context);
+        this.listener = listener;
     }
 
     @Override
@@ -70,6 +73,11 @@ public class PulseiraAdapter extends BaseAdapter {
         holder.tvStatus.setBackgroundResource(R.drawable.bg_chip_pendente);
         holder.imgDot.setColorFilter(Color.parseColor("#9E9E9E"));
 
+        convertView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onPulseiraClick(pulseira);
+            }
+        });
 
         return convertView;
     }

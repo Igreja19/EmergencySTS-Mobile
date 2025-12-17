@@ -29,9 +29,10 @@ import pt.ipleiria.estg.dei.emergencysts.modelo.Pulseira;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
 import pt.ipleiria.estg.dei.emergencysts.utils.PulseiraBDHelper;
 import pt.ipleiria.estg.dei.emergencysts.utils.PulseiraJsonParser;
+import pt.ipleiria.estg.dei.emergencysts.listeners.PulseiraListener;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
-public class MostrarPulseirasActivity extends AppCompatActivity {
+public class MostrarPulseirasActivity extends AppCompatActivity implements PulseiraListener{
 
     private ListView listViewPulseiras;
     private ProgressBar progressBar;
@@ -51,15 +52,9 @@ public class MostrarPulseirasActivity extends AppCompatActivity {
         listViewPulseiras = findViewById(R.id.listViewPulseiras);
         progressBar = findViewById(R.id.progressBar);
 
-        adapter = new PulseiraAdapter(this, pulseiras);
+        adapter = new PulseiraAdapter(this, pulseiras, this);
         listViewPulseiras.setAdapter(adapter);
 
-        listViewPulseiras.setOnItemClickListener((parent, view, pos, id) -> {
-            Pulseira p = pulseiras.get(pos);
-            Intent intent = new Intent(this, AtribuirPulseiraActivity.class);
-            intent.putExtra("pulseira_id", p.getId());
-            startActivity(intent);
-        });
 
         mqtt = MqttClientManager.getInstance(this);
         mqtt.connect(this);
@@ -156,5 +151,13 @@ public class MostrarPulseirasActivity extends AppCompatActivity {
         );
 
         VolleySingleton.getInstance(this).addToRequestQueue(req);
+    }
+
+    @Override
+    public void onPulseiraClick(Pulseira pulseira) {
+        // Esta lógica vem para aqui
+        Intent intent = new Intent(this, AtribuirPulseiraActivity.class);
+        intent.putExtra("pulseira_id", pulseira.getId());
+        startActivity(intent);
     }
 }
