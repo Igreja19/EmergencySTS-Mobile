@@ -28,6 +28,7 @@ public class PerfilPacienteActivity extends AppCompatActivity {
     private TextView tvNome, tvEmail, tvDataNasc, tvIdade, tvTelefone, tvSns, tvNif, tvMorada;
     private Button btnLogout;
     private ImageView btnEditar;
+    private ImageView btnSettings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +49,7 @@ public class PerfilPacienteActivity extends AppCompatActivity {
 
         btnEditar   = findViewById(R.id.btnEditar);
         btnLogout   = findViewById(R.id.btnLogout);
+        btnSettings = findViewById(R.id.btnSettings);
 
         // Botão voltar
         btnBack.setOnClickListener(v -> finish());
@@ -58,6 +60,11 @@ public class PerfilPacienteActivity extends AppCompatActivity {
         // Abrir página de editar
         btnEditar.setOnClickListener(v -> {
             Intent intent = new Intent(PerfilPacienteActivity.this, EditarPerfilPacienteActivity.class);
+            startActivity(intent);
+        });
+
+        btnSettings.setOnClickListener(v -> {
+            Intent intent = new Intent(PerfilPacienteActivity.this, ConfigActivity.class);
             startActivity(intent);
         });
 
