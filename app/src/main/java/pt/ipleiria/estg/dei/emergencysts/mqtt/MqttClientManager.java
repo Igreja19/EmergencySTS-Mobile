@@ -25,9 +25,14 @@ public class MqttClientManager {
     }
 
     public void connect(Context context) {
+        String serverIp = pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager.getInstance(context).getServerBase();
+
+        String cleanIp = serverIp.replace("http://", "").replace("https://", "").replace("/", "");
+        String brokerUrl = "tcp://" + cleanIp + ":1883";
+
         try {
             if (client == null) {
-                client = new MqttClient("tcp://10.0.2.2:1883", MqttClient.generateClientId(), null);
+                client = new MqttClient(brokerUrl, MqttClient.generateClientId(), null);
             }
 
             MqttConnectOptions options = new MqttConnectOptions();
@@ -37,10 +42,8 @@ public class MqttClientManager {
             client.setCallback(new MqttCallbackExtended() {
                 @Override
                 public void connectComplete(boolean reconnect, String serverURI) {}
-
                 @Override
                 public void connectionLost(Throwable cause) {}
-
                 @Override
                 public void messageArrived(String topic, MqttMessage message) {
                     Intent intent = new Intent("MQTT_MESSAGE");
@@ -48,13 +51,18 @@ public class MqttClientManager {
                     intent.putExtra("payload", message.toString());
                     context.sendBroadcast(intent);
                 }
-
                 @Override
                 public void deliveryComplete(IMqttDeliveryToken token) {}
             });
 
             if (!client.isConnected()) {
-                client.connect(options);
+                new Thread(() -> {
+                    try {
+                        client.connect(options);
+                    } catch (MqttException e) {
+                        e.printStackTrace();
+                    }
+                }).start();
             }
 
         } catch (MqttException e) {
