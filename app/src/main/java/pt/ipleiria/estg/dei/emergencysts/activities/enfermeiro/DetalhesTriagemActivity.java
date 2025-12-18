@@ -1,12 +1,16 @@
 package pt.ipleiria.estg.dei.emergencysts.activities.enfermeiro;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 
 import org.json.JSONObject;
 
@@ -25,10 +30,12 @@ import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
 public class DetalhesTriagemActivity extends AppCompatActivity {
 
+    // Views que REALMENTE existem no XML
     private TextView tvNomeValor, tvDataNascimento, tvSNS, tvTelefoneValor;
     private TextView tvMotivo, tvQueixa, tvDescricao, tvInicio, tvDor, tvAlergias, tvMedicacao;
-    private TextView tvPrioridade, tvEnfermeiro, tvData, tvHora;
-    private android.view.View dotPrioridade;
+    private TextView tvPrioridade;
+    private View dotPrioridade;
+    private Button btnApagar;
 
     private int triagemId;
     private MqttClientManager mqtt;
@@ -38,6 +45,7 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detalhes_triagem);
 
+        // Receber o ID da triagem selecionada
         triagemId = getIntent().getIntExtra("triagem_id", -1);
         if (triagemId == -1) {
             Toast.makeText(this, "Erro: Triagem inválida.", Toast.LENGTH_SHORT).show();
@@ -46,20 +54,26 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         }
 
         initViews();
-        getTriagem();
+        getTriagem(); // Carregar dados da API
 
+        // Configurar MQTT
         mqtt = MqttClientManager.getInstance(this);
-        mqtt.connect(this);
-        mqtt.subscribe("triagem/atualizada/" + triagemId);
-        mqtt.subscribe("pulseira/atualizada/#");
+        // Verificar conexão antes de subscrever
+        if (mqtt != null) {
+            mqtt.connect(this);
+            mqtt.subscribe("triagem/atualizada/" + triagemId);
+            mqtt.subscribe("pulseira/atualizada/#");
+        }
     }
 
     private void initViews() {
+        // Dados do Paciente
         tvNomeValor = findViewById(R.id.tvNomeValor);
         tvDataNascimento = findViewById(R.id.tvDataNascimento);
         tvSNS = findViewById(R.id.tvSNS);
         tvTelefoneValor = findViewById(R.id.tvTelefoneValor);
 
+        // Dados Clínicos
         tvMotivo = findViewById(R.id.tvMotivo);
         tvQueixa = findViewById(R.id.tvQueixa);
         tvDescricao = findViewById(R.id.tvDescricao);
@@ -68,28 +82,47 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         tvAlergias = findViewById(R.id.tvAlergias);
         tvMedicacao = findViewById(R.id.tvMedicacao);
 
+        // Prioridade e visual
         tvPrioridade = findViewById(R.id.tvPrioridade);
         dotPrioridade = findViewById(R.id.dotPrioridade);
 
-        tvEnfermeiro = findViewById(R.id.tvEnfermeiro);
-        tvData = findViewById(R.id.tvData);
-        tvHora = findViewById(R.id.tvHora);
+        // O XML NÃO TEM tvEnfermeiro, tvData ou tvHora, por isso removi daqui.
 
+        // Botão Voltar
         ImageView btnBack = findViewById(R.id.btnBack);
-        btnBack.setOnClickListener(v -> finish());
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
+
+        // Botão Apagar
+        btnApagar = findViewById(R.id.btnApagar);
+        if (btnApagar != null) {
+            btnApagar.setOnClickListener(v -> confirmarEliminacao());
+        }
     }
 
     private void getTriagem() {
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
         String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
-        String url = baseUrl + "api/triagem/" + triagemId + "?auth_key=" + token;
+
+        if (!baseUrl.endsWith("/")) baseUrl += "/";
+
+        // Mantenho a expansão, caso precises dos dados no futuro, mas o código abaixo só usa o que o XML mostra
+        String url = baseUrl + "api/triagem/" + triagemId +
+                "?expand=userprofile,pulseira&auth_key=" + token;
 
         JsonObjectRequest req = new JsonObjectRequest(
                 Request.Method.GET,
                 url,
                 null,
-                this::bindData,
-                error -> Toast.makeText(this, "Erro ao carregar triagem.", Toast.LENGTH_SHORT).show()
+                response -> {
+                    Log.d("TRIAGEM_DATA", response.toString());
+                    bindData(response);
+                },
+                error -> {
+                    Log.e("VOLLEY_ERROR", error.toString());
+                    Toast.makeText(this, "Erro ao carregar triagem.", Toast.LENGTH_SHORT).show();
+                }
         );
 
         VolleySingleton.getInstance(this).addToRequestQueue(req);
@@ -97,33 +130,33 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
 
     private void bindData(JSONObject json) {
         try {
+            // --- 1. Dados do Paciente ---
             JSONObject up = json.optJSONObject("userprofile");
             if (up != null) {
-                tvNomeValor.setText(up.optString("nome", "-"));
-                tvSNS.setText(up.optString("sns", "-"));
-                tvDataNascimento.setText(up.optString("datanascimento", "-"));
-                tvTelefoneValor.setText(up.optString("telefone", "-"));
+                if(tvNomeValor != null) tvNomeValor.setText(up.optString("nome", "-"));
+                if(tvSNS != null) tvSNS.setText(up.optString("sns", "-"));
+                if(tvDataNascimento != null) tvDataNascimento.setText(formatData(up.optString("datanascimento", "-")));
+                if(tvTelefoneValor != null) tvTelefoneValor.setText(up.optString("telefone", "-"));
             }
 
-            tvMotivo.setText(json.optString("motivoconsulta", "-"));
-            tvQueixa.setText(json.optString("queixaprincipal", "-"));
-            tvDescricao.setText(json.optString("descricaosintomas", "-"));
-            tvInicio.setText(json.optString("iniciosintomas", "-"));
-            tvAlergias.setText(json.optString("alergias", "-"));
-            tvMedicacao.setText(json.optString("medicacao", "-"));
-            tvDor.setText(String.valueOf(json.optInt("intensidadedor", 0)));
+            // --- 2. Dados da Triagem ---
+            if(tvMotivo != null) tvMotivo.setText(json.optString("motivoconsulta", "-"));
+            if(tvQueixa != null) tvQueixa.setText(json.optString("queixaprincipal", "-"));
+            if(tvDescricao != null) tvDescricao.setText(json.optString("descricaosintomas", "-"));
 
-            String dataHora = json.optString("datatriagem", "");
-            if (dataHora.contains(" ")) {
-                String[] partes = dataHora.split(" ");
-                tvData.setText(formatData(partes[0]));
-                tvHora.setText(partes[1].substring(0, 5));
-            }
+            // Tratamento da data de início de sintomas
+            String inicioSintomas = json.optString("iniciosintomas", "-").replace("T", " ");
+            if(tvInicio != null) tvInicio.setText(inicioSintomas);
 
+            if(tvAlergias != null) tvAlergias.setText(json.optString("alergias", "-"));
+            if(tvMedicacao != null) tvMedicacao.setText(json.optString("medicacao", "-"));
+            if(tvDor != null) tvDor.setText(String.valueOf(json.optInt("intensidadedor", 0)));
+
+            // --- 3. Prioridade (Pulseira) ---
             JSONObject pulseira = json.optJSONObject("pulseira");
             if (pulseira != null) {
                 String prioridade = pulseira.optString("prioridade", "Pendente");
-                tvPrioridade.setText(prioridade);
+                if(tvPrioridade != null) tvPrioridade.setText(prioridade);
 
                 int res;
                 switch (prioridade.toLowerCase()) {
@@ -134,25 +167,51 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
                     case "azul": res = R.drawable.circle_blue; break;
                     default: res = R.drawable.circle_gray;
                 }
-                dotPrioridade.setBackgroundResource(res);
+                if (dotPrioridade != null) {
+                    dotPrioridade.setBackgroundResource(res);
+                }
             }
 
-        } catch (Exception ignored) {}
+            // NOTA: Removi a lógica do Enfermeiro e Data/Hora da triagem
+            // porque não tens onde mostrar isso no XML que enviaste.
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("DetalhesTriagem", "Erro no bindData: " + e.getMessage());
+            Toast.makeText(this, "Erro ao processar dados visualmente.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private String formatData(String data) {
-        String[] p = data.split("-");
-        return p[2] + "/" + p[1] + "/" + p[0];
+        if (data == null || data.equals("null")) return "-";
+        try {
+            // Se vier com hora (T), limpamos primeiro
+            if (data.contains("T")) {
+                data = data.split("T")[0];
+            }
+
+            // Converte YYYY-MM-DD para DD/MM/YYYY
+            if (data.contains("-")) {
+                String[] p = data.split("-");
+                if (p.length == 3) {
+                    return p[2] + "/" + p[1] + "/" + p[0];
+                }
+            }
+        } catch (Exception e) {
+            Log.e("DetalhesTriagem", "Erro formatação data: " + data);
+        }
+        return data;
     }
 
+    // --- MQTT Receiver ---
     private final BroadcastReceiver mqttReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context ctx, Intent intent) {
             String topic = intent.getStringExtra("topic");
-            if (topic == null) return;
-
-            if (topic.contains("triagem/atualizada/" + triagemId)) {
-                getTriagem();
+            if (topic != null) {
+                if(topic.contains("triagem/atualizada/" + triagemId) || topic.startsWith("pulseira/atualizada")) {
+                    getTriagem();
+                }
             }
         }
     };
@@ -172,6 +231,47 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(mqttReceiver);
+        try {
+            unregisterReceiver(mqttReceiver);
+        } catch (IllegalArgumentException e) {
+            // Receiver não estava registado
+        }
+    }
+
+    // --- Funcionalidade de Apagar ---
+    private void confirmarEliminacao() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Apagar Triagem");
+        builder.setMessage("Tem a certeza que deseja apagar esta triagem? Esta ação é irreversível.");
+
+        builder.setPositiveButton("Sim", (dialog, which) -> deleteTriagem());
+        builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
+
+        builder.show();
+    }
+
+    private void deleteTriagem() {
+        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
+        String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
+        if (!baseUrl.endsWith("/")) baseUrl += "/";
+
+        String url = baseUrl + "api/triagem/" + triagemId + "?auth_key=" + token;
+
+        StringRequest request = new StringRequest(
+                Request.Method.DELETE,
+                url,
+                response -> {
+                    Toast.makeText(this, "Triagem apagada com sucesso!", Toast.LENGTH_SHORT).show();
+                    finish();
+                },
+                error -> {
+                    String erro = "Erro ao apagar.";
+                    if (error.networkResponse != null) {
+                        erro += " Código: " + error.networkResponse.statusCode;
+                    }
+                    Toast.makeText(this, erro, Toast.LENGTH_SHORT).show();
+                }
+        );
+        VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
 }
