@@ -1,4 +1,4 @@
-package pt.ipleiria.estg.dei.emergencysts.activities;
+package pt.ipleiria.estg.dei.emergencysts.activities.enfermeiro;
 
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
@@ -13,8 +13,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
-
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;

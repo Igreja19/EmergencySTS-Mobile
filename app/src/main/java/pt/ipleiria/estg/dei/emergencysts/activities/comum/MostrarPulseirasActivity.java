@@ -1,4 +1,4 @@
-package pt.ipleiria.estg.dei.emergencysts.activities;
+package pt.ipleiria.estg.dei.emergencysts.activities.comum;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
@@ -23,6 +23,7 @@ import org.json.JSONArray;
 import java.util.ArrayList;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
+import pt.ipleiria.estg.dei.emergencysts.activities.enfermeiro.AtribuirPulseiraActivity;
 import pt.ipleiria.estg.dei.emergencysts.adapters.PulseiraAdapter;
 import pt.ipleiria.estg.dei.emergencysts.mqtt.MqttClientManager;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Pulseira;

@@ -1,4 +1,4 @@
-package pt.ipleiria.estg.dei.emergencysts.activities;
+package pt.ipleiria.estg.dei.emergencysts.activities.paciente;
 
 import android.os.Bundle;
 import android.view.View;
@@ -12,13 +12,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Paciente;
@@ -116,7 +112,7 @@ public class EditarPerfilPacienteActivity extends AppCompatActivity {
         }
 
         //  Enviar Pedido
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonBody,
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.PUT, url, jsonBody,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     Toast.makeText(this, "Perfil atualizado com sucesso!", Toast.LENGTH_SHORT).show();

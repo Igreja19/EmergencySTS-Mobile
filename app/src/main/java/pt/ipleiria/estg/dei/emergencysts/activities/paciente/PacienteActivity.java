@@ -1,4 +1,4 @@
-package pt.ipleiria.estg.dei.emergencysts.activities;
+package pt.ipleiria.estg.dei.emergencysts.activities.paciente;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +9,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
+import pt.ipleiria.estg.dei.emergencysts.activities.comum.HistoricoActivity;
+import pt.ipleiria.estg.dei.emergencysts.activities.comum.MostrarPulseirasActivity;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
 public class PacienteActivity extends AppCompatActivity {

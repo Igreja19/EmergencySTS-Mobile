@@ -1,4 +1,4 @@
-package pt.ipleiria.estg.dei.emergencysts.activities;
+package pt.ipleiria.estg.dei.emergencysts.activities.enfermeiro;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
@@ -13,7 +13,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
-import pt.ipleiria.estg.dei.emergencysts.fragments.PerfilFragment;
+import pt.ipleiria.estg.dei.emergencysts.activities.comum.HistoricoActivity;
+import pt.ipleiria.estg.dei.emergencysts.activities.comum.MostrarPulseirasActivity;
 import pt.ipleiria.estg.dei.emergencysts.mqtt.MqttClientManager;
 
 public class EnfermeiroActivity extends AppCompatActivity {

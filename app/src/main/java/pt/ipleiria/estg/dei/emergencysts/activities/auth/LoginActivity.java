@@ -1,4 +1,4 @@
-package pt.ipleiria.estg.dei.emergencysts.activities;
+package pt.ipleiria.estg.dei.emergencysts.activities.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
+import pt.ipleiria.estg.dei.emergencysts.activities.enfermeiro.EnfermeiroActivity;
+import pt.ipleiria.estg.dei.emergencysts.activities.paciente.PacienteActivity;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Enfermeiro;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;

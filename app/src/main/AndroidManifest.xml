@@ -16,46 +16,46 @@
         android:theme="@style/Theme.EmergencySTS"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".activities.EditarPerfilPacienteActivity"
+            android:name=".activities.paciente.EditarPerfilPacienteActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.EditarPerfilEnfermeiroActivity"
+            android:name=".activities.enfermeiro.EditarPerfilEnfermeiroActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.DetalhesTriagemActivity"
+            android:name=".activities.enfermeiro.DetalhesTriagemActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.PerfilEnfermeiroActivity"
+            android:name=".activities.enfermeiro.PerfilEnfermeiroActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.DetalhesPacienteActivity"
+            android:name=".activities.enfermeiro.DetalhesPacienteActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.ConsultarPacienteActivity"
+            android:name=".activities.enfermeiro.ConsultarPacienteActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.PerfilPacienteActivity"
+            android:name=".activities.paciente.PerfilPacienteActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.AtribuirPulseiraActivity"
+            android:name=".activities.enfermeiro.AtribuirPulseiraActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.HistoricoActivity"
+            android:name=".activities.comum.HistoricoActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.MostrarPulseirasActivity"
+            android:name=".activities.comum.MostrarPulseirasActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.EnfermeiroActivity"
+            android:name=".activities.enfermeiro.EnfermeiroActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.PacienteActivity"
+            android:name=".activities.paciente.PacienteActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.LoginActivity"
+            android:name=".activities.auth.LoginActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.ConfigActivity"
+            android:name=".activities.auth.ConfigActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,4 +1,4 @@
-package pt.ipleiria.estg.dei.emergencysts.activities;
+package pt.ipleiria.estg.dei.emergencysts.activities.enfermeiro;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;

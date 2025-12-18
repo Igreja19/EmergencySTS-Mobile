@@ -1,7 +1,6 @@
 package pt.ipleiria.estg.dei.emergencysts.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +11,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
-import pt.ipleiria.estg.dei.emergencysts.activities.DetalhesTriagemActivity;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Triagem;
 import pt.ipleiria.estg.dei.emergencysts.listeners.TriagemListener;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;

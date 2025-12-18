@@ -4,10 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
-import pt.ipleiria.estg.dei.emergencysts.activities.ConfigActivity;
-import pt.ipleiria.estg.dei.emergencysts.activities.EnfermeiroActivity;
-import pt.ipleiria.estg.dei.emergencysts.activities.LoginActivity;
-import pt.ipleiria.estg.dei.emergencysts.activities.PacienteActivity;
+import pt.ipleiria.estg.dei.emergencysts.activities.auth.ConfigActivity;
+import pt.ipleiria.estg.dei.emergencysts.activities.enfermeiro.EnfermeiroActivity;
+import pt.ipleiria.estg.dei.emergencysts.activities.auth.LoginActivity;
+import pt.ipleiria.estg.dei.emergencysts.activities.paciente.PacienteActivity;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Enfermeiro;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Paciente;
 
