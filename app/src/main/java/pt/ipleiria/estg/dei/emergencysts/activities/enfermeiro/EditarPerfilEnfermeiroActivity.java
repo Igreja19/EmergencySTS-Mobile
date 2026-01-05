@@ -33,7 +33,6 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
 
         // Inicializar Views
         ImageView btnCancel = findViewById(R.id.btnCancel);
-        // ImageView btnSave = findViewById(R.id.btnSave); // <--- REMOVIDO (Não existe no XML)
         Button btnSaveBottom = findViewById(R.id.btnSaveBottom);
 
         etNome = findViewById(R.id.etNome);

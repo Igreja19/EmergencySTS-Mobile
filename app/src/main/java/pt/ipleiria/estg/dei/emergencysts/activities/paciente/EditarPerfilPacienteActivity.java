@@ -12,9 +12,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Paciente;
@@ -52,116 +56,94 @@ public class EditarPerfilPacienteActivity extends AppCompatActivity {
     }
 
     private void carregarDadosAtuais() {
-        Paciente p = SharedPrefManager.getInstance(this).getPaciente();
-        if (p != null) {
-            etNome.setText(p.getNome());
-            etEmail.setText(p.getEmail());
-            etTelefone.setText(p.getTelefone());
-            etMorada.setText(p.getMorada());
-            etNif.setText(p.getNif());
-            etSns.setText(p.getSns());
-        }
+        Paciente e = SharedPrefManager.getInstance(this).getPaciente();
+
+        etNome.setText(e.getNome());
+        etEmail.setText(e.getEmail());
+        etTelefone.setText(e.getTelefone());
+        etMorada.setText(e.getMorada());
+        etNif.setText(e.getNif());
+        etSns.setText(e.getSns());
     }
 
     private void guardarAlteracoes() {
-        // Recolher dados dos campos de texto
-        final String nome = etNome.getText().toString().trim();
-        final String email = etEmail.getText().toString().trim();
-        final String telefone = etTelefone.getText().toString().trim();
-        final String morada = etMorada.getText().toString().trim();
-        final String nif = etNif.getText().toString().trim();
-        final String sns = etSns.getText().toString().trim();
+        String nome = etNome.getText().toString().trim();
+        String email = etEmail.getText().toString().trim();
 
-        // Validação básica
-        if (nome.isEmpty() || email.isEmpty() || telefone.isEmpty() || morada.isEmpty() || nif.isEmpty() || sns.isEmpty()) {
-            Toast.makeText(this, "Por favor, preencha todos os campos.", Toast.LENGTH_SHORT).show();
+        if (nome.isEmpty() || email.isEmpty()) {
+            Toast.makeText(this, "Nome e Email são obrigatórios!", Toast.LENGTH_SHORT).show();
             return;
         }
 
         progressBar.setVisibility(View.VISIBLE);
 
-        //  Preparar URL e Token
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
         if (!baseUrl.endsWith("/")) baseUrl += "/";
 
-        Paciente pacienteAtual = SharedPrefManager.getInstance(this).getPaciente();
-        int idPaciente = pacienteAtual.getId();
+        int userId = SharedPrefManager.getInstance(this).getPaciente().getId();
         String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
 
-        String url = baseUrl + "api/paciente/" + idPaciente + "?auth_key=" + token;
+        String url = baseUrl + "api/paciente/" + userId + "?auth_key=" + token;
 
-        // Construir o JSON (Limpo)
-        JSONObject jsonBody = new JSONObject();
-        try {
-            // Campos editáveis
-            jsonBody.put("nome", nome);
-            jsonBody.put("email", email);
-            jsonBody.put("telefone", telefone);
-            jsonBody.put("morada", morada);
-            jsonBody.put("nif", nif);
-            jsonBody.put("sns", sns);
-
-            // Se por algum motivo for null, usa um fallback para não dar erro
-            jsonBody.put("datanascimento", pacienteAtual.getDataNascimento() != null ? pacienteAtual.getDataNascimento() : "2000-01-01");
-            jsonBody.put("genero", pacienteAtual.getGenero() != null ? pacienteAtual.getGenero() : "M");
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-            progressBar.setVisibility(View.GONE);
-            return;
-        }
-
-        //  Enviar Pedido
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.PUT, url, jsonBody,
+        StringRequest request = new StringRequest(Request.Method.PUT, url,
                 response -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Perfil atualizado com sucesso!", Toast.LENGTH_SHORT).show();
-
-                    // Atualizar os dados na App Localmente
-                    pacienteAtual.setNome(nome);
-                    pacienteAtual.setEmail(email);
-                    pacienteAtual.setTelefone(telefone);
-                    pacienteAtual.setMorada(morada);
-                    pacienteAtual.setNif(nif);
-                    pacienteAtual.setSns(sns);
-                    SharedPrefManager.getInstance(this).savePaciente(pacienteAtual);
-
-                    finish(); // Fecha a atividade e volta atrás
+                    Toast.makeText(this, "Perfil atualizado com sucesso!", Toast.LENGTH_LONG).show();
+                    atualizarSharedPrefsLocalmente();
+                    finish();
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
-                    String mensagemErro = "Erro ao guardar alterações.";
-
-                    // Tenta extrair a mensagem de erro específica do servidor (ex: "Email já existe")
-                    if (error.networkResponse != null && error.networkResponse.data != null) {
-                        try {
-                            String responseBody = new String(error.networkResponse.data, "UTF-8");
-
-                            // Mostra uma mensagem mais amigável se possível, ou o erro cru
-                            mensagemErro = "Erro do Servidor: " + error.networkResponse.statusCode;
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                    // O erro 405 desaparece agora. Se der outro erro (ex: 400), é problema nos parâmetros.
+                    String erro = "Erro ao atualizar: " + error.getMessage();
+                    if (error.networkResponse != null) {
+                        erro += " (Cód: " + error.networkResponse.statusCode + ")";
                     }
-                    Toast.makeText(this, mensagemErro, Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, erro, Toast.LENGTH_LONG).show();
                 }
-        );
+        ) {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+
+                // Tenta enviar os dois formatos para garantir compatibilidade com Yii2
+                params.put("nome", etNome.getText().toString());
+                params.put("email", etEmail.getText().toString());
+                params.put("telefone", etTelefone.getText().toString());
+                params.put("morada", etMorada.getText().toString());
+                params.put("nif", etNif.getText().toString());
+                params.put("sns", etSns.getText().toString());
+
+                // Formato Model[campo]
+                params.put("Paciente[nome]", etNome.getText().toString());
+                params.put("Paciente[email]", etEmail.getText().toString());
+                params.put("Paciente[telefone]", etTelefone.getText().toString());
+                params.put("Paciente[morada]", etMorada.getText().toString());
+                params.put("Paciente[nif]", etNif.getText().toString());
+                params.put("Paciente[sns]", etSns.getText().toString());
+
+                return params;
+            }
+
+            @Override
+            public String getBodyContentType() {
+                return "application/x-www-form-urlencoded; charset=UTF-8";
+            }
+        };
 
         VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
 
     private void atualizarSharedPrefsLocalmente() {
-        // MUDADO: Atualiza o objeto Paciente
         Paciente atual = SharedPrefManager.getInstance(this).getPaciente();
-        if (atual != null) {
-            atual.setNome(etNome.getText().toString());
-            atual.setEmail(etEmail.getText().toString());
-            atual.setTelefone(etTelefone.getText().toString());
-            atual.setMorada(etMorada.getText().toString());
-            atual.setNif(etNif.getText().toString());
-            atual.setSns(etSns.getText().toString());
 
-            SharedPrefManager.getInstance(this).savePaciente(atual);
-        }
+        atual.setNome(etNome.getText().toString());
+        atual.setEmail(etEmail.getText().toString());
+        atual.setTelefone(etTelefone.getText().toString());
+        atual.setMorada(etMorada.getText().toString());
+        atual.setNif(etNif.getText().toString());
+        atual.setSns(etSns.getText().toString());
+
+        SharedPrefManager.getInstance(this).savePaciente(atual);
     }
 }
