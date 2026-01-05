@@ -43,7 +43,15 @@ public class AtribuirPulseiraActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, cores);
         spinnerPrioridade.setAdapter(adapter);
 
-        pulseiraId = getIntent().getStringExtra("pulseira_id");
+        // O ID vem como int, por isso usamos getIntExtra.
+        // Se falhar (valor -1), tentamos ler como String por segurança.
+        int idRecebido = getIntent().getIntExtra("pulseira_id", -1);
+        if (idRecebido != -1) {
+            pulseiraId = String.valueOf(idRecebido);
+        } else {
+            pulseiraId = getIntent().getStringExtra("pulseira_id");
+        }
+        // ---------------------
 
         if (pulseiraId == null) {
             Toast.makeText(this, "Erro: ID em falta", Toast.LENGTH_SHORT).show();
@@ -138,10 +146,10 @@ public class AtribuirPulseiraActivity extends AppCompatActivity {
                 Request.Method.PUT,
                 url,
                 response -> {
-                    Toast.makeText(this, "Pulseira atribuída com sucesso!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Triagem e Prioridade guardadas!", Toast.LENGTH_LONG).show();
                     finish();
                 },
-                error -> Toast.makeText(this, "Erro ao guardar atribuição.", Toast.LENGTH_SHORT).show()
+                error -> Toast.makeText(this, "Erro ao guardar. Verifique a API.", Toast.LENGTH_SHORT).show()
         ) {
             @Override
             public Map<String, String> getHeaders() {
@@ -153,8 +161,20 @@ public class AtribuirPulseiraActivity extends AppCompatActivity {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
+
+                //  Dados da Pulseira
                 params.put("prioridade", cor);
                 params.put("status", "Em espera");
+
+                // Dados da Triagem (Nomes exatos da tua Base de Dados)
+                params.put("motivoconsulta", etMotivo.getText().toString());
+                params.put("queixaprincipal", etQueixa.getText().toString());
+                params.put("descricaosintomas", etDescricao.getText().toString());
+                params.put("iniciosintomas", etInicio.getText().toString());
+                params.put("intensidadedor", etDor.getText().toString());
+                params.put("alergias", etAlergias.getText().toString());
+                params.put("medicacao", etMedicacao.getText().toString());
+
                 return params;
             }
         };

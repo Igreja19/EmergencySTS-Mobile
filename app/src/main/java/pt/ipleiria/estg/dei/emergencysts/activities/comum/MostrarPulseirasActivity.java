@@ -203,10 +203,17 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
             cardPulseira.setVisibility(View.VISIBLE);
             layoutSemPulseira.setVisibility(View.GONE);
 
+            //  MOSTRAR O NOME NO TÍTULO
+            if (p.getNomePaciente() != null && !p.getNomePaciente().isEmpty()) {
+                tvTitulo.setText("Olá, " + p.getNomePaciente());
+            } else {
+                tvTitulo.setText("A minha Pulseira");
+            }
+
+            //  Preencher o resto (Código e Estado)
             tvCodigoPulseira.setText("#" + p.getCodigo());
 
-            //  Verificar Prioridade (Cor) em vez de apenas Status
-            String prioridade = p.getPrioridade(); // "Laranja", "Amarelo", etc.
+            String prioridade = p.getPrioridade();
             String status = p.getStatus();
 
             if (prioridade != null && !prioridade.equalsIgnoreCase("Pendente")) {
