@@ -1,6 +1,7 @@
 package pt.ipleiria.estg.dei.emergencysts.activities.paciente;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,11 +12,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,19 +53,24 @@ public class EditarPerfilPacienteActivity extends AppCompatActivity {
     }
 
     private void carregarDadosAtuais() {
-        Paciente e = SharedPrefManager.getInstance(this).getPaciente();
-
-        etNome.setText(e.getNome());
-        etEmail.setText(e.getEmail());
-        etTelefone.setText(e.getTelefone());
-        etMorada.setText(e.getMorada());
-        etNif.setText(e.getNif());
-        etSns.setText(e.getSns());
+        Paciente p = SharedPrefManager.getInstance(this).getPaciente();
+        if (p != null) {
+            etNome.setText(p.getNome());
+            etEmail.setText(p.getEmail());
+            etTelefone.setText(p.getTelefone());
+            etMorada.setText(p.getMorada());
+            etNif.setText(p.getNif());
+            etSns.setText(p.getSns());
+        }
     }
 
     private void guardarAlteracoes() {
-        String nome = etNome.getText().toString().trim();
-        String email = etEmail.getText().toString().trim();
+        final String nome = etNome.getText().toString().trim();
+        final String email = etEmail.getText().toString().trim();
+        final String nif = etNif.getText().toString().trim();
+        final String sns = etSns.getText().toString().trim();
+        final String telefone = etTelefone.getText().toString().trim();
+        final String morada = etMorada.getText().toString().trim();
 
         if (nome.isEmpty() || email.isEmpty()) {
             Toast.makeText(this, "Nome e Email são obrigatórios!", Toast.LENGTH_SHORT).show();
@@ -77,15 +79,16 @@ public class EditarPerfilPacienteActivity extends AppCompatActivity {
 
         progressBar.setVisibility(View.VISIBLE);
 
+        final Paciente original = SharedPrefManager.getInstance(this).getPaciente();
+        final String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
         if (!baseUrl.endsWith("/")) baseUrl += "/";
 
-        int userId = SharedPrefManager.getInstance(this).getPaciente().getId();
-        String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
+        // URL com token para autenticação
+        String url = baseUrl + "api/paciente/" + original.getId() + "?auth_key=" + token;
 
-        String url = baseUrl + "api/paciente/" + userId + "?auth_key=" + token;
-
-        StringRequest request = new StringRequest(Request.Method.PUT, url,
+        // POST com overriding para contornar problemas de PUT no servidor
+        StringRequest request = new StringRequest(Request.Method.POST, url,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     Toast.makeText(this, "Perfil atualizado com sucesso!", Toast.LENGTH_LONG).show();
@@ -94,33 +97,45 @@ public class EditarPerfilPacienteActivity extends AppCompatActivity {
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
-                    // O erro 405 desaparece agora. Se der outro erro (ex: 400), é problema nos parâmetros.
-                    String erro = "Erro ao atualizar: " + error.getMessage();
                     if (error.networkResponse != null) {
-                        erro += " (Cód: " + error.networkResponse.statusCode + ")";
+                        String body = new String(error.networkResponse.data);
+                        Log.e("API_ERRO", "Status: " + error.networkResponse.statusCode + " Body: " + body);
+                        Toast.makeText(this, "Erro de Validação: " + body, Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(this, "Erro de ligação ao servidor", Toast.LENGTH_SHORT).show();
                     }
-                    Toast.makeText(this, erro, Toast.LENGTH_LONG).show();
                 }
         ) {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
 
-                // Tenta enviar os dois formatos para garantir compatibilidade com Yii2
-                params.put("nome", etNome.getText().toString());
-                params.put("email", etEmail.getText().toString());
-                params.put("telefone", etTelefone.getText().toString());
-                params.put("morada", etMorada.getText().toString());
-                params.put("nif", etNif.getText().toString());
-                params.put("sns", etSns.getText().toString());
+                // Informa o Yii2 que este POST deve ser tratado como um PUT
+                params.put("_method", "PUT");
 
-                // Formato Model[campo]
-                params.put("Paciente[nome]", etNome.getText().toString());
-                params.put("Paciente[email]", etEmail.getText().toString());
-                params.put("Paciente[telefone]", etTelefone.getText().toString());
-                params.put("Paciente[morada]", etMorada.getText().toString());
-                params.put("Paciente[nif]", etNif.getText().toString());
-                params.put("Paciente[sns]", etSns.getText().toString());
+                // Envio dos dados no formato Paciente[campo]
+                params.put("Paciente[nome]", nome);
+                params.put("Paciente[telefone]", telefone);
+                params.put("Paciente[morada]", morada);
+
+                // IMPORTANTE: Só envia se mudou para não disparar a regra 'unique' do NIF/SNS/Email
+                if (!email.equalsIgnoreCase(original.getEmail())) {
+                    params.put("Paciente[email]", email);
+                }
+                if (!nif.equals(original.getNif())) {
+                    params.put("Paciente[nif]", nif);
+                }
+                if (!sns.equals(original.getSns())) {
+                    params.put("Paciente[sns]", sns);
+                }
+
+                // Campos obrigatórios que não mudam nesta activity mas o modelo exige
+                if (original.getGenero() != null) {
+                    params.put("Paciente[genero]", original.getGenero());
+                }
+                if (original.getDataNascimento() != null) {
+                    params.put("Paciente[datanascimento]", original.getDataNascimento());
+                }
 
                 return params;
             }
@@ -136,14 +151,15 @@ public class EditarPerfilPacienteActivity extends AppCompatActivity {
 
     private void atualizarSharedPrefsLocalmente() {
         Paciente atual = SharedPrefManager.getInstance(this).getPaciente();
+        if (atual != null) {
+            atual.setNome(etNome.getText().toString());
+            atual.setEmail(etEmail.getText().toString());
+            atual.setTelefone(etTelefone.getText().toString());
+            atual.setMorada(etMorada.getText().toString());
+            atual.setNif(etNif.getText().toString());
+            atual.setSns(etSns.getText().toString());
 
-        atual.setNome(etNome.getText().toString());
-        atual.setEmail(etEmail.getText().toString());
-        atual.setTelefone(etTelefone.getText().toString());
-        atual.setMorada(etMorada.getText().toString());
-        atual.setNif(etNif.getText().toString());
-        atual.setSns(etSns.getText().toString());
-
-        SharedPrefManager.getInstance(this).savePaciente(atual);
+            SharedPrefManager.getInstance(this).savePaciente(atual);
+        }
     }
 }

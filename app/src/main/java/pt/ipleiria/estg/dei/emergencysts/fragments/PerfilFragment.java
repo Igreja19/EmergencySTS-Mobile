@@ -2,6 +2,7 @@ package pt.ipleiria.estg.dei.emergencysts.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,7 +54,7 @@ public class PerfilFragment extends Fragment {
         tvNif       = view.findViewById(R.id.tvNif);
         tvMorada    = view.findViewById(R.id.tvMorada);
 
-        // Botões (Certifica-te que estes IDs existem no fragment_perfil.xml)
+        // Botões
         btnLogout   = view.findViewById(R.id.btnLogout);
         btnBack     = view.findViewById(R.id.btnBack);
         btnSettings = view.findViewById(R.id.btnSettings);
@@ -64,11 +65,12 @@ public class PerfilFragment extends Fragment {
         // Botão Editar
         if (btnEditar != null) {
             btnEditar.setOnClickListener(v -> {
+                if (getContext() == null) return;
                 String role = SharedPrefManager.getInstance(getContext()).getEnfermeiroBase().getRole();
                 Intent intent;
 
                 // Abre a atividade de edição consoante o tipo de utilizador
-                if (role != null && (role.equalsIgnoreCase("paciente"))) {
+                if (role != null && (role.equalsIgnoreCase("paciente") || role.equalsIgnoreCase("utente"))) {
                     intent = new Intent(getContext(), EditarPerfilPacienteActivity.class);
                 } else {
                     intent = new Intent(getContext(), EditarPerfilEnfermeiroActivity.class);
@@ -77,7 +79,7 @@ public class PerfilFragment extends Fragment {
             });
         }
 
-        // Botão Logout (Mostra o Alerta)
+        // Botão Logout
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {
                 if (getContext() == null) return;
@@ -105,7 +107,7 @@ public class PerfilFragment extends Fragment {
             });
         }
 
-        // Botão Settings (Config)
+        // Botão Settings
         if (btnSettings != null) {
             btnSettings.setOnClickListener(v ->
                     startActivity(new Intent(getContext(), ConfigActivity.class))
@@ -123,7 +125,7 @@ public class PerfilFragment extends Fragment {
         String role = SharedPrefManager.getInstance(getContext()).getEnfermeiroBase().getRole();
 
         // Se for Paciente carrega paciente
-        if (role != null && (role.equalsIgnoreCase("paciente"))) {
+        if (role != null && (role.equalsIgnoreCase("paciente") || role.equalsIgnoreCase("utente"))) {
             carregarPerfilPaciente();
         } else {
             // Caso contrário (enfermeiro ou admin)
@@ -181,7 +183,7 @@ public class PerfilFragment extends Fragment {
                         e.printStackTrace();
                     }
                 },
-                error -> { /* Ignorar erros silenciosos */ }
+                error -> { /* Ignorar erros silenciosos no enfermeiro para não spammar */ }
         );
 
         VolleySingleton.getInstance(getContext()).addToRequestQueue(req);
@@ -190,89 +192,91 @@ public class PerfilFragment extends Fragment {
     private void carregarPerfilPaciente() {
         if (getContext() == null) return;
 
-        // Preparar dados
+        // 1. Preparar Token e URL
         String token = SharedPrefManager.getInstance(getContext()).getKeyAccessToken();
         String baseUrl = SharedPrefManager.getInstance(getContext()).getServerUrl();
-        int userIdLogado = SharedPrefManager.getInstance(getContext()).getEnfermeiroBase().getId();
-
         if (!baseUrl.endsWith("/")) baseUrl += "/";
 
-        // Pedir a LISTA de pacientes
-        String url = baseUrl + "api/paciente?auth_key=" + token;
+        // MUDANÇA IMPORTANTE: Endpoint específico do perfil do paciente
+        String url = baseUrl + "api/paciente/perfil?auth_key=" + token;
 
-        // Usamos JsonArrayRequest porque usamos uma lista
-        JsonArrayRequest req = new JsonArrayRequest(Request.Method.GET, url, null,
+        // MUDANÇA IMPORTANTE: JsonObjectRequest em vez de Array
+        JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET, url, null,
                 response -> {
                     if (getContext() == null) return;
                     try {
-                        boolean encontrado = false;
+                        // LOG PARA DEBUG: Vê o que aparece no Logcat com a tag "API_DEBUG"
+                        Log.d("API_DEBUG", "Resposta Paciente: " + response.toString());
 
-                        // Procurar o paciente que corresponde ao User ID logado
-                        for (int i = 0; i < response.length(); i++) {
-                            JSONObject data = response.getJSONObject(i);
-                            int uId = data.optInt("user_id", -1);
+                        // Verifica se os dados vêm dentro de "data" ou estão na raiz
+                        JSONObject data = response.has("data") ? response.optJSONObject("data") : response;
+                        if (data == null) data = response;
 
-                            if (uId == userIdLogado) {
-                                encontrado = true;
+                        // 2. Extrair dados do JSON (Tenta variações comuns de nomes)
+                        int idPac     = data.optInt("id", 0);
+                        String nome   = data.optString("nome", "---");
+                        String email  = data.optString("email", "---");
 
-                                // Extrair dados
-                                int idPac     = data.optInt("id");
-                                String nome   = data.optString("nome", "---");
-                                String email  = data.optString("email", "---");
-                                String nasc   = data.optString("datanascimento", "---");
-                                String tel    = data.optString("telefone", "---");
-                                String sns    = data.optString("sns", "---");
-                                String nif    = data.optString("nif", "---");
-                                String morada = data.optString("morada", "---");
-                                String genero = data.optString("genero", "M");
+                        // Tenta ler "datanascimento" ou "data_nascimento"
+                        String nasc = data.has("datanascimento") ? data.optString("datanascimento") : data.optString("data_nascimento", "---");
+                        if (nasc.equals("null")) nasc = "---";
 
-                                // Atualizar UI
-                                tvNome.setText(nome);
-                                tvEmail.setText(email);
-                                tvDataNasc.setText(nasc);
-                                tvTelefone.setText(tel);
-                                tvSns.setText(sns);
-                                tvNif.setText(nif);
-                                tvMorada.setText(morada);
-                                tvIdade.setText(calcularIdade(nasc) + " anos");
+                        String tel    = data.optString("telefone", "---");
 
-                                //  Atualizar/Guardar no SharedPrefManager
-                                Paciente stored = SharedPrefManager.getInstance(getContext()).getPaciente();
-                                // Se não existir ou o ID for diferente, criamos um novo com o ID certo
-                                if (stored == null || stored.getId() != idPac) {
-                                    stored = new Paciente(idPac, "user", email, "paciente");
-                                }
+                        // Tenta ler "sns", "numUtente" ou "numero_utente"
+                        String sns = "---";
+                        if (data.has("sns")) sns = data.optString("sns");
+                        else if (data.has("numUtente")) sns = data.optString("numUtente");
+                        else if (data.has("numero_utente")) sns = data.optString("numero_utente");
 
-                                stored.setNome(nome);
-                                stored.setEmail(email);
-                                stored.setDataNascimento(nasc);
-                                stored.setTelefone(tel);
-                                stored.setSns(sns);
-                                stored.setNif(nif);
-                                stored.setMorada(morada);
-                                stored.setGenero(genero);
+                        String nif    = data.optString("nif", "---");
+                        String morada = data.optString("morada", "---");
 
-                                SharedPrefManager.getInstance(getContext()).savePaciente(stored);
-                                break; // Já encontrámos, podemos sair do loop
-                            }
+                        // Tenta ler "genero" ou "sexo"
+                        String genero = data.has("genero") ? data.optString("genero", "M") : data.optString("sexo", "M");
+
+                        // 3. Atualizar a Interface (UI)
+                        tvNome.setText(nome);
+                        tvEmail.setText(email);
+                        tvDataNasc.setText(nasc);
+                        tvTelefone.setText(tel);
+                        tvSns.setText(sns);
+                        tvNif.setText(nif);
+                        tvMorada.setText(morada);
+                        tvIdade.setText(calcularIdade(nasc) + " anos");
+
+                        // 4. Guardar no SharedPrefManager
+                        Paciente stored = SharedPrefManager.getInstance(getContext()).getPaciente();
+                        String username = SharedPrefManager.getInstance(getContext()).getEnfermeiroBase().getUsername();
+
+                        // Como Paciente não tem setId(), se o ID for novo, recriamos o objeto
+                        if (stored == null || stored.getId() != idPac) {
+                            stored = new Paciente(idPac, username, email, "paciente");
                         }
 
-                        if (!encontrado) {
-                            tvNome.setText("Perfil não encontrado");
-                            Toast.makeText(getContext(), "Não foi encontrado um perfil de paciente associado.", Toast.LENGTH_LONG).show();
-                        }
+                        // Atualizar restantes campos
+                        stored.setNome(nome);
+                        stored.setEmail(email);
+                        stored.setDataNascimento(nasc);
+                        stored.setTelefone(tel);
+                        stored.setSns(sns);
+                        stored.setNif(nif);
+                        stored.setMorada(morada);
+                        stored.setGenero(genero);
+
+                        SharedPrefManager.getInstance(getContext()).savePaciente(stored);
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Toast.makeText(getContext(), "Erro ao processar dados.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Erro ao processar dados do paciente.", Toast.LENGTH_SHORT).show();
                     }
                 },
                 error -> {
-                    // Agora mostramos o erro para não ficar "A Carregar..." para sempre
                     if (getContext() != null) {
-                        tvNome.setText("Erro de Ligação");
-                        String err = error.getMessage() != null ? error.getMessage() : "Erro desconhecido";
-                        Toast.makeText(getContext(), "Erro ao carregar: " + err, Toast.LENGTH_SHORT).show();
+                        // Mostra erro apenas se falhar mesmo a ligação
+                        String err = error.getMessage();
+                        Log.e("API_DEBUG", "Erro Volley: " + err);
+                        // Opcional: Toast.makeText(getContext(), "Erro ao carregar perfil", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
@@ -282,7 +286,7 @@ public class PerfilFragment extends Fragment {
 
     private int calcularIdade(String data) {
         try {
-            if (data == null || data.trim().isEmpty()) return 0;
+            if (data == null || data.trim().isEmpty() || data.contains("---")) return 0;
             String[] p = data.split("-");
             if (p.length != 3) return 0;
             int ano = Integer.parseInt(p[0]);
