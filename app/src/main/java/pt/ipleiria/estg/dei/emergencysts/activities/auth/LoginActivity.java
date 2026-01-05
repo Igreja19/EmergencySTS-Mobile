@@ -35,29 +35,36 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
 
-        // NÃO use navigateOnStart(this) aqui, pois cria um loop.
-        // Use apenas a verificação se está logado:
+        // VERIFICAÇÃO AUTOMÁTICA (Se já tiver feito login antes)
+
         if (SharedPrefManager.getInstance(this).isLoggedIn()) {
 
-            // Ir buscar os dados do utilizador guardado (para saber a role)
             Enfermeiro user = SharedPrefManager.getInstance(this).getEnfermeiroBase();
             String role = user.getRole();
 
-            Intent intent;
-
-            // Decidir o destino com base na role
-            if (role != null && role.equalsIgnoreCase("paciente")) {
-                intent = new Intent(this, PacienteActivity.class);
-            } else {
-                // Assume Enfermeiro (ou Admin) por defeito
-                intent = new Intent(this, EnfermeiroActivity.class);
+            // Se por acaso um médico ficou logado, fazemos logout forçado
+            if (role != null && role.equalsIgnoreCase("medico")) {
+                SharedPrefManager.getInstance(this).logout();
+                Toast.makeText(this, "Acesso Médico disponível apenas na Web.", Toast.LENGTH_LONG).show();
             }
+            else {
+                // Login Válido: Redireciona para a atividade correta
+                Intent intent;
+                if (role != null && (role.equalsIgnoreCase("paciente") || role.equalsIgnoreCase("utente"))) {
+                    intent = new Intent(this, PacienteActivity.class);
+                } else {
+                    // Por defeito vai para Enfermeiro (serve para admin também)
+                    intent = new Intent(this, EnfermeiroActivity.class);
+                }
 
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-            return;
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+                return;
+            }
         }
+
+        //  CONFIGURAÇÃO DOS BOTÕES
 
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
@@ -65,10 +72,11 @@ public class LoginActivity extends AppCompatActivity {
         ImageView btnBack = findViewById(R.id.btnAtras);
 
         btnLogin.setOnClickListener(v -> loginUser());
+
         btnBack.setOnClickListener(v -> {
-                Intent i = new Intent(LoginActivity.this, ConfigActivity.class);
-                startActivity(i);
-                finish();
+            Intent i = new Intent(LoginActivity.this, ConfigActivity.class);
+            startActivity(i);
+            finish();
         });
     }
 
@@ -86,7 +94,7 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // 1. TÉCNICA 1: Enviar credenciais também no URL (Segurança extra para o Yii2 ler)
+        // Enviar credenciais também no URL (Segurança extra para o Yii2 ler)
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl() + "api/auth/login";
         String url = baseUrl + "?username=" + username + "&password=" + password;
 
@@ -110,6 +118,13 @@ public class LoginActivity extends AppCompatActivity {
                                 if (token.isEmpty()) token = data.optString("auth_key");
 
                                 String role = data.optString("role", "paciente");
+
+                                //barrar o medico
+                                if (role.equalsIgnoreCase("medico")) {
+                                    Toast.makeText(this, "Acesso negado: Médicos devem usar a plataforma Web.", Toast.LENGTH_LONG).show();
+                                    return;
+                                }
+
                                 String email = data.optString("email", "");
 
                                 if (!token.isEmpty()) {
@@ -143,11 +158,11 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                // TÉCNICA 2: Enviar formato normal
+                // Enviar formato normal
                 params.put("username", username);
                 params.put("password", password);
 
-                // TÉCNICA 3: Enviar formato Yii2 (LoginForm) - Este é o segredo!
+                // Enviar formato Yii2 (LoginForm) - Este é o segredo!
                 params.put("LoginForm[username]", username);
                 params.put("LoginForm[password]", password);
 

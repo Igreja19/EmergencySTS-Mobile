@@ -1,158 +1,166 @@
 package pt.ipleiria.estg.dei.emergencysts.activities.comum;
 
-import android.annotation.SuppressLint;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
 
-import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.activities.enfermeiro.DetalhesTriagemActivity;
 import pt.ipleiria.estg.dei.emergencysts.adapters.TriagemAdapter;
-import pt.ipleiria.estg.dei.emergencysts.mqtt.MqttClientManager;
-import pt.ipleiria.estg.dei.emergencysts.modelo.Triagem;
 import pt.ipleiria.estg.dei.emergencysts.listeners.TriagemListener;
+import pt.ipleiria.estg.dei.emergencysts.modelo.Triagem;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 import pt.ipleiria.estg.dei.emergencysts.utils.TriagemJsonParser;
 
+// Implementamos TriagemListener para ouvir os cliques na lista
 public class HistoricoActivity extends AppCompatActivity implements TriagemListener {
 
-    private ListView listViewTriagens;
-    private TextView tvTotalTriagens;
+    private ListView listView;
     private TriagemAdapter adapter;
-    private ArrayList<Triagem> triagens = new ArrayList<>();
-    private MqttClientManager mqtt;
+    private TextView tvTitulo, tvTotalTriagens;
+    private ImageView btnBack;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private boolean isPaciente;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_historico);
 
-        listViewTriagens = findViewById(R.id.listViewTriagens);
+        // Inicializar Views
+        tvTitulo = findViewById(R.id.tvTitulo);
         tvTotalTriagens = findViewById(R.id.tvTotalTriagens);
+        btnBack = findViewById(R.id.btnBack);
 
-        adapter = new TriagemAdapter(this, triagens, this);
-        listViewTriagens.setAdapter(adapter);
+        listView = findViewById(R.id.listViewTriagens);
 
+        // SwipeRefresh
+        swipeRefreshLayout = findViewById(R.id.swipeRefresh);
 
-        ImageView btnBack = findViewById(R.id.btnBack);
+        // Verificar quem está logado
+        String role = SharedPrefManager.getInstance(this).getEnfermeiroBase().getRole();
+        isPaciente = role != null && (role.equalsIgnoreCase("paciente") || role.equalsIgnoreCase("utente"));
+
+        // Configurar UI
+        configurarInterface();
+
+        // Ações
         btnBack.setOnClickListener(v -> finish());
 
-        mqtt = MqttClientManager.getInstance(this);
-        mqtt.connect(this);
-
-        mqtt.subscribe("triagem/atualizada/#");
-        mqtt.subscribe("consulta/atualizada/#");
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setOnRefreshListener(this::carregarHistorico);
+        }
     }
 
-    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     protected void onResume() {
         super.onResume();
-        getTriagens();
+        carregarHistorico();
+    }
 
-        IntentFilter filter = new IntentFilter("MQTT_MESSAGE");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(mqttReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+    private void configurarInterface() {
+        if (isPaciente) {
+            tvTitulo.setText("O Meu Histórico");
         } else {
-            registerReceiver(mqttReceiver, filter);
+            tvTitulo.setText("Histórico Geral");
         }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(mqttReceiver);
-    }
+    private void carregarHistorico() {
+        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(true);
 
-    private final BroadcastReceiver mqttReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context ctx, Intent intent) {
-            String topic = intent.getStringExtra("topic");
-            if (topic == null) return;
-
-            if (topic.startsWith("triagem/atualizada/") ||
-                    topic.startsWith("consulta/atualizada/")) {
-
-                getTriagens();
-                Toast.makeText(ctx, "Histórico atualizado", Toast.LENGTH_SHORT).show();
-            }
-        }
-    };
-
-    private void getTriagens() {
-        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
         String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
-        String url = baseUrl + "/api/triagem/historico?auth_key=" + token;
+        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
+        if (!baseUrl.endsWith("/")) baseUrl += "/";
 
-        JsonArrayRequest request = new JsonArrayRequest(
-                Request.Method.GET,
-                url,
-                null,
-                this::onSuccess,
-                error -> Toast.makeText(this, "Erro ao carregar histórico.", Toast.LENGTH_SHORT).show()
+        // URL para pedir triagens (com expand para trazer dados extra)
+        String url = baseUrl + "api/triagem?auth_key=" + token + "&expand=paciente,pulseira,userprofile";
+
+        JsonArrayRequest req = new JsonArrayRequest(Request.Method.GET, url, null,
+                response -> {
+                    if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+
+                    try {
+                        ArrayList<Triagem> listaTriagens = new ArrayList<>();
+
+                        for (int i = 0; i < response.length(); i++) {
+                            JSONObject obj = response.getJSONObject(i);
+                            Triagem t = TriagemJsonParser.parserJsonTriagem(obj);
+
+                            // Verifica a prioridade da pulseira
+                            String prioridade = "Pendente"; // Valor por defeito
+                            if (t.pulseira != null && t.pulseira.prioridade != null) {
+                                prioridade = t.pulseira.prioridade;
+                            }
+
+                            // Só aparecem as que já têm cor
+                            if (prioridade.equalsIgnoreCase("Pendente")) {
+                                continue;
+                            }
+
+                            // Lógica de filtro por paciente (que já tínhamos)
+                            if (isPaciente) {
+                                listaTriagens.add(t);
+                            } else {
+                                listaTriagens.add(t);
+                            }
+                        }
+
+                        // MUDANÇA CRÍTICA: O teu Adapter não tem método "setTriagens" e a lista é final.
+                        // Solução para BaseAdapter: Criar um novo adapter com a nova lista.
+                        adapter = new TriagemAdapter(this, listaTriagens, this);
+                        listView.setAdapter(adapter);
+
+                        // Atualizar contador
+                        if (tvTotalTriagens != null) {
+                            tvTotalTriagens.setText("Total de triagens: " + listaTriagens.size());
+                        }
+
+                        if (listaTriagens.isEmpty()) {
+                            Toast.makeText(this, "Sem registos.", Toast.LENGTH_SHORT).show();
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> {
+                    if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+                    Toast.makeText(this, "Erro ao carregar histórico.", Toast.LENGTH_SHORT).show();
+                }
         );
 
-        VolleySingleton.getInstance(this).addToRequestQueue(request);
+        req.setShouldCache(false); // Importante para veres o "pixamole"
+        VolleySingleton.getInstance(this).addToRequestQueue(req);
     }
 
-    private void onSuccess(JSONArray response) {
-        try {
-            triagens.clear();
-
-            ArrayList<Triagem> todas = TriagemJsonParser.parserJsonTriagens(response);
-            ArrayList<Triagem> filtradas = new ArrayList<>();
-
-            for (Triagem t : todas) {
-
-                boolean prioridadeValida =
-                        t.pulseira != null &&
-                                t.pulseira.prioridade != null &&
-                                !t.pulseira.prioridade.equalsIgnoreCase("Pendente");
-
-                boolean consultaEncerrada =
-                        t.consulta != null &&
-                                t.consulta.estado != null &&
-                                t.consulta.estado.equalsIgnoreCase("Encerrada");
-
-                // apenas triagens com prioridade + consulta encerrada
-                if (prioridadeValida && consultaEncerrada) {
-                    filtradas.add(t);
-                }
-            }
-
-            triagens.addAll(filtradas);
-            adapter.notifyDataSetChanged();
-            tvTotalTriagens.setText("Total de triagens: " + triagens.size());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Erro ao processar dados.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
+    // Implementação do método da interface TriagemListener
     @Override
     public void onTriagemClick(int id) {
-        // Esta lógica vem para aqui, vinda da Interface
-        Intent intent = new Intent(this, DetalhesTriagemActivity.class);
-        intent.putExtra("triagem_id", id);
-        startActivity(intent);
+        // Ao clicar num item da lista
+        if (!isPaciente) {
+            // Se for enfermeiro, abre os detalhes
+            Intent intent = new Intent(this, DetalhesTriagemActivity.class);
+            intent.putExtra("ID_TRIAGEM", id);
+            startActivity(intent);
+        } else {
+            // Se for paciente, talvez queiras abrir detalhes ou não fazer nada
+            // Toast.makeText(this, "Triagem ID: " + id, Toast.LENGTH_SHORT).show();
+        }
     }
-
 }

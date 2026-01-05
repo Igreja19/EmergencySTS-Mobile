@@ -69,17 +69,15 @@ public class TriagemAdapter extends BaseAdapter {
 
         Triagem t = triagens.get(position);
 
-        // ---------------------------
+
         // USERPROFILE → Nome + SNS
-        // ---------------------------
         if (t.userprofile != null) {
             holder.tvNome.setText(t.userprofile.nome);
             holder.tvSNS.setText("SNS: " + t.userprofile.sns);
         }
 
-        // ---------------------------
+
         // DATA + HORA formatadas (yyyy-mm-dd HH:mm:ss → dd/mm/yyyy + HH:mm)
-        // ---------------------------
         if (t.datatriagem != null && t.datatriagem.contains(" ")) {
             String[] partes = t.datatriagem.split(" ");
             if (partes.length == 2) {
@@ -91,26 +89,20 @@ public class TriagemAdapter extends BaseAdapter {
             }
         }
 
-        // ---------------------------
         // QUEIXA
-        // ---------------------------
         holder.tvQueixa.setText("Queixa: " + t.queixaprincipal);
 
-        // ---------------------------
+
         // STATUS (fixo: CONCLUÍDA)
-        // ---------------------------
         holder.tvStatus.setText("Concluída");
         holder.tvStatus.setTextColor(Color.parseColor("#1DB954"));
 
-        // ---------------------------
         // ENFERMEIRO = utilizador atual
-        // ---------------------------
         String enfermeiroAtual = SharedPrefManager.getInstance(context).getEnfermeiro().getUsername();
         holder.tvEnfermeiro.setText("Enf. " + enfermeiroAtual);
 
-        // ---------------------------
         // PRIORIDADE (bolinha com cor)
-        // ---------------------------
+
         if (t.pulseira != null && t.pulseira.prioridade != null) {
 
             String prioridade = t.pulseira.prioridade.toLowerCase();
@@ -122,6 +114,7 @@ public class TriagemAdapter extends BaseAdapter {
                 case "laranja":
                     holder.dotPrioridade.setBackgroundResource(R.drawable.circle_orange);
                     break;
+                case "amarelo":
                 case "amarela":
                     holder.dotPrioridade.setBackgroundResource(R.drawable.circle_yellow);
                     break;

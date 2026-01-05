@@ -154,6 +154,22 @@
                         android:textSize="16sp"
                         android:layout_marginBottom="12dp" />
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Data/Hora de Registo"
+                        android:textStyle="bold"
+                        android:textColor="#000000" />
+
+                    <TextView
+                        android:id="@+id/tvDataTriagem"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="--/--/---- --:--"
+                        android:textSize="16sp"
+                        android:textColor="#0055AA"
+                        android:layout_marginBottom="12dp" />
+
                     <!-- Motivo -->
                     <TextView
                         android:layout_width="wrap_content"

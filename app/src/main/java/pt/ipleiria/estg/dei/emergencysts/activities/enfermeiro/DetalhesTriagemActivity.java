@@ -30,8 +30,7 @@ import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
 public class DetalhesTriagemActivity extends AppCompatActivity {
 
-    // Views que REALMENTE existem no XML
-    private TextView tvNomeValor, tvDataNascimento, tvSNS, tvTelefoneValor;
+    private TextView tvNomeValor, tvDataNascimento, tvSNS, tvTelefoneValor, tvDataTriagem;
     private TextView tvMotivo, tvQueixa, tvDescricao, tvInicio, tvDor, tvAlergias, tvMedicacao;
     private TextView tvPrioridade;
     private View dotPrioridade;
@@ -46,9 +45,9 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detalhes_triagem);
 
         // Receber o ID da triagem selecionada
-        triagemId = getIntent().getIntExtra("triagem_id", -1);
+        triagemId = getIntent().getIntExtra("ID_TRIAGEM", -1);
         if (triagemId == -1) {
-            Toast.makeText(this, "Erro: Triagem inválida.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Erro: Triagem inválida ou ID não recebido.", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -67,11 +66,12 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        // --- 1. Inicializar as Views de Texto ---
+        // Inicializar as Views de Texto
         tvNomeValor = findViewById(R.id.tvNomeValor);
         tvDataNascimento = findViewById(R.id.tvDataNascimento);
         tvSNS = findViewById(R.id.tvSNS);
         tvTelefoneValor = findViewById(R.id.tvTelefoneValor);
+        tvDataTriagem = findViewById(R.id.tvDataTriagem);
 
         tvMotivo = findViewById(R.id.tvMotivo);
         tvQueixa = findViewById(R.id.tvQueixa);
@@ -84,13 +84,13 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         tvPrioridade = findViewById(R.id.tvPrioridade);
         dotPrioridade = findViewById(R.id.dotPrioridade);
 
-        // --- 2. Botão Voltar ---
+        //  Botão Voltar
         ImageView btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
         }
 
-        // --- 3. LÓGICA DE SEGURANÇA DO BOTÃO APAGAR ---
+        // LÓGICA DE SEGURANÇA DO BOTÃO APAGAR
         btnApagar = findViewById(R.id.btnApagar);
 
         if (btnApagar != null) {
@@ -142,7 +142,7 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
 
     private void bindData(JSONObject json) {
         try {
-            // --- 1. Dados do Paciente ---
+            // Dados do Paciente ---
             JSONObject up = json.optJSONObject("userprofile");
             if (up != null) {
                 if(tvNomeValor != null) tvNomeValor.setText(up.optString("nome", "-"));
@@ -151,7 +151,9 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
                 if(tvTelefoneValor != null) tvTelefoneValor.setText(up.optString("telefone", "-"));
             }
 
-            // --- 2. Dados da Triagem ---
+            //  Dados da Triagem ---
+            String dataRegisto = json.optString("datatriagem", "-").replace("T", " ");
+            if(tvDataTriagem != null) tvDataTriagem.setText(dataRegisto);
             if(tvMotivo != null) tvMotivo.setText(json.optString("motivoconsulta", "-"));
             if(tvQueixa != null) tvQueixa.setText(json.optString("queixaprincipal", "-"));
             if(tvDescricao != null) tvDescricao.setText(json.optString("descricaosintomas", "-"));
@@ -164,7 +166,7 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
             if(tvMedicacao != null) tvMedicacao.setText(json.optString("medicacao", "-"));
             if(tvDor != null) tvDor.setText(String.valueOf(json.optInt("intensidadedor", 0)));
 
-            // --- 3. Prioridade (Pulseira) ---
+            // Prioridade (Pulseira) ---
             JSONObject pulseira = json.optJSONObject("pulseira");
             if (pulseira != null) {
                 String prioridade = pulseira.optString("prioridade", "Pendente");
@@ -174,6 +176,7 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
                 switch (prioridade.toLowerCase()) {
                     case "vermelho": res = R.drawable.circle_red; break;
                     case "laranja": res = R.drawable.circle_orange; break;
+                    case "amarelo":
                     case "amarela": res = R.drawable.circle_yellow; break;
                     case "verde": res = R.drawable.circle_green; break;
                     case "azul": res = R.drawable.circle_blue; break;
@@ -215,7 +218,7 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         return data;
     }
 
-    // --- MQTT Receiver ---
+    //  MQTT Receiver
     private final BroadcastReceiver mqttReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context ctx, Intent intent) {
@@ -250,7 +253,7 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         }
     }
 
-    // --- Funcionalidade de Apagar ---
+    // Funcionalidade de Apagar
     private void confirmarEliminacao() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Apagar Triagem");
