@@ -67,11 +67,49 @@ public class PulseiraAdapter extends BaseAdapter {
 
         holder.tvSNS.setText("SNS: " + (pulseira.getSns() != null ? pulseira.getSns() : "---"));
 
-        holder.tvHora.setText(pulseira.getHora() != null ? pulseira.getHora() : "--:--");
+        // CORREÇÃO: Usar getDataEntrada() em vez de getHora()
+        holder.tvHora.setText(pulseira.getDataEntrada() != null ? pulseira.getDataEntrada() : "--:--");
 
-        holder.tvStatus.setText(pulseira.getPrioridade());
-        holder.tvStatus.setBackgroundResource(R.drawable.bg_chip_pendente);
-        holder.imgDot.setColorFilter(Color.parseColor("#9E9E9E"));
+        // STATUS E CORES
+        String prioridade = pulseira.getPrioridade();
+        if (prioridade == null) prioridade = "Pendente";
+
+        holder.tvStatus.setText(prioridade);
+
+        // Lógica de cores (Igual à que fizemos na Activity do Paciente)
+        switch (prioridade.toLowerCase()) {
+            case "vermelho":
+                holder.tvStatus.setBackgroundResource(R.drawable.circle_red);
+                holder.tvStatus.setTextColor(Color.WHITE);
+                holder.imgDot.setColorFilter(Color.RED);
+                break;
+            case "laranja":
+                holder.tvStatus.setBackgroundResource(R.drawable.circle_orange);
+                holder.tvStatus.setTextColor(Color.WHITE);
+                holder.imgDot.setColorFilter(Color.parseColor("#FF9800"));
+                break;
+            case "amarelo":
+                holder.tvStatus.setBackgroundResource(R.drawable.circle_yellow);
+                holder.tvStatus.setTextColor(Color.BLACK);
+                holder.imgDot.setColorFilter(Color.YELLOW);
+                break;
+            case "verde":
+                holder.tvStatus.setBackgroundResource(R.drawable.circle_green);
+                holder.tvStatus.setTextColor(Color.WHITE);
+                holder.imgDot.setColorFilter(Color.GREEN);
+                break;
+            case "azul":
+                holder.tvStatus.setBackgroundResource(R.drawable.circle_blue);
+                holder.tvStatus.setTextColor(Color.WHITE);
+                holder.imgDot.setColorFilter(Color.BLUE);
+                break;
+            default:
+                // Pendente (Cinza/Laranja default)
+                holder.tvStatus.setBackgroundResource(R.drawable.bg_chip_pendente);
+                holder.tvStatus.setTextColor(Color.parseColor("#D84315"));
+                holder.imgDot.setColorFilter(Color.GRAY);
+                break;
+        }
 
         convertView.setOnClickListener(v -> {
             if (listener != null) {

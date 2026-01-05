@@ -5,15 +5,19 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color; // Importante para as cores
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -25,37 +29,75 @@ import java.util.ArrayList;
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.activities.enfermeiro.AtribuirPulseiraActivity;
 import pt.ipleiria.estg.dei.emergencysts.adapters.PulseiraAdapter;
-import pt.ipleiria.estg.dei.emergencysts.mqtt.MqttClientManager;
+import pt.ipleiria.estg.dei.emergencysts.listeners.PulseiraListener;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Pulseira;
+import pt.ipleiria.estg.dei.emergencysts.mqtt.MqttClientManager;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
 import pt.ipleiria.estg.dei.emergencysts.utils.PulseiraBDHelper;
 import pt.ipleiria.estg.dei.emergencysts.utils.PulseiraJsonParser;
-import pt.ipleiria.estg.dei.emergencysts.listeners.PulseiraListener;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
 public class MostrarPulseirasActivity extends AppCompatActivity implements PulseiraListener {
 
-    private ListView listViewPulseiras;
+    // Comuns
     private ProgressBar progressBar;
-    private PulseiraAdapter adapter;
-    private ArrayList<Pulseira> pulseiras = new ArrayList<>();
-
+    private LinearLayout layoutSemPulseira;
     private MqttClientManager mqtt;
+    private boolean isPaciente;
+    private TextView tvTitulo, tvSubtitulo;
+
+    // Parte do Enfermeiro (Lista)
+    private ListView listViewPulseiras;
+    private PulseiraAdapter adapter;
+    private ArrayList<Pulseira> listaPulseiras = new ArrayList<>();
+
+    // Parte do Paciente (Cartão)
+    private CardView cardPulseira;
+    private TextView tvEstadoBadge, tvCodigoPulseira, tvDescricao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mostrar_pulseiras);
 
+        // Verificar quem é o user
+        isPaciente = getIntent().getBooleanExtra("IS_PACIENTE", false);
+
+        // Views Comuns
+        progressBar = findViewById(R.id.progressBar);
+        layoutSemPulseira = findViewById(R.id.layoutSemPulseira);
+        tvTitulo = findViewById(R.id.tvTitulo);
+        tvSubtitulo = findViewById(R.id.tvSubtitulo);
         ImageView btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
 
-        listViewPulseiras = findViewById(R.id.listViewPulseiras);
-        progressBar = findViewById(R.id.progressBar);
+        if (isPaciente) {
+            // Inicializar Views do Paciente
+            cardPulseira = findViewById(R.id.cardPulseira);
+            tvEstadoBadge = findViewById(R.id.tvEstadoBadge);
+            tvCodigoPulseira = findViewById(R.id.tvCodigoPulseira);
+            tvDescricao = findViewById(R.id.tvDescricao);
 
-        adapter = new PulseiraAdapter(this, pulseiras, this);
-        listViewPulseiras.setAdapter(adapter);
+            tvTitulo.setText("A minha Pulseira");
+            tvSubtitulo.setText("Acompanhe o seu estado");
 
+            ListView lv = findViewById(R.id.listViewPulseiras);
+            if(lv != null) lv.setVisibility(View.GONE);
+
+        } else {
+            // Inicializar Views do Enfermeiro
+            listViewPulseiras = findViewById(R.id.listViewPulseiras);
+            adapter = new PulseiraAdapter(this, listaPulseiras, this);
+            listViewPulseiras.setAdapter(adapter);
+
+            tvTitulo.setText("Pulseiras");
+            tvSubtitulo.setText("Pulseiras em espera para triagem");
+
+            CardView cv = findViewById(R.id.cardPulseira);
+            if(cv != null) cv.setVisibility(View.GONE);
+        }
+
+        // MQTT
         mqtt = MqttClientManager.getInstance(this);
         mqtt.connect(this);
         mqtt.subscribe("pulseira/atualizada/#");
@@ -66,7 +108,7 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
     @Override
     protected void onResume() {
         super.onResume();
-        getPulseiras();
+        getPulseirasAPI();
 
         IntentFilter filter = new IntentFilter("MQTT_MESSAGE");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -81,101 +123,142 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
         super.onPause();
         try {
             unregisterReceiver(mqttReceiver);
-        } catch (Exception e) {
-            // Receiver pode não estar registado
-        }
+        } catch (Exception e) { }
     }
 
     private final BroadcastReceiver mqttReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context ctx, Intent intent) {
             String topic = intent.getStringExtra("topic");
-            if (topic == null) return;
-
-            if (topic.startsWith("pulseira/atualizada/") ||
-                    topic.startsWith("pulseira/criada/")) {
-                getPulseiras();
+            if (topic != null && (topic.startsWith("pulseira/atualizada/") || topic.startsWith("pulseira/criada/"))) {
+                getPulseirasAPI();
             }
         }
     };
 
-    private void getPulseiras() {
+    private void getPulseirasAPI() {
         progressBar.setVisibility(View.VISIBLE);
+        layoutSemPulseira.setVisibility(View.GONE);
 
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
         String authKey = SharedPrefManager.getInstance(this).getKeyAccessToken();
 
-        // Verificar se é paciente
-        boolean isPaciente = getIntent().getBooleanExtra("IS_PACIENTE", false);
-
         StringBuilder urlBuilder = new StringBuilder(baseUrl);
         urlBuilder.append("api/pulseira?");
 
-        // --- LÓGICA CORRIGIDA FINAL ---
         if (isPaciente) {
-            // PACIENTE: Vê "Em espera" (pendentes/ativas), mas IGNORA a prioridade.
-            // Assim vê as suas pulseiras mesmo que já tenham cor (Amarela/Verde), mas não vê as Concluídas.
-            urlBuilder.append("status=Em%20espera&");
+            // Remover filtro de status para o Paciente ver pulseiras triadas
+            // Filtramos apenas por user (o backend já faz isso pelo token) e ordenamos por ID decrescente
+            urlBuilder.append("sort=-id&");
         } else {
-            // ENFERMEIRO: Vê apenas as que estão "Em espera" E "Pendente" (sem triagem feita)
+            // ENFERMEIRO: Vê apenas pulseiras não triadas
             urlBuilder.append("status=Em%20espera&prioridade=Pendente&");
         }
-
         urlBuilder.append("expand=userprofile&auth_key=").append(authKey);
 
-        JsonObjectRequest req = new JsonObjectRequest(
-                Request.Method.GET,
-                urlBuilder.toString(),
-                null,
+        JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET, urlBuilder.toString(), null,
                 response -> {
+                    progressBar.setVisibility(View.GONE);
                     try {
                         JSONArray data = response.has("data") ? response.getJSONArray("data") : response.optJSONArray("items");
-                        if (data != null) {
-                            ArrayList<Pulseira> novas = PulseiraJsonParser.parserJsonPulseiras(data);
-                            pulseiras.clear();
-                            pulseiras.addAll(novas);
-                            adapter.notifyDataSetChanged();
 
-                            // Guardar na BD para acesso Offline
+                        ArrayList<Pulseira> novas = new ArrayList<>();
+                        if (data != null) {
+                            novas = PulseiraJsonParser.parserJsonPulseiras(data);
+
+                            // Guardar BD
                             PulseiraBDHelper db = PulseiraBDHelper.getInstance(this);
                             db.removeAllPulseiras();
                             for (Pulseira p : novas) db.adicionarPulseira(p);
                         }
+
+                        atualizarInterface(novas);
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    progressBar.setVisibility(View.GONE);
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
-
-                    // Carregar da BD se falhar a net
                     PulseiraBDHelper db = PulseiraBDHelper.getInstance(this);
-                    ArrayList<Pulseira> offline = db.getAllPulseiras();
-                    pulseiras.clear();
-                    pulseiras.addAll(offline);
-                    adapter.notifyDataSetChanged();
-
-                    if (!offline.isEmpty()) {
-                        Toast.makeText(this, "Sem internet. A mostrar dados guardados.", Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(this, "Erro ao carregar pulseiras.", Toast.LENGTH_SHORT).show();
-                    }
+                    atualizarInterface(db.getAllPulseiras());
+                    Toast.makeText(this, "Modo Offline", Toast.LENGTH_SHORT).show();
                 }
         );
 
         VolleySingleton.getInstance(this).addToRequestQueue(req);
     }
 
-    @Override
-    public void onPulseiraClick(Pulseira pulseira) {
-        boolean isPaciente = getIntent().getBooleanExtra("IS_PACIENTE", false);
+    private void atualizarInterface(ArrayList<Pulseira> pulseiras) {
+        if (pulseiras == null || pulseiras.isEmpty()) {
+            layoutSemPulseira.setVisibility(View.VISIBLE);
+            if (isPaciente) cardPulseira.setVisibility(View.GONE);
+            else listViewPulseiras.setVisibility(View.GONE);
+            return;
+        }
 
         if (isPaciente) {
-            // Paciente vê apenas info
-            Toast.makeText(this, "Estado: " + pulseira.getStatus(), Toast.LENGTH_SHORT).show();
+            // --- UI PACIENTE ---
+            Pulseira p = pulseiras.get(0);
+            cardPulseira.setVisibility(View.VISIBLE);
+            layoutSemPulseira.setVisibility(View.GONE);
+
+            tvCodigoPulseira.setText("#" + p.getCodigo());
+
+            //  Verificar Prioridade (Cor) em vez de apenas Status
+            String prioridade = p.getPrioridade(); // "Laranja", "Amarelo", etc.
+            String status = p.getStatus();
+
+            if (prioridade != null && !prioridade.equalsIgnoreCase("Pendente")) {
+                // Já foi triado - Mostrar a Cor
+                tvEstadoBadge.setText(prioridade);
+                tvDescricao.setText("Triagem concluída. Aguarde chamada.");
+
+                // Mudar cor do badge conforme a prioridade
+                switch (prioridade.toLowerCase()) {
+                    case "vermelho":
+                        tvEstadoBadge.setTextColor(Color.WHITE);
+                        tvEstadoBadge.setBackgroundResource(R.drawable.circle_red); // Usa os teus drawables
+                        break;
+                    case "laranja":
+                        tvEstadoBadge.setTextColor(Color.WHITE);
+                        tvEstadoBadge.setBackgroundResource(R.drawable.circle_orange);
+                        break;
+                    case "amarelo":
+                        tvEstadoBadge.setTextColor(Color.BLACK); // Texto preto para fundo amarelo
+                        tvEstadoBadge.setBackgroundResource(R.drawable.circle_yellow);
+                        break;
+                    case "verde":
+                        tvEstadoBadge.setTextColor(Color.WHITE);
+                        tvEstadoBadge.setBackgroundResource(R.drawable.card_green_rounded);
+                        break;
+                    case "azul":
+                        tvEstadoBadge.setTextColor(Color.WHITE);
+                        tvEstadoBadge.setBackgroundResource(R.drawable.circle_blue);
+                        break;
+                    default:
+                        tvEstadoBadge.setBackgroundResource(R.drawable.bg_chip_pendente);
+                }
+            } else {
+                // Ainda não foi triado (Pendente)
+                tvEstadoBadge.setText("Pendente");
+                tvEstadoBadge.setTextColor(Color.parseColor("#D84315"));
+                tvEstadoBadge.setBackgroundResource(R.drawable.bg_chip_pendente);
+                tvDescricao.setText("Aguarde na sala de espera pela triagem.");
+            }
+
         } else {
-            // Enfermeiro vai atribuir
+            // --- UI ENFERMEIRO ---
+            listViewPulseiras.setVisibility(View.VISIBLE);
+            listaPulseiras.clear();
+            listaPulseiras.addAll(pulseiras);
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void onPulseiraClick(Pulseira pulseira) {
+        if (!isPaciente) {
             Intent intent = new Intent(this, AtribuirPulseiraActivity.class);
             intent.putExtra("pulseira_id", pulseira.getId());
             startActivity(intent);

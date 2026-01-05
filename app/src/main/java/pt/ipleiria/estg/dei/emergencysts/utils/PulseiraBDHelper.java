@@ -13,22 +13,25 @@ import pt.ipleiria.estg.dei.emergencysts.modelo.Pulseira;
 public class PulseiraBDHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "emergencysts.db";
-    private static final int DB_VERSION = 2; // Mudámos a versão porque adicionámos colunas!
+    private static final int DB_VERSION = 3; // SUBI A VERSÃO PARA FORÇAR ATUALIZAÇÃO
 
-    // Nomes das colunas da tabela
     private static final String TABLE_PULSEIRA = "pulseiras";
 
-    // Campos Básicos
+    // Colunas
     private static final String COL_ID = "id";
+    private static final String COL_CODIGO = "codigo"; // Novo
     private static final String COL_PRIORIDADE = "prioridade";
     private static final String COL_STATUS = "status";
-    private static final String COL_NOME = "nome_paciente";
-    private static final String COL_SNS = "sns";
     private static final String COL_HORA = "hora";
 
-    // Novos Campos (Para guardar os detalhes offline)
+    // User Info
+    private static final String COL_USER_ID = "user_id";
+    private static final String COL_NOME = "nome_paciente";
+    private static final String COL_SNS = "sns";
     private static final String COL_DATA_NASC = "data_nascimento";
     private static final String COL_TELEFONE = "telefone";
+
+    // Triagem Info
     private static final String COL_MOTIVO = "motivo";
     private static final String COL_QUEIXA = "queixa";
     private static final String COL_DESCRICAO = "descricao";
@@ -53,12 +56,14 @@ public class PulseiraBDHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String sqlCreate = "CREATE TABLE " + TABLE_PULSEIRA + " (" +
-                COL_ID + " TEXT PRIMARY KEY, " +
+                COL_ID + " INTEGER PRIMARY KEY, " +
+                COL_CODIGO + " TEXT, " +
                 COL_PRIORIDADE + " TEXT, " +
                 COL_STATUS + " TEXT, " +
+                COL_HORA + " TEXT, " +
+                COL_USER_ID + " INTEGER, " +
                 COL_NOME + " TEXT, " +
                 COL_SNS + " TEXT, " +
-                COL_HORA + " TEXT, " +
                 COL_DATA_NASC + " TEXT, " +
                 COL_TELEFONE + " TEXT, " +
                 COL_MOTIVO + " TEXT, " +
@@ -77,22 +82,22 @@ public class PulseiraBDHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // --- MÉTODOS CRUD ---
-
     public void adicionarPulseira(Pulseira p) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
         values.put(COL_ID, p.getId());
+        values.put(COL_CODIGO, p.getCodigo());
         values.put(COL_PRIORIDADE, p.getPrioridade());
         values.put(COL_STATUS, p.getStatus());
+        values.put(COL_HORA, p.getDataEntrada());
+        values.put(COL_USER_ID, p.getUserProfileId());
         values.put(COL_NOME, p.getNomePaciente());
         values.put(COL_SNS, p.getSns());
-        values.put(COL_HORA, p.getHora());
-
-        // Guardar os novos campos
         values.put(COL_DATA_NASC, p.getDataNascimento());
         values.put(COL_TELEFONE, p.getTelefone());
+
+        // Campos de Triagem (podem vir a null, sem problema)
         values.put(COL_MOTIVO, p.getMotivo());
         values.put(COL_QUEIXA, p.getQueixa());
         values.put(COL_DESCRICAO, p.getDescricao());
@@ -117,14 +122,15 @@ public class PulseiraBDHelper extends SQLiteOpenHelper {
 
         if (cursor.moveToFirst()) {
             do {
-                // Cria um objeto Pulseira com os dados do cursor
                 Pulseira p = new Pulseira(
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_ID)),
+                        cursor.getInt(cursor.getColumnIndexOrThrow(COL_ID)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COL_CODIGO)),
                         cursor.getString(cursor.getColumnIndexOrThrow(COL_PRIORIDADE)),
                         cursor.getString(cursor.getColumnIndexOrThrow(COL_STATUS)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COL_HORA)),
+                        cursor.getInt(cursor.getColumnIndexOrThrow(COL_USER_ID)),
                         cursor.getString(cursor.getColumnIndexOrThrow(COL_NOME)),
                         cursor.getString(cursor.getColumnIndexOrThrow(COL_SNS)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_HORA)),
                         cursor.getString(cursor.getColumnIndexOrThrow(COL_DATA_NASC)),
                         cursor.getString(cursor.getColumnIndexOrThrow(COL_TELEFONE)),
                         cursor.getString(cursor.getColumnIndexOrThrow(COL_MOTIVO)),
