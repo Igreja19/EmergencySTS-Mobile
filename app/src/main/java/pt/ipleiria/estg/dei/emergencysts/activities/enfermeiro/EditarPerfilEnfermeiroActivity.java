@@ -50,8 +50,6 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
         // Ações dos botões
         btnCancel.setOnClickListener(v -> finish());
 
-        // btnSave.setOnClickListener(v -> guardarAlteracoes()); // <--- REMOVIDO
-
         // Apenas o botão de baixo guarda as alterações
         btnSaveBottom.setOnClickListener(v -> guardarAlteracoes());
     }
@@ -68,7 +66,6 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
     }
 
     private void guardarAlteracoes() {
-        // 1. Validar inputs básicos
         String nome = etNome.getText().toString().trim();
         String email = etEmail.getText().toString().trim();
 
@@ -77,7 +74,6 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
             return;
         }
 
-        // 2. Preparar pedido à API
         progressBar.setVisibility(View.VISIBLE);
 
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();

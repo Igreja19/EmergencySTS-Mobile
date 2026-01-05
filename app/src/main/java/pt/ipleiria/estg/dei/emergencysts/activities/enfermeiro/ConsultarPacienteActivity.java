@@ -119,7 +119,7 @@ public class ConsultarPacienteActivity extends AppCompatActivity {
                     intent.putExtra("sns", p.getSns());
                     intent.putExtra("telefone", p.getTelefone());
                     intent.putExtra("morada", p.getMorada());
-                    // intent.putExtra("genero", p.getGenero()); // Se tiveres o campo género no modelo
+                    intent.putExtra("genero", p.getGenero());
                     intent.putExtra("datanascimento", p.getDataNascimento());
                     startActivity(intent);
                 });

@@ -67,13 +67,12 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        // Dados do Paciente
+        // --- 1. Inicializar as Views de Texto ---
         tvNomeValor = findViewById(R.id.tvNomeValor);
         tvDataNascimento = findViewById(R.id.tvDataNascimento);
         tvSNS = findViewById(R.id.tvSNS);
         tvTelefoneValor = findViewById(R.id.tvTelefoneValor);
 
-        // Dados Clínicos
         tvMotivo = findViewById(R.id.tvMotivo);
         tvQueixa = findViewById(R.id.tvQueixa);
         tvDescricao = findViewById(R.id.tvDescricao);
@@ -82,22 +81,35 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         tvAlergias = findViewById(R.id.tvAlergias);
         tvMedicacao = findViewById(R.id.tvMedicacao);
 
-        // Prioridade e visual
         tvPrioridade = findViewById(R.id.tvPrioridade);
         dotPrioridade = findViewById(R.id.dotPrioridade);
 
-        // O XML NÃO TEM tvEnfermeiro, tvData ou tvHora, por isso removi daqui.
-
-        // Botão Voltar
+        // --- 2. Botão Voltar ---
         ImageView btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
         }
 
-        // Botão Apagar
+        // --- 3. LÓGICA DE SEGURANÇA DO BOTÃO APAGAR ---
         btnApagar = findViewById(R.id.btnApagar);
+
         if (btnApagar != null) {
-            btnApagar.setOnClickListener(v -> confirmarEliminacao());
+            // Obter a role do utilizador atual usando o método do teu print
+            String role = SharedPrefManager.getInstance(this).getKeyRole();
+
+            // Verificação de segurança (caso a role venha nula)
+            if (role == null) role = "";
+
+            // Se for paciente, ESCONDE o botão (GONE remove o espaço também)
+            // Adicionei "utente" também, só para garantir
+            if (role.equalsIgnoreCase("paciente") || role.equalsIgnoreCase("utente")) {
+                btnApagar.setVisibility(View.GONE);
+            }
+            else {
+                // Se for enfermeiro/médico, MOSTRA e ativa o clique
+                btnApagar.setVisibility(View.VISIBLE);
+                btnApagar.setOnClickListener(v -> confirmarEliminacao());
+            }
         }
     }
 
@@ -160,7 +172,7 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
 
                 int res;
                 switch (prioridade.toLowerCase()) {
-                    case "vermelha": res = R.drawable.circle_red; break;
+                    case "vermelho": res = R.drawable.circle_red; break;
                     case "laranja": res = R.drawable.circle_orange; break;
                     case "amarela": res = R.drawable.circle_yellow; break;
                     case "verde": res = R.drawable.circle_green; break;

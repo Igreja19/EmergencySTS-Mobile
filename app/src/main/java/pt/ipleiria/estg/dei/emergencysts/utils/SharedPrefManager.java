@@ -60,10 +60,7 @@ public class SharedPrefManager {
         return instance;
     }
 
-
-    // -------------------------------------------------------
     // LOGIN
-    // -------------------------------------------------------
     public void userLogin(Enfermeiro user, String accessToken) {
         SharedPreferences.Editor e = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
 
@@ -126,10 +123,7 @@ public class SharedPrefManager {
         ed.apply();
     }
 
-
-    // -------------------------------------------------------
     // PACIENTE
-    // -------------------------------------------------------
     public void savePaciente(Paciente p) {
         SharedPreferences.Editor e = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
 
@@ -167,19 +161,13 @@ public class SharedPrefManager {
         );
     }
 
-
-    // -------------------------------------------------------
     // TOKEN
-    // -------------------------------------------------------
     public String getKeyAccessToken() {
         return ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
                 .getString(KEY_ACCESS_TOKEN, null);
     }
 
-
-    // -------------------------------------------------------
     // LOGOUT
-    // -------------------------------------------------------
     public void logout() {
         ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
                 .edit()
@@ -191,10 +179,7 @@ public class SharedPrefManager {
         ctx.startActivity(intent);
     }
 
-
-    // -------------------------------------------------------
     // CONFIG DO SERVIDOR
-    // -------------------------------------------------------
     public void setServerBase(String baseUrl) {
         ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
                 .edit()
@@ -227,10 +212,7 @@ public class SharedPrefManager {
         return getServerBase() != null && !getServerBase().isEmpty();
     }
 
-
-    // -------------------------------------------------------
     // NAVEGAÇÃO INICIAL
-    // -------------------------------------------------------
     public void navigateOnStart(Context context) {
 
         // Verifica configurações
@@ -277,5 +259,10 @@ public class SharedPrefManager {
 
         next.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         context.startActivity(next);
+    }
+
+    public String getKeyRole() {
+        return ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                .getString(KEY_ROLE, null);
     }
 }

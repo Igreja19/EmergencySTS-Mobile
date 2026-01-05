@@ -45,9 +45,18 @@ public class PacienteActivity extends AppCompatActivity {
         Toast.makeText(this, "Bem-vindo, " + username + "!", Toast.LENGTH_LONG).show();
 
         // 🔹 Eventos de clique
-        cardPulseira.setOnClickListener(v -> startActivity(new Intent(this, MostrarPulseirasActivity.class)));
-        cardHistorico.setOnClickListener(v -> startActivity(new Intent(this, HistoricoActivity.class)));
-        cardPerfil.setOnClickListener(v -> startActivity(new Intent(this, PerfilPacienteActivity.class)));
+        cardPulseira.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MostrarPulseirasActivity.class);
+            // Define o modo PACIENTE a true para ver a pulseira atual
+            intent.putExtra("IS_PACIENTE", true);
+            startActivity(intent);
+        });
+
+        cardHistorico.setOnClickListener(v -> {
+            Intent intent = new Intent(this, HistoricoActivity.class);
+            intent.putExtra("IS_PACIENTE", true);
+            startActivity(intent);
+        });        cardPerfil.setOnClickListener(v -> startActivity(new Intent(this, PerfilPacienteActivity.class)));
     }
 
     // 🔹 Trata o clique do botão "Voltar" da ActionBar

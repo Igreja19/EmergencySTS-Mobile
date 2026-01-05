@@ -116,7 +116,7 @@ public class TriagemAdapter extends BaseAdapter {
             String prioridade = t.pulseira.prioridade.toLowerCase();
 
             switch (prioridade) {
-                case "vermelha":
+                case "vermelho":
                     holder.dotPrioridade.setBackgroundResource(R.drawable.circle_red);
                     break;
                 case "laranja":

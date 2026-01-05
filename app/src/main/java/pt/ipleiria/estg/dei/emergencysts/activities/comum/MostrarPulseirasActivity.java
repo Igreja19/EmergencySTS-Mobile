@@ -33,7 +33,7 @@ import pt.ipleiria.estg.dei.emergencysts.utils.PulseiraJsonParser;
 import pt.ipleiria.estg.dei.emergencysts.listeners.PulseiraListener;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
-public class MostrarPulseirasActivity extends AppCompatActivity implements PulseiraListener{
+public class MostrarPulseirasActivity extends AppCompatActivity implements PulseiraListener {
 
     private ListView listViewPulseiras;
     private ProgressBar progressBar;
@@ -55,7 +55,6 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
 
         adapter = new PulseiraAdapter(this, pulseiras, this);
         listViewPulseiras.setAdapter(adapter);
-
 
         mqtt = MqttClientManager.getInstance(this);
         mqtt.connect(this);
@@ -80,7 +79,11 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(mqttReceiver);
+        try {
+            unregisterReceiver(mqttReceiver);
+        } catch (Exception e) {
+            // Receiver pode não estar registado
+        }
     }
 
     private final BroadcastReceiver mqttReceiver = new BroadcastReceiver() {
@@ -91,9 +94,7 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
 
             if (topic.startsWith("pulseira/atualizada/") ||
                     topic.startsWith("pulseira/criada/")) {
-
                 getPulseiras();
-                Toast.makeText(ctx, "Pulseiras atualizadas", Toast.LENGTH_SHORT).show();
             }
         }
     };
@@ -104,41 +105,53 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
         String authKey = SharedPrefManager.getInstance(this).getKeyAccessToken();
 
-        String url = baseUrl +
-                "api/pulseira?status=Em%20espera&prioridade=Pendente&expand=userprofile&auth_key=" +
-                authKey;
+        // Verificar se é paciente
+        boolean isPaciente = getIntent().getBooleanExtra("IS_PACIENTE", false);
+
+        StringBuilder urlBuilder = new StringBuilder(baseUrl);
+        urlBuilder.append("api/pulseira?");
+
+        // --- LÓGICA CORRIGIDA FINAL ---
+        if (isPaciente) {
+            // PACIENTE: Vê "Em espera" (pendentes/ativas), mas IGNORA a prioridade.
+            // Assim vê as suas pulseiras mesmo que já tenham cor (Amarela/Verde), mas não vê as Concluídas.
+            urlBuilder.append("status=Em%20espera&");
+        } else {
+            // ENFERMEIRO: Vê apenas as que estão "Em espera" E "Pendente" (sem triagem feita)
+            urlBuilder.append("status=Em%20espera&prioridade=Pendente&");
+        }
+
+        urlBuilder.append("expand=userprofile&auth_key=").append(authKey);
 
         JsonObjectRequest req = new JsonObjectRequest(
                 Request.Method.GET,
-                url,
+                urlBuilder.toString(),
                 null,
                 response -> {
                     try {
-                        JSONArray data = response.has("data")
-                                ? response.getJSONArray("data")
-                                : response.optJSONArray("items");
-
+                        JSONArray data = response.has("data") ? response.getJSONArray("data") : response.optJSONArray("items");
                         if (data != null) {
                             ArrayList<Pulseira> novas = PulseiraJsonParser.parserJsonPulseiras(data);
                             pulseiras.clear();
                             pulseiras.addAll(novas);
                             adapter.notifyDataSetChanged();
 
+                            // Guardar na BD para acesso Offline
                             PulseiraBDHelper db = PulseiraBDHelper.getInstance(this);
                             db.removeAllPulseiras();
                             for (Pulseira p : novas) db.adicionarPulseira(p);
                         }
-
-                    } catch (Exception ignored) {}
-
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     progressBar.setVisibility(View.GONE);
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
 
+                    // Carregar da BD se falhar a net
                     PulseiraBDHelper db = PulseiraBDHelper.getInstance(this);
                     ArrayList<Pulseira> offline = db.getAllPulseiras();
-
                     pulseiras.clear();
                     pulseiras.addAll(offline);
                     adapter.notifyDataSetChanged();
@@ -146,7 +159,7 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
                     if (!offline.isEmpty()) {
                         Toast.makeText(this, "Sem internet. A mostrar dados guardados.", Toast.LENGTH_LONG).show();
                     } else {
-                        Toast.makeText(this, "Sem internet e sem dados locais.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Erro ao carregar pulseiras.", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
@@ -156,9 +169,16 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
 
     @Override
     public void onPulseiraClick(Pulseira pulseira) {
-        // Esta lógica vem para aqui
-        Intent intent = new Intent(this, AtribuirPulseiraActivity.class);
-        intent.putExtra("pulseira_id", pulseira.getId());
-        startActivity(intent);
+        boolean isPaciente = getIntent().getBooleanExtra("IS_PACIENTE", false);
+
+        if (isPaciente) {
+            // Paciente vê apenas info
+            Toast.makeText(this, "Estado: " + pulseira.getStatus(), Toast.LENGTH_SHORT).show();
+        } else {
+            // Enfermeiro vai atribuir
+            Intent intent = new Intent(this, AtribuirPulseiraActivity.class);
+            intent.putExtra("pulseira_id", pulseira.getId());
+            startActivity(intent);
+        }
     }
 }
