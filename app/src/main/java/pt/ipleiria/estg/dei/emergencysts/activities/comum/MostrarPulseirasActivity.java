@@ -184,9 +184,8 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
                 }
         );
 
-        // --- CORREÇÃO IMPORTANTE: DESLIGAR CACHE ---
         req.setShouldCache(false);
-        // -------------------------------------------
+
 
         VolleySingleton.getInstance(this).addToRequestQueue(req);
     }
@@ -204,10 +203,9 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
             Pulseira p = pulseiras.get(0); // Apanha a pulseira mais recente
             String status = p.getStatus();
 
-            // --- LÓGICA DE ESCONDER CORRIGIDA ---
             // Verifica se está nulo, vazio, ou com estado finalizado
             boolean estaFinalizada = status == null ||
-                    status.trim().isEmpty() || // <--- AQUI ESTÁ A CORREÇÃO
+                    status.trim().isEmpty() ||
                     status.equalsIgnoreCase("null") ||
                     status.equalsIgnoreCase("Finalizado") ||
                     status.equalsIgnoreCase("Concluída") ||
@@ -275,7 +273,7 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
             }
 
         } else {
-            // --- UI ENFERMEIRO ---
+            //UI ENFERMEIRO
             listViewPulseiras.setVisibility(View.VISIBLE);
             listaPulseiras.clear();
             listaPulseiras.addAll(pulseiras);

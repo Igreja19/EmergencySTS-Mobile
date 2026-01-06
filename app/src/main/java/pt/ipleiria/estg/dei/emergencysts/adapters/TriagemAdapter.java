@@ -56,8 +56,6 @@ public class TriagemAdapter extends BaseAdapter {
             holder.tvQueixa = convertView.findViewById(R.id.tvQueixa);
             holder.tvEnfermeiro = convertView.findViewById(R.id.tvEnfermeiro);
             holder.dotPrioridade = convertView.findViewById(R.id.dotPrioridade);
-
-            // Novos Botões
             holder.layoutBotoes = convertView.findViewById(R.id.layoutBotoesAcao);
             holder.btnArquivar = convertView.findViewById(R.id.btnArquivar);
             holder.btnEliminar = convertView.findViewById(R.id.btnEliminar);
@@ -74,7 +72,7 @@ public class TriagemAdapter extends BaseAdapter {
         holder.tvNome.setText(t.getNomePaciente());
         holder.tvSNS.setText("SNS: " + t.getSnsPaciente());
 
-        // Data e Hora (CORRIGIDO: usa getDataTriagem())
+        // Data e Hora
         String dataT = t.getDataTriagem();
         if (dataT != null && dataT.contains(" ")) {
             String[] partes = dataT.split(" ");
@@ -85,7 +83,7 @@ public class TriagemAdapter extends BaseAdapter {
             holder.tvHora.setText("--:--");
         }
 
-        // Queixa (CORRIGIDO: usa getQueixaprincipal())
+        // Queixa
         holder.tvQueixa.setText("Queixa: " + (t.getQueixaprincipal() != null ? t.getQueixaprincipal() : "---"));
 
         holder.tvStatus.setText("Concluída");
@@ -105,7 +103,7 @@ public class TriagemAdapter extends BaseAdapter {
         }
         holder.dotPrioridade.setBackgroundResource(res);
 
-        // --- LÓGICA DOS BOTÕES ---
+        //  LÓGICA DOS BOTÕES
         if (isEnfermeiroView) {
             holder.layoutBotoes.setVisibility(View.VISIBLE);
             holder.layoutEnfermeiroInfo.setVisibility(View.VISIBLE);

@@ -103,10 +103,9 @@ public class HistoricoActivity extends AppCompatActivity implements TriagemListe
                     try {
                         listaTriagens.clear();
 
-                        // --- OFFLINE: Limpar BD antiga ---
+                        //  OFFLINE: Limpar BD antiga
                         PulseiraBDHelper db = PulseiraBDHelper.getInstance(this);
                         db.removeAllPulseiras();
-                        // ---------------------------------
 
                         for (int i = 0; i < response.length(); i++) {
                             JSONObject obj = response.getJSONObject(i);
@@ -135,7 +134,7 @@ public class HistoricoActivity extends AppCompatActivity implements TriagemListe
 
                             listaTriagens.add(t);
 
-                            // --- OFFLINE: Guardar na BD Local ---
+                            // OFFLINE: Guardar na BD Local
                             if (t.getPulseira() != null) {
                                 Pulseira p = t.getPulseira();
 
@@ -157,7 +156,6 @@ public class HistoricoActivity extends AppCompatActivity implements TriagemListe
 
                                 db.adicionarPulseira(p);
                             }
-                            // ------------------------------------
                         }
 
                         adapter.notifyDataSetChanged();
@@ -222,7 +220,7 @@ public class HistoricoActivity extends AppCompatActivity implements TriagemListe
         if (tvTotalTriagens != null) tvTotalTriagens.setText("Total (Offline): " + listaTriagens.size());
     }
 
-    // INTERFACE TriagemListener e API (Mantém-se igual, mas a usar getters)
+    // INTERFACE TriagemListener e API
     @Override
     public void onTriagemClick(int id) {
         //  método da PulseiraJsonParser

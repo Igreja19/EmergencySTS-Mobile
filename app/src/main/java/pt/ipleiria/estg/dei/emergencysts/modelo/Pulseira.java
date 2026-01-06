@@ -72,7 +72,7 @@ public class Pulseira {
     public String getAlergias() { return alergias; }
     public String getMedicacao() { return medicacao; }
 
-    // --- SETTERS (ADICIONADOS PARA O MODO OFFLINE FUNCIONAR) ---
+    // SETTERS (ADICIONADOS PARA O MODO OFFLINE FUNCIONAR)
 
     public void setId(int id) { this.id = id; }
     public void setCodigo(String codigo) { this.codigo = codigo; }

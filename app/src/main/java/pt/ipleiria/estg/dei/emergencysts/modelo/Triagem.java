@@ -8,19 +8,19 @@ public class Triagem {
     public String queixaprincipal;
     public String descricaosintomas;
     public String iniciosintomas;
-    public int intensidadedor; // Mudei para int para bater certo com BDHelper
+    public int intensidadedor;
     public String alergias;
     public String medicacao;
     public String datatriagem;
 
-    // OBJETOS RELACIONADOS (Usamos as classes principais, não as aninhadas)
+    // OBJETOS RELACIONADOS
     public Pulseira pulseira;
-    public Paciente paciente; // Substitui o UserProfile para ser compatível com Offline
+    public Paciente paciente;
 
     public Triagem() {
     }
 
-    // --- GETTERS (Usados pelo HistoricoActivity) ---
+    // GETTERS (Usados pelo HistoricoActivity)
     public int getId() { return id; }
     public String getMotivoconsulta() { return motivoconsulta; }
     public String getQueixaprincipal() { return queixaprincipal; }
@@ -34,7 +34,7 @@ public class Triagem {
     public Pulseira getPulseira() { return pulseira; }
     public Paciente getPaciente() { return paciente; }
 
-    // --- SETTERS (Necessários para carregar do SQLite/Offline) ---
+    //  SETTERS (Necessários para carregar do SQLite/Offline)
     public void setId(int id) { this.id = id; }
     public void setMotivoconsulta(String motivoconsulta) { this.motivoconsulta = motivoconsulta; }
     public void setQueixaprincipal(String queixaprincipal) { this.queixaprincipal = queixaprincipal; }

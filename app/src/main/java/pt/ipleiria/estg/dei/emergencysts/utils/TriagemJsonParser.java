@@ -33,7 +33,7 @@ public class TriagemJsonParser {
 
         Triagem t = new Triagem();
 
-        // 1. DADOS BÁSICOS (Usar Setters)
+        //  DADOS BÁSICOS (Usar Setters)
         t.setId(json.optInt("id"));
         t.setMotivoconsulta(safe(json, "motivoconsulta", "-"));
         t.setQueixaprincipal(safe(json, "queixaprincipal", "-"));
@@ -46,13 +46,12 @@ public class TriagemJsonParser {
         // Converter intensidade de dor (pode vir como int ou string do JSON)
         t.setIntensidadedor(json.optInt("intensidadedor", 0));
 
-        // 2. PACIENTE (Antigo UserProfile)
+        //  PACIENTE
         // O JSON traz "userprofile", mas nós guardamos no objeto "Paciente"
         JSONObject up = json.optJSONObject("userprofile");
         Paciente paciente = new Paciente();
 
         if (up != null) {
-            // Nota: Se tiveres userId no paciente, podes setar aqui: paciente.setUserId(up.optInt("id"));
             paciente.setNome(safe(up, "nome", "Sem nome"));
             paciente.setEmail(safe(up, "email", "-"));
             paciente.setSns(safe(up, "sns", "---"));
@@ -63,7 +62,7 @@ public class TriagemJsonParser {
         }
         t.setPaciente(paciente);
 
-        // 3. PULSEIRA
+        //  PULSEIRA
         JSONObject p = json.optJSONObject("pulseira");
         Pulseira pulseira = new Pulseira();
 
@@ -72,7 +71,6 @@ public class TriagemJsonParser {
             pulseira.setCodigo(safe(p, "codigo", "-"));
             pulseira.setPrioridade(safe(p, "prioridade", "Pendente"));
             pulseira.setStatus(safe(p, "status", "Concluída"));
-            // Nota: O JSON traz "tempoentrada", mas o modelo guarda em "dataEntrada"
             pulseira.setDataEntrada(safe(p, "tempoentrada", ""));
         } else {
             // Valores por defeito se não vier pulseira
@@ -81,12 +79,8 @@ public class TriagemJsonParser {
             pulseira.setStatus("Concluída");
         }
 
-        // Finalmente, associar a pulseira à triagem
+        //  associar a pulseira à triagem
         t.setPulseira(pulseira);
-
-        // Nota: Removi a "Consulta" daqui porque o teu modelo Triagem novo
-        // já não tem o objeto Consulta aninhado, para simplificar o Offline.
-        // Se precisares mesmo da consulta, terias de adicionar o campo na Triagem.java.
 
         return t;
     }
