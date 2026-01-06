@@ -8,10 +8,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +22,9 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 
 import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.mqtt.MqttClientManager;
@@ -34,30 +37,32 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
     private TextView tvMotivo, tvQueixa, tvDescricao, tvInicio, tvDor, tvAlergias, tvMedicacao;
     private TextView tvPrioridade;
     private View dotPrioridade;
-    private Button btnApagar;
+
+    // NOVOS BOTÕES
+    private LinearLayout layoutBotoes;
+    private Button btnArquivar, btnEliminar;
 
     private int triagemId;
     private MqttClientManager mqtt;
+    private int pulseiraId = -1; // Para guardar o ID da pulseira para arquivar
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detalhes_triagem);
 
-        // Receber o ID da triagem selecionada
         triagemId = getIntent().getIntExtra("ID_TRIAGEM", -1);
         if (triagemId == -1) {
-            Toast.makeText(this, "Erro: Triagem inválida ou ID não recebido.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Erro: ID inválido.", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
         initViews();
-        getTriagem(); // Carregar dados da API
+        getTriagem();
 
-        // Configurar MQTT
+        // MQTT
         mqtt = MqttClientManager.getInstance(this);
-        // Verificar conexão antes de subscrever
         if (mqtt != null) {
             mqtt.connect(this);
             mqtt.subscribe("triagem/atualizada/" + triagemId);
@@ -66,13 +71,12 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        // Inicializar as Views de Texto
+        // Inicializar Texto
         tvNomeValor = findViewById(R.id.tvNomeValor);
         tvDataNascimento = findViewById(R.id.tvDataNascimento);
         tvSNS = findViewById(R.id.tvSNS);
         tvTelefoneValor = findViewById(R.id.tvTelefoneValor);
         tvDataTriagem = findViewById(R.id.tvDataTriagem);
-
         tvMotivo = findViewById(R.id.tvMotivo);
         tvQueixa = findViewById(R.id.tvQueixa);
         tvDescricao = findViewById(R.id.tvDescricao);
@@ -80,35 +84,32 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         tvDor = findViewById(R.id.tvDor);
         tvAlergias = findViewById(R.id.tvAlergias);
         tvMedicacao = findViewById(R.id.tvMedicacao);
-
         tvPrioridade = findViewById(R.id.tvPrioridade);
         dotPrioridade = findViewById(R.id.dotPrioridade);
 
-        //  Botão Voltar
         ImageView btnBack = findViewById(R.id.btnBack);
-        if (btnBack != null) {
-            btnBack.setOnClickListener(v -> finish());
-        }
+        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
 
-        // LÓGICA DE SEGURANÇA DO BOTÃO APAGAR
-        btnApagar = findViewById(R.id.btnApagar);
+        // --- CONFIGURAÇÃO DOS 2 BOTÕES ---
+        layoutBotoes = findViewById(R.id.layoutBotoesAcao);
+        btnArquivar = findViewById(R.id.btnArquivar);
+        btnEliminar = findViewById(R.id.btnEliminar);
 
-        if (btnApagar != null) {
-            // Obter a role do utilizador atual usando o método do teu print
-            String role = SharedPrefManager.getInstance(this).getKeyRole();
+        String role = SharedPrefManager.getInstance(this).getKeyRole();
+        if (role == null) role = "";
 
-            // Verificação de segurança (caso a role venha nula)
-            if (role == null) role = "";
+        // Se for PACIENTE -> Esconde tudo
+        if (role.equalsIgnoreCase("paciente") || role.equalsIgnoreCase("utente")) {
+            if (layoutBotoes != null) layoutBotoes.setVisibility(View.GONE);
+        } else {
+            // Se for ENFERMEIRO -> Mostra e ativa cliques
+            if (layoutBotoes != null) layoutBotoes.setVisibility(View.VISIBLE);
 
-            // Se for paciente, ESCONDE o botão (GONE remove o espaço também)
-            // Adicionei "utente" também, só para garantir
-            if (role.equalsIgnoreCase("paciente") || role.equalsIgnoreCase("utente")) {
-                btnApagar.setVisibility(View.GONE);
+            if (btnArquivar != null) {
+                btnArquivar.setOnClickListener(v -> confirmarArquivar());
             }
-            else {
-                // Se for enfermeiro/médico, MOSTRA e ativa o clique
-                btnApagar.setVisibility(View.VISIBLE);
-                btnApagar.setOnClickListener(v -> confirmarEliminacao());
+            if (btnEliminar != null) {
+                btnEliminar.setOnClickListener(v -> confirmarEliminar());
             }
         }
     }
@@ -116,117 +117,169 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
     private void getTriagem() {
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
         String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
-
         if (!baseUrl.endsWith("/")) baseUrl += "/";
 
-        // Mantenho a expansão, caso precises dos dados no futuro, mas o código abaixo só usa o que o XML mostra
-        String url = baseUrl + "api/triagem/" + triagemId +
-                "?expand=userprofile,pulseira&auth_key=" + token;
+        String url = baseUrl + "api/triagem/" + triagemId + "?expand=userprofile,pulseira&auth_key=" + token;
 
-        JsonObjectRequest req = new JsonObjectRequest(
-                Request.Method.GET,
-                url,
-                null,
-                response -> {
-                    Log.d("TRIAGEM_DATA", response.toString());
-                    bindData(response);
-                },
-                error -> {
-                    Log.e("VOLLEY_ERROR", error.toString());
-                    Toast.makeText(this, "Erro ao carregar triagem.", Toast.LENGTH_SHORT).show();
-                }
+        JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET, url, null,
+                this::bindData,
+                error -> Toast.makeText(this, "Erro ao carregar dados.", Toast.LENGTH_SHORT).show()
         );
-
         VolleySingleton.getInstance(this).addToRequestQueue(req);
     }
 
     private void bindData(JSONObject json) {
         try {
-            // Dados do Paciente ---
+            // Dados Paciente
             JSONObject up = json.optJSONObject("userprofile");
             if (up != null) {
-                if(tvNomeValor != null) tvNomeValor.setText(up.optString("nome", "-"));
-                if(tvSNS != null) tvSNS.setText(up.optString("sns", "-"));
-                if(tvDataNascimento != null) tvDataNascimento.setText(formatData(up.optString("datanascimento", "-")));
-                if(tvTelefoneValor != null) tvTelefoneValor.setText(up.optString("telefone", "-"));
+                if(tvNomeValor!=null) tvNomeValor.setText(up.optString("nome", "-"));
+                if(tvSNS!=null) tvSNS.setText(up.optString("sns", "-"));
+                if(tvDataNascimento!=null) tvDataNascimento.setText(formatData(up.optString("datanascimento", "-")));
+                if(tvTelefoneValor!=null) tvTelefoneValor.setText(up.optString("telefone", "-"));
             }
 
-            //  Dados da Triagem ---
-            String dataRegisto = json.optString("datatriagem", "-").replace("T", " ");
-            if(tvDataTriagem != null) tvDataTriagem.setText(dataRegisto);
-            if(tvMotivo != null) tvMotivo.setText(json.optString("motivoconsulta", "-"));
-            if(tvQueixa != null) tvQueixa.setText(json.optString("queixaprincipal", "-"));
-            if(tvDescricao != null) tvDescricao.setText(json.optString("descricaosintomas", "-"));
+            // Dados Triagem
+            if(tvDataTriagem!=null) tvDataTriagem.setText(formatData(json.optString("datatriagem", "-")));
+            if(tvMotivo!=null) tvMotivo.setText(json.optString("motivoconsulta", "-"));
+            if(tvQueixa!=null) tvQueixa.setText(json.optString("queixaprincipal", "-"));
+            if(tvDescricao!=null) tvDescricao.setText(json.optString("descricaosintomas", "-"));
+            if(tvInicio!=null) tvInicio.setText(formatData(json.optString("iniciosintomas", "-")));
+            if(tvDor!=null) tvDor.setText(String.valueOf(json.optInt("intensidadedor", 0)));
+            if(tvAlergias!=null) tvAlergias.setText(json.optString("alergias", "-"));
+            if(tvMedicacao!=null) tvMedicacao.setText(json.optString("medicacao", "-"));
 
-            // Tratamento da data de início de sintomas
-            String inicioSintomas = json.optString("iniciosintomas", "-").replace("T", " ");
-            if(tvInicio != null) tvInicio.setText(inicioSintomas);
-
-            if(tvAlergias != null) tvAlergias.setText(json.optString("alergias", "-"));
-            if(tvMedicacao != null) tvMedicacao.setText(json.optString("medicacao", "-"));
-            if(tvDor != null) tvDor.setText(String.valueOf(json.optInt("intensidadedor", 0)));
-
-            // Prioridade (Pulseira) ---
+            // Pulseira & Cores
             JSONObject pulseira = json.optJSONObject("pulseira");
             if (pulseira != null) {
+                pulseiraId = pulseira.optInt("id", -1); // Guardar ID para arquivar
                 String prioridade = pulseira.optString("prioridade", "Pendente");
-                if(tvPrioridade != null) tvPrioridade.setText(prioridade);
+                if(tvPrioridade!=null) tvPrioridade.setText(prioridade);
 
-                int res;
+                int res = R.drawable.circle_gray;
                 switch (prioridade.toLowerCase()) {
                     case "vermelho": res = R.drawable.circle_red; break;
                     case "laranja": res = R.drawable.circle_orange; break;
-                    case "amarelo":
-                    case "amarela": res = R.drawable.circle_yellow; break;
+                    case "amarelo": case "amarela": res = R.drawable.circle_yellow; break;
                     case "verde": res = R.drawable.circle_green; break;
                     case "azul": res = R.drawable.circle_blue; break;
-                    default: res = R.drawable.circle_gray;
                 }
-                if (dotPrioridade != null) {
-                    dotPrioridade.setBackgroundResource(res);
-                }
+                if(dotPrioridade!=null) dotPrioridade.setBackgroundResource(res);
             }
 
-            // NOTA: Removi a lógica do Enfermeiro e Data/Hora da triagem
-            // porque não tens onde mostrar isso no XML que enviaste.
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.e("DetalhesTriagem", "Erro no bindData: " + e.getMessage());
-            Toast.makeText(this, "Erro ao processar dados visualmente.", Toast.LENGTH_SHORT).show();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     private String formatData(String data) {
-        if (data == null || data.equals("null")) return "-";
+        if (data == null || data.equals("null") || data.isEmpty()) return "-";
         try {
-            // Se vier com hora (T), limpamos primeiro
+            String hora = "";
             if (data.contains("T")) {
-                data = data.split("T")[0];
+                String[] parts = data.split("T");
+                data = parts[0];
+                if(parts.length > 1 && parts[1].length() >= 5) hora = " " + parts[1].substring(0,5);
+            } else if (data.contains(" ")) {
+                String[] parts = data.split(" ");
+                data = parts[0];
+                if(parts.length > 1) hora = " " + parts[1].substring(0,5);
             }
-
-            // Converte YYYY-MM-DD para DD/MM/YYYY
             if (data.contains("-")) {
                 String[] p = data.split("-");
-                if (p.length == 3) {
-                    return p[2] + "/" + p[1] + "/" + p[0];
-                }
+                if (p.length == 3) return p[2] + "/" + p[1] + "/" + p[0] + hora;
             }
-        } catch (Exception e) {
-            Log.e("DetalhesTriagem", "Erro formatação data: " + data);
-        }
+        } catch (Exception e) {}
         return data;
     }
 
-    //  MQTT Receiver
+    // --- AÇÕES DOS BOTÕES ---
+
+    private void confirmarArquivar() {
+        if (pulseiraId == -1) {
+            Toast.makeText(this, "Não é possível arquivar (sem pulseira).", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("Arquivar Triagem")
+                .setMessage("Deseja marcar como FINALIZADO? (Isto permite ao paciente fazer nova triagem)")
+                .setPositiveButton("Sim, Finalizar", (d, w) -> acaoAPI(true)) // True = Arquivar
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private void confirmarEliminar() {
+        new AlertDialog.Builder(this)
+                .setTitle("PERIGO: Eliminar")
+                .setMessage("Apagar permanentemente da base de dados?")
+                .setPositiveButton("Sim, Apagar", (d, w) -> acaoAPI(false)) // False = Eliminar
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    // --- AQUI ESTÁ A CORREÇÃO PRINCIPAL ---
+    private void acaoAPI(boolean isArquivar) {
+        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
+        String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
+        if (!baseUrl.endsWith("/")) baseUrl += "/";
+
+        String url;
+        final String methodParam; // Define se é PUT ou DELETE
+
+        if (isArquivar) {
+            // ARQUIVAR (FINALIZAR):
+            // 1. Chama a API da Pulseira
+            // 2. Adiciona o sinal "?arquivar=1" para o PHP saber que deve escrever "Finalizado"
+            url = baseUrl + "api/pulseira/" + pulseiraId + "?auth_key=" + token + "&arquivar=1";
+            methodParam = "PUT"; // PUT = Atualizar
+        } else {
+            // ELIMINAR (APAGAR MESMO):
+            // 1. Chama a API da Triagem
+            url = baseUrl + "api/triagem/" + triagemId + "?auth_key=" + token;
+            methodParam = "DELETE"; // DELETE = Apagar
+        }
+
+        StringRequest req = new StringRequest(Request.Method.POST, url,
+                response -> {
+                    if (isArquivar) {
+                        Toast.makeText(DetalhesTriagemActivity.this, "Arquivado (Finalizado) com sucesso!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(DetalhesTriagemActivity.this, "Eliminado permanentemente!", Toast.LENGTH_SHORT).show();
+                    }
+                    finish(); // Fecha e volta à lista
+                },
+                error -> {
+                    String erro = "Erro de conexão";
+                    if (error.networkResponse != null) {
+                        erro += " (" + error.networkResponse.statusCode + ")";
+                    }
+                    Toast.makeText(DetalhesTriagemActivity.this, erro, Toast.LENGTH_SHORT).show();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/x-www-form-urlencoded");
+                return headers;
+            }
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                // Envia _method para o PHP saber o que fazer (PUT ou DELETE)
+                params.put("_method", methodParam);
+                return params;
+            }
+        };
+
+        VolleySingleton.getInstance(this).addToRequestQueue(req);
+    }
+
+    // MQTT Receivers
     private final BroadcastReceiver mqttReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context ctx, Intent intent) {
             String topic = intent.getStringExtra("topic");
-            if (topic != null) {
-                if(topic.contains("triagem/atualizada/" + triagemId) || topic.startsWith("pulseira/atualizada")) {
-                    getTriagem();
-                }
+            if (topic != null && (topic.contains("triagem/atualizada/" + triagemId) || topic.startsWith("pulseira/atualizada"))) {
+                getTriagem();
             }
         }
     };
@@ -246,47 +299,6 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        try {
-            unregisterReceiver(mqttReceiver);
-        } catch (IllegalArgumentException e) {
-            // Receiver não estava registado
-        }
-    }
-
-    // Funcionalidade de Apagar
-    private void confirmarEliminacao() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Apagar Triagem");
-        builder.setMessage("Tem a certeza que deseja apagar esta triagem? Esta ação é irreversível.");
-
-        builder.setPositiveButton("Sim", (dialog, which) -> deleteTriagem());
-        builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
-
-        builder.show();
-    }
-
-    private void deleteTriagem() {
-        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
-        String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
-        if (!baseUrl.endsWith("/")) baseUrl += "/";
-
-        String url = baseUrl + "api/triagem/" + triagemId + "?auth_key=" + token;
-
-        StringRequest request = new StringRequest(
-                Request.Method.DELETE,
-                url,
-                response -> {
-                    Toast.makeText(this, "Triagem apagada com sucesso!", Toast.LENGTH_SHORT).show();
-                    finish();
-                },
-                error -> {
-                    String erro = "Erro ao apagar.";
-                    if (error.networkResponse != null) {
-                        erro += " Código: " + error.networkResponse.statusCode;
-                    }
-                    Toast.makeText(this, erro, Toast.LENGTH_SHORT).show();
-                }
-        );
-        VolleySingleton.getInstance(this).addToRequestQueue(request);
+        try { unregisterReceiver(mqttReceiver); } catch (Exception e) {}
     }
 }

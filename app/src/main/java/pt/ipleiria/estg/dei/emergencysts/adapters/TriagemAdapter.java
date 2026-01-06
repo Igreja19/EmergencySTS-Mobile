@@ -6,13 +6,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
-import pt.ipleiria.estg.dei.emergencysts.modelo.Triagem;
 import pt.ipleiria.estg.dei.emergencysts.listeners.TriagemListener;
+import pt.ipleiria.estg.dei.emergencysts.modelo.Triagem;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
 public class TriagemAdapter extends BaseAdapter {
@@ -20,38 +22,31 @@ public class TriagemAdapter extends BaseAdapter {
     private final Context context;
     private final ArrayList<Triagem> triagens;
     private final LayoutInflater inflater;
+    private final boolean isEnfermeiroView;
     private final TriagemListener listener;
 
-    public TriagemAdapter(Context context, ArrayList<Triagem> triagens, TriagemListener listener) {
+    public TriagemAdapter(Context context, ArrayList<Triagem> triagens, boolean isEnfermeiroView, TriagemListener listener) {
         this.context = context;
         this.triagens = triagens;
         this.inflater = LayoutInflater.from(context);
+        this.isEnfermeiroView = isEnfermeiroView;
         this.listener = listener;
     }
 
     @Override
-    public int getCount() {
-        return triagens.size();
-    }
+    public int getCount() { return triagens.size(); }
 
     @Override
-    public Object getItem(int position) {
-        return triagens.get(position);
-    }
+    public Object getItem(int position) { return triagens.get(position); }
 
     @Override
-    public long getItemId(int position) {
-        return position;
-    }
+    public long getItemId(int position) { return position; }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-
         ViewHolder holder;
-
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.item_triagem, parent, false);
-
             holder = new ViewHolder();
             holder.tvNome = convertView.findViewById(R.id.tvNome);
             holder.tvSNS = convertView.findViewById(R.id.tvSNS);
@@ -62,6 +57,12 @@ public class TriagemAdapter extends BaseAdapter {
             holder.tvEnfermeiro = convertView.findViewById(R.id.tvEnfermeiro);
             holder.dotPrioridade = convertView.findViewById(R.id.dotPrioridade);
 
+            // Novos Botões
+            holder.layoutBotoes = convertView.findViewById(R.id.layoutBotoesAcao);
+            holder.btnArquivar = convertView.findViewById(R.id.btnArquivar);
+            holder.btnEliminar = convertView.findViewById(R.id.btnEliminar);
+            holder.layoutEnfermeiroInfo = convertView.findViewById(R.id.layoutEnfermeiroInfo);
+
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -69,77 +70,60 @@ public class TriagemAdapter extends BaseAdapter {
 
         Triagem t = triagens.get(position);
 
+        // Preencher dados básicos
+        holder.tvNome.setText(t.getNomePaciente());
+        holder.tvSNS.setText("SNS: " + t.getSnsPaciente());
 
-        // USERPROFILE → Nome + SNS
-        if (t.userprofile != null) {
-            holder.tvNome.setText(t.userprofile.nome);
-            holder.tvSNS.setText("SNS: " + t.userprofile.sns);
-        }
-
-
-        // DATA + HORA formatadas (yyyy-mm-dd HH:mm:ss → dd/mm/yyyy + HH:mm)
+        // Data e Hora
         if (t.datatriagem != null && t.datatriagem.contains(" ")) {
             String[] partes = t.datatriagem.split(" ");
-            if (partes.length == 2) {
-                String[] data = partes[0].split("-");
-                if (data.length == 3) {
-                    holder.tvData.setText(data[2] + "/" + data[1] + "/" + data[0]);
-                }
-                holder.tvHora.setText(partes[1].substring(0, 5)); // HH:mm
-            }
+            holder.tvData.setText(partes[0]);
+            holder.tvHora.setText(partes[1].length() >= 5 ? partes[1].substring(0, 5) : partes[1]);
+        } else {
+            holder.tvData.setText("--/--");
+            holder.tvHora.setText("--:--");
         }
 
-        // QUEIXA
-        holder.tvQueixa.setText("Queixa: " + t.queixaprincipal);
-
-
-        // STATUS (fixo: CONCLUÍDA)
+        holder.tvQueixa.setText("Queixa: " + (t.queixaprincipal != null ? t.queixaprincipal : "---"));
         holder.tvStatus.setText("Concluída");
         holder.tvStatus.setTextColor(Color.parseColor("#1DB954"));
 
-        // ENFERMEIRO = utilizador atual
-        String enfermeiroAtual = SharedPrefManager.getInstance(context).getEnfermeiro().getUsername();
-        holder.tvEnfermeiro.setText("Enf. " + enfermeiroAtual);
-
-        // PRIORIDADE (bolinha com cor)
-
+        // Cores da prioridade
+        int res = R.drawable.circle_gray;
         if (t.pulseira != null && t.pulseira.prioridade != null) {
-
-            String prioridade = t.pulseira.prioridade.toLowerCase();
-
-            switch (prioridade) {
-                case "vermelho":
-                    holder.dotPrioridade.setBackgroundResource(R.drawable.circle_red);
-                    break;
-                case "laranja":
-                    holder.dotPrioridade.setBackgroundResource(R.drawable.circle_orange);
-                    break;
-                case "amarelo":
-                case "amarela":
-                    holder.dotPrioridade.setBackgroundResource(R.drawable.circle_yellow);
-                    break;
-                case "verde":
-                    holder.dotPrioridade.setBackgroundResource(R.drawable.circle_green);
-                    break;
-                case "azul":
-                    holder.dotPrioridade.setBackgroundResource(R.drawable.circle_blue);
-                    break;
-                default:
-                    holder.dotPrioridade.setBackgroundResource(R.drawable.circle_gray);
-            }
-        } else {
-            holder.dotPrioridade.setBackgroundResource(R.drawable.circle_gray);
+            String p = t.pulseira.prioridade.toLowerCase();
+            if (p.contains("vermelho")) res = R.drawable.circle_red;
+            else if (p.contains("laranja")) res = R.drawable.circle_orange;
+            else if (p.contains("amarelo") || p.contains("amarela")) res = R.drawable.circle_yellow;
+            else if (p.contains("verde")) res = R.drawable.circle_green;
+            else if (p.contains("azul")) res = R.drawable.circle_blue;
         }
+        holder.dotPrioridade.setBackgroundResource(res);
 
-        convertView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (listener != null) {
-                    // Envia o ID da triagem para quem estiver a ouvir (a Activity)
-                    listener.onTriagemClick(t.id);
-                }
+        // --- LÓGICA DOS BOTÕES ---
+        if (isEnfermeiroView) {
+            holder.layoutBotoes.setVisibility(View.VISIBLE);
+            holder.layoutEnfermeiroInfo.setVisibility(View.VISIBLE);
+
+            String enfNome = "---";
+            if (SharedPrefManager.getInstance(context).getEnfermeiro() != null) {
+                enfNome = SharedPrefManager.getInstance(context).getEnfermeiro().getUsername();
             }
-        });
+            holder.tvEnfermeiro.setText("Enf. " + enfNome);
+
+            // Cliques nos Botões
+            holder.btnArquivar.setOnClickListener(v -> {
+                if (listener != null) listener.onArquivarClick(t.getId());
+            });
+
+            holder.btnEliminar.setOnClickListener(v -> {
+                if (listener != null) listener.onEliminarClick(t.getId());
+            });
+
+        } else {
+            holder.layoutBotoes.setVisibility(View.GONE);
+            holder.layoutEnfermeiroInfo.setVisibility(View.GONE);
+        }
 
         return convertView;
     }
@@ -147,5 +131,7 @@ public class TriagemAdapter extends BaseAdapter {
     private static class ViewHolder {
         TextView tvNome, tvSNS, tvStatus, tvData, tvHora, tvQueixa, tvEnfermeiro;
         View dotPrioridade;
+        LinearLayout layoutBotoes, layoutEnfermeiroInfo;
+        ImageView btnArquivar, btnEliminar;
     }
 }

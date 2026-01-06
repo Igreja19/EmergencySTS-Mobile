@@ -5,7 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color; // Importante para as cores
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -147,11 +147,9 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
         urlBuilder.append("api/pulseira?");
 
         if (isPaciente) {
-            // Remover filtro de status para o Paciente ver pulseiras triadas
-            // Filtramos apenas por user (o backend já faz isso pelo token) e ordenamos por ID decrescente
+            // Ordena por ID decrescente para apanhar a última pulseira criada
             urlBuilder.append("sort=-id&");
         } else {
-            // ENFERMEIRO: Vê apenas pulseiras não triadas
             urlBuilder.append("status=Em%20espera&prioridade=Pendente&");
         }
         urlBuilder.append("expand=userprofile&auth_key=").append(authKey);
@@ -166,7 +164,7 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
                         if (data != null) {
                             novas = PulseiraJsonParser.parserJsonPulseiras(data);
 
-                            // Guardar BD
+                            // BD Offline
                             PulseiraBDHelper db = PulseiraBDHelper.getInstance(this);
                             db.removeAllPulseiras();
                             for (Pulseira p : novas) db.adicionarPulseira(p);
@@ -186,6 +184,10 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
                 }
         );
 
+        // --- CORREÇÃO IMPORTANTE: DESLIGAR CACHE ---
+        req.setShouldCache(false);
+        // -------------------------------------------
+
         VolleySingleton.getInstance(this).addToRequestQueue(req);
     }
 
@@ -199,45 +201,63 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
 
         if (isPaciente) {
             // --- UI PACIENTE ---
-            Pulseira p = pulseiras.get(0);
+            Pulseira p = pulseiras.get(0); // Apanha a pulseira mais recente
+            String status = p.getStatus();
+
+            // --- LÓGICA DE ESCONDER CORRIGIDA ---
+            // Verifica se está nulo, vazio, ou com estado finalizado
+            boolean estaFinalizada = status == null ||
+                    status.trim().isEmpty() || // <--- AQUI ESTÁ A CORREÇÃO
+                    status.equalsIgnoreCase("null") ||
+                    status.equalsIgnoreCase("Finalizado") ||
+                    status.equalsIgnoreCase("Concluída") ||
+                    status.equalsIgnoreCase("Concluida") ||
+                    status.equalsIgnoreCase("Atendido");
+
+            if (estaFinalizada) {
+                // Se o estado for VAZIO ou finalizado, esconde a pulseira
+                layoutSemPulseira.setVisibility(View.VISIBLE);
+                cardPulseira.setVisibility(View.GONE);
+                return;
+            }
+
+            // Se chegou aqui, é porque a pulseira ESTÁ ATIVA
             cardPulseira.setVisibility(View.VISIBLE);
             layoutSemPulseira.setVisibility(View.GONE);
 
-            //  MOSTRAR O NOME NO TÍTULO
+            // Nome
             if (p.getNomePaciente() != null && !p.getNomePaciente().isEmpty()) {
                 tvTitulo.setText("Olá, " + p.getNomePaciente());
             } else {
                 tvTitulo.setText("A minha Pulseira");
             }
 
-            //  Preencher o resto (Código e Estado)
+            // Código
             tvCodigoPulseira.setText("#" + p.getCodigo());
 
             String prioridade = p.getPrioridade();
-            String status = p.getStatus();
 
             if (prioridade != null && !prioridade.equalsIgnoreCase("Pendente")) {
-                // Já foi triado - Mostrar a Cor
+                // Triado
                 tvEstadoBadge.setText(prioridade);
                 tvDescricao.setText("Triagem concluída. Aguarde chamada.");
 
-                // Mudar cor do badge conforme a prioridade
                 switch (prioridade.toLowerCase()) {
                     case "vermelho":
                         tvEstadoBadge.setTextColor(Color.WHITE);
-                        tvEstadoBadge.setBackgroundResource(R.drawable.circle_red); // Usa os teus drawables
+                        tvEstadoBadge.setBackgroundResource(R.drawable.circle_red);
                         break;
                     case "laranja":
                         tvEstadoBadge.setTextColor(Color.WHITE);
                         tvEstadoBadge.setBackgroundResource(R.drawable.circle_orange);
                         break;
                     case "amarelo":
-                        tvEstadoBadge.setTextColor(Color.BLACK); // Texto preto para fundo amarelo
+                        tvEstadoBadge.setTextColor(Color.BLACK);
                         tvEstadoBadge.setBackgroundResource(R.drawable.circle_yellow);
                         break;
                     case "verde":
                         tvEstadoBadge.setTextColor(Color.WHITE);
-                        tvEstadoBadge.setBackgroundResource(R.drawable.card_green_rounded);
+                        tvEstadoBadge.setBackgroundResource(R.drawable.circle_green);
                         break;
                     case "azul":
                         tvEstadoBadge.setTextColor(Color.WHITE);
@@ -247,7 +267,7 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
                         tvEstadoBadge.setBackgroundResource(R.drawable.bg_chip_pendente);
                 }
             } else {
-                // Ainda não foi triado (Pendente)
+                // Pendente
                 tvEstadoBadge.setText("Pendente");
                 tvEstadoBadge.setTextColor(Color.parseColor("#D84315"));
                 tvEstadoBadge.setBackgroundResource(R.drawable.bg_chip_pendente);

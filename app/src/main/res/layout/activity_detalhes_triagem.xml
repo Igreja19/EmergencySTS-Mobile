@@ -307,19 +307,35 @@
         </ScrollView>
 
         <!-- BOTÃO FINAL -->
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnApagar"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            android:layout_marginBottom="20dp"
-            android:text="Apagar Triagem"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold"
-            android:textAllCaps="false"
-            android:background="@drawable/btn_red" />
 
+        <LinearLayout
+            android:id="@+id/layoutBotoesAcao"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginTop="16dp">
+
+            <Button
+                android:id="@+id/btnArquivar"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="Arquivar Triagem"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#4CAF50"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp"/>
+
+            <Button
+                android:id="@+id/btnEliminar"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="ELIMINAR PERMANENTE"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#D32F2F"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 
