@@ -122,25 +122,30 @@ public class PulseiraBDHelper extends SQLiteOpenHelper {
 
         if (cursor.moveToFirst()) {
             do {
-                Pulseira p = new Pulseira(
-                        cursor.getInt(cursor.getColumnIndexOrThrow(COL_ID)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_CODIGO)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_PRIORIDADE)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_STATUS)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_HORA)),
-                        cursor.getInt(cursor.getColumnIndexOrThrow(COL_USER_ID)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_NOME)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_SNS)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_DATA_NASC)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_TELEFONE)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_MOTIVO)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_QUEIXA)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_DESCRICAO)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_INICIO)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_DOR)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_ALERGIAS)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COL_MEDICACAO))
-                );
+                // Criar pulseira vazia
+                Pulseira p = new Pulseira();
+
+                // Preencher com SETTERS (Mais seguro que o construtor gigante)
+                p.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COL_ID)));
+                p.setCodigo(cursor.getString(cursor.getColumnIndexOrThrow(COL_CODIGO)));
+                p.setPrioridade(cursor.getString(cursor.getColumnIndexOrThrow(COL_PRIORIDADE)));
+                p.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(COL_STATUS)));
+                p.setDataEntrada(cursor.getString(cursor.getColumnIndexOrThrow(COL_HORA)));
+
+                p.setUserProfileId(cursor.getInt(cursor.getColumnIndexOrThrow(COL_USER_ID)));
+                p.setNomePaciente(cursor.getString(cursor.getColumnIndexOrThrow(COL_NOME)));
+                p.setSns(cursor.getString(cursor.getColumnIndexOrThrow(COL_SNS)));
+                p.setDataNascimento(cursor.getString(cursor.getColumnIndexOrThrow(COL_DATA_NASC)));
+                p.setTelefone(cursor.getString(cursor.getColumnIndexOrThrow(COL_TELEFONE)));
+
+                p.setMotivo(cursor.getString(cursor.getColumnIndexOrThrow(COL_MOTIVO)));
+                p.setQueixa(cursor.getString(cursor.getColumnIndexOrThrow(COL_QUEIXA)));
+                p.setDescricao(cursor.getString(cursor.getColumnIndexOrThrow(COL_DESCRICAO)));
+                p.setInicioSintomas(cursor.getString(cursor.getColumnIndexOrThrow(COL_INICIO)));
+                p.setDor(cursor.getString(cursor.getColumnIndexOrThrow(COL_DOR)));
+                p.setAlergias(cursor.getString(cursor.getColumnIndexOrThrow(COL_ALERGIAS)));
+                p.setMedicacao(cursor.getString(cursor.getColumnIndexOrThrow(COL_MEDICACAO)));
+
                 lista.add(p);
             } while (cursor.moveToNext());
         }

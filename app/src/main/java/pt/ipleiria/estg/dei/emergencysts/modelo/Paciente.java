@@ -16,6 +16,11 @@ public class Paciente {
     private String nif;
     private String morada;
 
+
+    public Paciente() {
+    }
+
+
     //  CONSTRUTOR BÁSICO
     public Paciente(int userId, String username, String email, String role) {
         this.userId = userId;
@@ -42,12 +47,10 @@ public class Paciente {
 
     //  GETTERS
     public int getId() { return userId; }
-
     public String getUsername() { return username; }
     public String getEmail() { return email; }
     public String getRole() { return role; }
     public String getGenero() { return genero; }
-
     public String getNome() { return nome; }
     public String getDataNascimento() { return dataNascimento; }
     public String getTelefone() { return telefone; }
@@ -64,7 +67,7 @@ public class Paciente {
     public void setEmail(String email) { this.email = email; }
     public void setMorada(String morada) { this.morada = morada; }
     public void setGenero(String genero) { this.genero = genero; }
-
+    public void setUserId(int userId) { this.userId = userId; }
 
     //  Cálculo de idade
     public String getIdadeFormatada() {
@@ -90,9 +93,7 @@ public class Paciente {
             if (mesAtual < mes || (mesAtual == mes && diaAtual < dia)) {
                 idade--;
             }
-
             return idade + " anos";
-
         } catch (Exception e) {
             return "-- anos";
         }

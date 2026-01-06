@@ -70,13 +70,14 @@ public class TriagemAdapter extends BaseAdapter {
 
         Triagem t = triagens.get(position);
 
-        // Preencher dados básicos
+        // Preencher dados básicos (Usa os métodos auxiliares que já tens na Triagem)
         holder.tvNome.setText(t.getNomePaciente());
         holder.tvSNS.setText("SNS: " + t.getSnsPaciente());
 
-        // Data e Hora
-        if (t.datatriagem != null && t.datatriagem.contains(" ")) {
-            String[] partes = t.datatriagem.split(" ");
+        // Data e Hora (CORRIGIDO: usa getDataTriagem())
+        String dataT = t.getDataTriagem();
+        if (dataT != null && dataT.contains(" ")) {
+            String[] partes = dataT.split(" ");
             holder.tvData.setText(partes[0]);
             holder.tvHora.setText(partes[1].length() >= 5 ? partes[1].substring(0, 5) : partes[1]);
         } else {
@@ -84,14 +85,18 @@ public class TriagemAdapter extends BaseAdapter {
             holder.tvHora.setText("--:--");
         }
 
-        holder.tvQueixa.setText("Queixa: " + (t.queixaprincipal != null ? t.queixaprincipal : "---"));
+        // Queixa (CORRIGIDO: usa getQueixaprincipal())
+        holder.tvQueixa.setText("Queixa: " + (t.getQueixaprincipal() != null ? t.getQueixaprincipal() : "---"));
+
         holder.tvStatus.setText("Concluída");
         holder.tvStatus.setTextColor(Color.parseColor("#1DB954"));
 
-        // Cores da prioridade
+        // Cores da prioridade (CORRIGIDO: usa getPulseira() e getPrioridade())
         int res = R.drawable.circle_gray;
-        if (t.pulseira != null && t.pulseira.prioridade != null) {
-            String p = t.pulseira.prioridade.toLowerCase();
+
+        if (t.getPulseira() != null && t.getPulseira().getPrioridade() != null) {
+            String p = t.getPulseira().getPrioridade().toLowerCase();
+
             if (p.contains("vermelho")) res = R.drawable.circle_red;
             else if (p.contains("laranja")) res = R.drawable.circle_orange;
             else if (p.contains("amarelo") || p.contains("amarela")) res = R.drawable.circle_yellow;

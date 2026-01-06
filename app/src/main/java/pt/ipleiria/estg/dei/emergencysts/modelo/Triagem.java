@@ -2,82 +2,64 @@ package pt.ipleiria.estg.dei.emergencysts.modelo;
 
 public class Triagem {
 
-    // CAMPOS PRINCIPAIS DA TRIAGEM
+    // CAMPOS PRINCIPAIS
     public int id;
     public String motivoconsulta;
     public String queixaprincipal;
     public String descricaosintomas;
     public String iniciosintomas;
+    public int intensidadedor; // Mudei para int para bater certo com BDHelper
     public String alergias;
     public String medicacao;
     public String datatriagem;
 
-    // USERPROFILE
-    public UserProfile userprofile;
-
-    public static class UserProfile {
-        public int id;
-        public String nome;
-        public String email;
-        public String sns;
-    }
-
-    // PULSEIRA
+    // OBJETOS RELACIONADOS (Usamos as classes principais, não as aninhadas)
     public Pulseira pulseira;
+    public Paciente paciente; // Substitui o UserProfile para ser compatível com Offline
 
-    public static class Pulseira {
-        public int id;
-        public String codigo;
-        public String prioridade;
-        public String status;
-        public String tempoentrada;
-
-        // GETTERS NECESSÁRIOS PARA A PULSEIRA
-        public int getId() { return id; }
-        public String getCodigo() { return codigo; }
-        public String getPrioridade() { return prioridade; }
-        public String getStatus() { return status; }
-        public String getTempoentrada() { return tempoentrada; }
+    public Triagem() {
     }
 
-    // CONSULTA ASSOCIADA
-    public Consulta consulta;
+    // --- GETTERS (Usados pelo HistoricoActivity) ---
+    public int getId() { return id; }
+    public String getMotivoconsulta() { return motivoconsulta; }
+    public String getQueixaprincipal() { return queixaprincipal; }
+    public String getDescricaosintomas() { return descricaosintomas; }
+    public String getIniciosintomas() { return iniciosintomas; }
+    public int getIntensidadedor() { return intensidadedor; }
+    public String getAlergias() { return alergias; }
+    public String getMedicacao() { return medicacao; }
+    public String getDataTriagem() { return datatriagem; }
 
-    public static class Consulta {
-        public int id;
-        public String estado;
-    }
+    public Pulseira getPulseira() { return pulseira; }
+    public Paciente getPaciente() { return paciente; }
 
-    //  GETTERS PRINCIPAIS DA TRIAGEM
+    // --- SETTERS (Necessários para carregar do SQLite/Offline) ---
+    public void setId(int id) { this.id = id; }
+    public void setMotivoconsulta(String motivoconsulta) { this.motivoconsulta = motivoconsulta; }
+    public void setQueixaprincipal(String queixaprincipal) { this.queixaprincipal = queixaprincipal; }
+    public void setDescricaosintomas(String descricaosintomas) { this.descricaosintomas = descricaosintomas; }
+    public void setIniciosintomas(String iniciosintomas) { this.iniciosintomas = iniciosintomas; }
+    public void setIntensidadedor(int intensidadedor) { this.intensidadedor = intensidadedor; }
+    public void setAlergias(String alergias) { this.alergias = alergias; }
+    public void setMedicacao(String medicacao) { this.medicacao = medicacao; }
+    public void setDatatriagem(String datatriagem) { this.datatriagem = datatriagem; }
 
-    public int getId() {
-        return id;
-    }
+    public void setPulseira(Pulseira pulseira) { this.pulseira = pulseira; }
+    public void setPaciente(Paciente paciente) { this.paciente = paciente; }
 
-    public String getDataTriagem() {
-        return datatriagem;
-    }
-
-    public String getMotivo() {
-        return motivoconsulta;
-    }
-
-    public String getQueixa() {
-        return queixaprincipal;
-    }
 
     //  MÉTODOS AUXILIARES
-
     public String getNomePaciente() {
-        if (userprofile != null && userprofile.nome != null) {
-            return userprofile.nome;
+        if (paciente != null && paciente.getNome() != null) {
+            return paciente.getNome();
         }
         return "Anónimo";
     }
 
     public String getSnsPaciente() {
-        if (userprofile != null && userprofile.sns != null) {
-            return userprofile.sns;
+        if (paciente != null && paciente.getSns() != null) {
+            return paciente.getSns();
         }
         return "---";
     }

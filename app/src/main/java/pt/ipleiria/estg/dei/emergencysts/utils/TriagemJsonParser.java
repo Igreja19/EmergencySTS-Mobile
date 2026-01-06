@@ -2,7 +2,11 @@ package pt.ipleiria.estg.dei.emergencysts.utils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 import java.util.ArrayList;
+
+import pt.ipleiria.estg.dei.emergencysts.modelo.Paciente;
+import pt.ipleiria.estg.dei.emergencysts.modelo.Pulseira;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Triagem;
 
 public class TriagemJsonParser {
@@ -29,56 +33,60 @@ public class TriagemJsonParser {
 
         Triagem t = new Triagem();
 
-        // TRIAGEM
-        t.id = json.optInt("id");
-        t.motivoconsulta    = safe(json, "motivoconsulta", "-");
-        t.queixaprincipal   = safe(json, "queixaprincipal", "-");
-        t.descricaosintomas = safe(json, "descricaosintomas", "-");
-        t.iniciosintomas    = safe(json, "iniciosintomas", "-");
-        t.alergias          = safe(json, "alergias", "-");
-        t.medicacao         = safe(json, "medicacao", "-");
-        t.datatriagem       = safe(json, "datatriagem", "");
+        // 1. DADOS BÁSICOS (Usar Setters)
+        t.setId(json.optInt("id"));
+        t.setMotivoconsulta(safe(json, "motivoconsulta", "-"));
+        t.setQueixaprincipal(safe(json, "queixaprincipal", "-"));
+        t.setDescricaosintomas(safe(json, "descricaosintomas", "-"));
+        t.setIniciosintomas(safe(json, "iniciosintomas", "-"));
+        t.setAlergias(safe(json, "alergias", "-"));
+        t.setMedicacao(safe(json, "medicacao", "-"));
+        t.setDatatriagem(safe(json, "datatriagem", ""));
 
-        // USERPROFILE
+        // Converter intensidade de dor (pode vir como int ou string do JSON)
+        t.setIntensidadedor(json.optInt("intensidadedor", 0));
+
+        // 2. PACIENTE (Antigo UserProfile)
+        // O JSON traz "userprofile", mas nós guardamos no objeto "Paciente"
         JSONObject up = json.optJSONObject("userprofile");
-        t.userprofile = new Triagem.UserProfile();
+        Paciente paciente = new Paciente();
 
         if (up != null) {
-            t.userprofile.id    = up.optInt("id");
-            t.userprofile.nome  = safe(up, "nome", "Sem nome");
-            t.userprofile.email = safe(up, "email", "-");
-            t.userprofile.sns   = safe(up, "sns", "---");
+            // Nota: Se tiveres userId no paciente, podes setar aqui: paciente.setUserId(up.optInt("id"));
+            paciente.setNome(safe(up, "nome", "Sem nome"));
+            paciente.setEmail(safe(up, "email", "-"));
+            paciente.setSns(safe(up, "sns", "---"));
+            paciente.setTelefone(safe(up, "telefone", ""));
         } else {
-            t.userprofile.nome = "Sem nome";
-            t.userprofile.sns  = "---";
+            paciente.setNome("Sem nome");
+            paciente.setSns("---");
         }
+        t.setPaciente(paciente);
 
-        // PULSEIRA
+        // 3. PULSEIRA
         JSONObject p = json.optJSONObject("pulseira");
-        t.pulseira = new Triagem.Pulseira();
+        Pulseira pulseira = new Pulseira();
 
         if (p != null) {
-            t.pulseira.id           = p.optInt("id");
-            t.pulseira.codigo       = safe(p, "codigo", "-");
-            t.pulseira.prioridade   = safe(p, "prioridade", "Pendente");
-            t.pulseira.status       = safe(p, "status", "Concluída");
-            t.pulseira.tempoentrada = safe(p, "tempoentrada", "");
+            pulseira.setId(p.optInt("id"));
+            pulseira.setCodigo(safe(p, "codigo", "-"));
+            pulseira.setPrioridade(safe(p, "prioridade", "Pendente"));
+            pulseira.setStatus(safe(p, "status", "Concluída"));
+            // Nota: O JSON traz "tempoentrada", mas o modelo guarda em "dataEntrada"
+            pulseira.setDataEntrada(safe(p, "tempoentrada", ""));
         } else {
-            t.pulseira.codigo = "-";
-            t.pulseira.prioridade = "Pendente";
-            t.pulseira.status = "Concluída";
+            // Valores por defeito se não vier pulseira
+            pulseira.setCodigo("-");
+            pulseira.setPrioridade("Pendente");
+            pulseira.setStatus("Concluída");
         }
 
-        // CONSULTA
-        JSONObject c = json.optJSONObject("consulta");
-        t.consulta = new Triagem.Consulta();
+        // Finalmente, associar a pulseira à triagem
+        t.setPulseira(pulseira);
 
-        if (c != null) {
-            t.consulta.id     = c.optInt("id");
-            t.consulta.estado = safe(c, "estado", "Em curso");
-        } else {
-            t.consulta.estado = "Em curso";
-        }
+        // Nota: Removi a "Consulta" daqui porque o teu modelo Triagem novo
+        // já não tem o objeto Consulta aninhado, para simplificar o Offline.
+        // Se precisares mesmo da consulta, terias de adicionar o campo na Triagem.java.
 
         return t;
     }
