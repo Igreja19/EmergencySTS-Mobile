@@ -64,9 +64,7 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         // MQTT
         mqtt = MqttClientManager.getInstance(this);
         if (mqtt != null) {
-            mqtt.connect(this);
-            mqtt.subscribe("triagem/atualizada/" + triagemId);
-            mqtt.subscribe("pulseira/atualizada/#");
+
         }
     }
 

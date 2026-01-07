@@ -10,7 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
-import com.android.volley.toolbox.StringRequest; // IMPORTANTE: Usar StringRequest
+import com.android.volley.toolbox.StringRequest;
 
 import org.json.JSONObject;
 
@@ -21,6 +21,7 @@ import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.activities.enfermeiro.EnfermeiroActivity;
 import pt.ipleiria.estg.dei.emergencysts.activities.paciente.PacienteActivity;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Enfermeiro;
+import pt.ipleiria.estg.dei.emergencysts.mqtt.MqttClientManager; // IMPORTANTE: Importar o gestor MQTT
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
@@ -34,10 +35,11 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-
-        // VERIFICAÇÃO AUTOMÁTICA (Se já tiver feito login antes)
-
+        // --- VERIFICAÇÃO AUTOMÁTICA (Se já tiver feito login antes) ---
         if (SharedPrefManager.getInstance(this).isLoggedIn()) {
+
+            // 🔥 IMPORTANTE: Ligar ao MQTT se já estiver logado para receber notificações em background
+            MqttClientManager.getInstance(this).connect();
 
             Enfermeiro user = SharedPrefManager.getInstance(this).getEnfermeiroBase();
             String role = user.getRole();
@@ -46,8 +48,7 @@ public class LoginActivity extends AppCompatActivity {
             if (role != null && role.equalsIgnoreCase("medico")) {
                 SharedPrefManager.getInstance(this).logout();
                 Toast.makeText(this, "Acesso Médico disponível apenas na Web.", Toast.LENGTH_LONG).show();
-            }
-            else {
+            } else {
                 // Login Válido: Redireciona para a atividade correta
                 Intent intent;
                 if (role != null && (role.equalsIgnoreCase("paciente") || role.equalsIgnoreCase("utente"))) {
@@ -64,7 +65,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         }
 
-        //  CONFIGURAÇÃO DOS BOTÕES
+        // --- CONFIGURAÇÃO DOS BOTÕES ---
 
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
@@ -94,7 +95,7 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Enviar credenciais também no URL (Segurança extra para o Yii2 ler)
+        // Enviar credenciais também no URL (Segurança extra para o Yii2 ler se necessário)
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl() + "api/auth/login";
         String url = baseUrl + "?username=" + username + "&password=" + password;
 
@@ -119,7 +120,7 @@ public class LoginActivity extends AppCompatActivity {
 
                                 String role = data.optString("role", "paciente");
 
-                                //barrar o medico
+                                // Barrar o médico
                                 if (role.equalsIgnoreCase("medico")) {
                                     Toast.makeText(this, "Acesso negado: Médicos devem usar a plataforma Web.", Toast.LENGTH_LONG).show();
                                     return;
@@ -128,10 +129,14 @@ public class LoginActivity extends AppCompatActivity {
                                 String email = data.optString("email", "");
 
                                 if (!token.isEmpty()) {
+                                    // Guarda os dados base do utilizador (ID, username, role)
                                     Enfermeiro enfermeiro = new Enfermeiro(userId, username, email, role);
                                     SharedPrefManager.getInstance(this).userLogin(enfermeiro, token);
 
                                     Toast.makeText(this, "Login efetuado!", Toast.LENGTH_SHORT).show();
+
+                                    // 🔥 IMPORTANTE: Ligar ao MQTT e Subscrever agora que temos o ID guardado
+                                    MqttClientManager.getInstance(this).connect();
 
                                     SharedPrefManager.getInstance(this).navigateOnStart(this);
                                     finish();
@@ -162,7 +167,7 @@ public class LoginActivity extends AppCompatActivity {
                 params.put("username", username);
                 params.put("password", password);
 
-                // Enviar formato Yii2 (LoginForm) - Este é o segredo!
+                // Enviar formato Yii2 (LoginForm) - Isto ajuda o Yii2 a popular o model automaticamente
                 params.put("LoginForm[username]", username);
                 params.put("LoginForm[password]", password);
 

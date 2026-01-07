@@ -28,11 +28,7 @@ public class EnfermeiroActivity extends AppCompatActivity {
         setContentView(R.layout.activity_enfermeiro);
 
         mqtt = MqttClientManager.getInstance(this);
-        mqtt.connect(this);
 
-        mqtt.subscribe("triagem/atualizada/#");
-        mqtt.subscribe("pulseira/atualizada/#");
-        mqtt.subscribe("consulta/atualizada/#");
 
         cardMostrarPulseira = findViewById(R.id.cardMostrarPulseira);
         cardConsultarPaciente = findViewById(R.id.cardConsultarPaciente);
