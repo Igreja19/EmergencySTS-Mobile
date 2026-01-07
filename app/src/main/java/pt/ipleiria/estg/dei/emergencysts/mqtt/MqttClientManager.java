@@ -50,6 +50,7 @@ public class MqttClientManager {
         }
 
         String serverIp = SharedPrefManager.getInstance(context).getServerBase();
+        // Extrai o IP (ex: 172.22.21.215) do URL da API
         String cleanIp = serverIp.replace("http://", "").replace("https://", "").replace("/", "");
 
         if(cleanIp.contains(":")) {
@@ -65,16 +66,19 @@ public class MqttClientManager {
             }
 
             int userId = SharedPrefManager.getInstance(context).getEnfermeiroBase().getId();
-
-            // CORREÇÃO: ID fixo para suportar CleanSession(false).
-            // Se usares timestamp, o broker acha que é sempre um telemóvel novo.
             String clientId = "Android_User_" + userId;
 
             client = new MqttClient(brokerUrl, clientId, new MemoryPersistence());
 
             MqttConnectOptions options = new MqttConnectOptions();
+
+            // Usa o utilizador que criaste no servidor Ubuntu
+            options.setUserName("emergencysts");
+            // Usa a password que definiste no comando mosquitto_passwd
+            options.setPassword("i%POZsi02Kmc".toCharArray());
+
             options.setAutomaticReconnect(true);
-            options.setCleanSession(false); // Recebe mensagens perdidas
+            options.setCleanSession(false);
             options.setConnectionTimeout(10);
 
             client.setCallback(new MqttCallbackExtended() {
@@ -94,13 +98,11 @@ public class MqttClientManager {
                     String payload = new String(message.getPayload());
                     Log.d(TAG, "Notificação recebida: " + payload);
 
-                    // A. Broadcast para atualizar a app se estiver aberta
                     Intent intent = new Intent("MQTT_MESSAGE");
                     intent.putExtra("topic", topic);
                     intent.putExtra("payload", payload);
                     context.sendBroadcast(intent);
 
-                    // B. Criar a Notificação Visual
                     showSystemNotification(payload);
                 }
 
@@ -111,8 +113,10 @@ public class MqttClientManager {
             if (!client.isConnected()) {
                 new Thread(() -> {
                     try {
+                        // Liga-se usando as opções com username e password
                         client.connect(options);
                     } catch (MqttException e) {
+                        Log.e(TAG, "Erro ao conectar: " + e.getMessage());
                         e.printStackTrace();
                     }
                 }).start();
