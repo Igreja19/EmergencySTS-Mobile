@@ -23,6 +23,7 @@ import org.json.JSONObject;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.activities.comum.HistoricoActivity;
+import pt.ipleiria.estg.dei.emergencysts.activities.comum.MostrarPulseirasActivity;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
 public class MqttClientManager {
@@ -147,7 +148,8 @@ public class MqttClientManager {
     }
 
     private void showSystemNotification(String payload) {
-        String CHANNEL_ID = "emergency_channel_id";
+        String CHANNEL_ID = "emergency_channel_id_v3";
+
         String titulo = "Nova Notificação";
         String mensagem = payload;
 
@@ -161,21 +163,27 @@ public class MqttClientManager {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "Notificações Emergência";
+            String description = "Alertas importantes";
             int importance = NotificationManager.IMPORTANCE_HIGH;
+
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+
+            channel.enableVibration(true);
+
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
 
-        Intent intent = new Intent(context, HistoricoActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        Intent intent = new Intent(context, MostrarPulseirasActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_stethoscope) // Garante que este ícone existe
+                .setSmallIcon(R.drawable.ic_stethoscope)
                 .setContentTitle(titulo)
                 .setContentText(mensagem)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
 
