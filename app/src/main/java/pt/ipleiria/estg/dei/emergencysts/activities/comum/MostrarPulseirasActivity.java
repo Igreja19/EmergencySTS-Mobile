@@ -30,6 +30,8 @@ import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 
 import org.json.JSONArray;
+import org.json.JSONException; // Importante para ler o JSON da mensagem
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -106,6 +108,8 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
 
         // MQTT - Inicializar e Subscrever
         mqtt = MqttClientManager.getInstance(this);
+        mqtt.subscribe("pulseira/atualizada/#");
+        mqtt.subscribe("pulseira/criada/#");
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -136,22 +140,40 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
         @Override
         public void onReceive(Context ctx, Intent intent) {
             String topic = intent.getStringExtra("topic");
-            // String message = intent.getStringExtra("message"); // Podes usar para o texto da notificação
+            // CORREÇÃO: Tem de ser "payload" porque é assim que envias no MqttClientManager
+            String messageJson = intent.getStringExtra("payload");
 
             if (topic != null) {
                 // 1. Atualiza sempre a lista
                 getPulseirasAPI();
 
                 // 2. Lógica de Notificações
+                String textoNotificacao = "Toque para ver detalhes";
+
+                // Tenta extrair a mensagem bonita do JSON se existir
+                if (messageJson != null) {
+                    try {
+                        JSONObject json = new JSONObject(messageJson);
+                        if (json.has("mensagem")) {
+                            textoNotificacao = json.getString("mensagem");
+                        } else if (json.has("corpo")) {
+                            textoNotificacao = json.getString("corpo");
+                        }
+                    } catch (JSONException e) {
+                        // Se não for JSON, usa a string direta ou texto padrão
+                        if(!messageJson.isEmpty()) textoNotificacao = messageJson;
+                    }
+                }
+
                 if (isPaciente) {
                     // Se for Paciente: Avise se a pulseira foi atualizada (triagem feita)
                     if (topic.startsWith("pulseira/atualizada/")) {
-                        criarNotificacao("Estado Atualizado", "O estado da sua pulseira mudou. Verifique a app.");
+                        criarNotificacao("Estado Atualizado", "A sua pulseira foi atualizada.");
                     }
                 } else {
                     // Se for Enfermeiro: Avisa se uma NOVA pulseira chegou
                     if (topic.startsWith("pulseira/criada/")) {
-                        criarNotificacao("Nova Pulseira!", "Um novo paciente aguarda triagem.");
+                        criarNotificacao("Nova Pulseira!", textoNotificacao);
                     }
                 }
             }
@@ -163,7 +185,7 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
         // Verifica permissões para Android 13+ (Tiramisu)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                // Se não tiver permissão, não faz nada (ou poderia pedir permissão aqui)
+                // Se não tiver permissão, não faz nada (no futuro podes pedir aqui)
                 return;
             }
         }

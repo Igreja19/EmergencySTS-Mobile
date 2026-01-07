@@ -124,9 +124,23 @@ public class MqttClientManager {
         }
     }
 
+    public void subscribe(String topic) {
+        if (client != null && client.isConnected()) {
+            try {
+                client.subscribe(topic, 1); // QoS 1 garante a entrega
+                Log.d(TAG, "Subscrito com sucesso: " + topic);
+            } catch (MqttException e) {
+                Log.e(TAG, "Erro ao subscrever tópico: " + topic, e);
+                e.printStackTrace();
+            }
+        } else {
+            Log.w(TAG, "Cliente não conectado. Não foi possível subscrever: " + topic);
+        }
+    }
+
     private void subscribeUserTopic() {
         if (client != null && client.isConnected()) {
-            // 🔥 Lógica Crítica: Usamos o ID base (User ID) que serve tanto para Pacientes como Enfermeiros
+            // Lógica Crítica: Usamos o ID base (User ID) que serve tanto para Pacientes como Enfermeiros
             // O getEnfermeiroBase() retorna os dados do User (Login), incluindo o ID correto para o tópico.
             int userId = SharedPrefManager.getInstance(context).getEnfermeiroBase().getId();
 
