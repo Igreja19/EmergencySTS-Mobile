@@ -11,6 +11,7 @@ import androidx.cardview.widget.CardView;
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.activities.comum.HistoricoActivity;
 import pt.ipleiria.estg.dei.emergencysts.activities.comum.MostrarPulseirasActivity;
+import pt.ipleiria.estg.dei.emergencysts.mqtt.MqttClientManager;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
 public class PacienteActivity extends AppCompatActivity {
@@ -23,31 +24,29 @@ public class PacienteActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_paciente);
 
-        // 🔹 Ativar o botão "←" na ActionBar
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Área do Paciente");
         }
 
-        // 🔹 Inicializar elementos de interface
         tvTitulo = findViewById(R.id.tvTitulo);
         tvSubtitulo = findViewById(R.id.tvSubtitulo);
         cardPulseira = findViewById(R.id.cardPulseira);
         cardHistorico = findViewById(R.id.cardHistorico);
         cardPerfil = findViewById(R.id.cardPerfil);
 
-        // 🔹 Obter o nome do utilizador guardado
-        String username = SharedPrefManager.getInstance(this).getEnfermeiro().getUsername();
+        // ✅ CORREÇÃO: ir buscar o PACIENTE
+        String username = SharedPrefManager.getInstance(this)
+                .getPacienteBase()
+                .getUsername();
 
         tvTitulo.setText("Emergency STS");
         tvSubtitulo.setText("Área do Paciente");
 
         Toast.makeText(this, "Bem-vindo, " + username + "!", Toast.LENGTH_LONG).show();
 
-        // 🔹 Eventos de clique
         cardPulseira.setOnClickListener(v -> {
             Intent intent = new Intent(this, MostrarPulseirasActivity.class);
-            // Define o modo PACIENTE a true para ver a pulseira atual
             intent.putExtra("IS_PACIENTE", true);
             startActivity(intent);
         });
@@ -56,10 +55,26 @@ public class PacienteActivity extends AppCompatActivity {
             Intent intent = new Intent(this, HistoricoActivity.class);
             intent.putExtra("IS_PACIENTE", true);
             startActivity(intent);
-        });        cardPerfil.setOnClickListener(v -> startActivity(new Intent(this, PerfilPacienteActivity.class)));
+        });
+
+        cardPerfil.setOnClickListener(v ->
+                startActivity(new Intent(this, PerfilPacienteActivity.class))
+        );
     }
 
-    // 🔹 Trata o clique do botão "Voltar" da ActionBar
+    // MQTT deve ser garantido aqui
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MqttClientManager.getInstance(this).connect();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Isso garante que notificações cheguem mesmo que a Activity seja destruída
+    }
+
     @Override
     public boolean onOptionsItemSelected(android.view.MenuItem item) {
         if (item.getItemId() == android.R.id.home) {

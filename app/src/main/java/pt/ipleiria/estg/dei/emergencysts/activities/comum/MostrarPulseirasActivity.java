@@ -41,16 +41,15 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
 
     private ProgressBar progressBar;
     private LinearLayout layoutSemPulseira;
-    private MqttClientManager mqtt;
     private boolean isPaciente;
     private TextView tvTitulo, tvSubtitulo;
 
-    // Parte do Enfermeiro
+    // Enfermeiro
     private ListView listViewPulseiras;
     private PulseiraAdapter adapter;
-    private ArrayList<Pulseira> listaPulseiras = new ArrayList<>();
+    private final ArrayList<Pulseira> listaPulseiras = new ArrayList<>();
 
-    // Parte do Paciente
+    // Paciente
     private CardView cardPulseira;
     private TextView tvEstadoBadge, tvCodigoPulseira, tvDescricao;
 
@@ -65,6 +64,7 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
         layoutSemPulseira = findViewById(R.id.layoutSemPulseira);
         tvTitulo = findViewById(R.id.tvTitulo);
         tvSubtitulo = findViewById(R.id.tvSubtitulo);
+
         ImageView btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
 
@@ -73,6 +73,7 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
             tvEstadoBadge = findViewById(R.id.tvEstadoBadge);
             tvCodigoPulseira = findViewById(R.id.tvCodigoPulseira);
             tvDescricao = findViewById(R.id.tvDescricao);
+
             tvTitulo.setText("A minha Pulseira");
             tvSubtitulo.setText("Acompanhe o seu estado");
 
@@ -83,6 +84,7 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
             listViewPulseiras = findViewById(R.id.listViewPulseiras);
             adapter = new PulseiraAdapter(this, listaPulseiras, this);
             listViewPulseiras.setAdapter(adapter);
+
             tvTitulo.setText("Pulseiras");
             tvSubtitulo.setText("Pulseiras em espera");
 
@@ -90,10 +92,8 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
             if (cv != null) cv.setVisibility(View.GONE);
         }
 
-        // MQTT - Inicializar e Subscrever
-        mqtt = MqttClientManager.getInstance(this);
-        mqtt.subscribe("pulseira/atualizada/#");
-        mqtt.subscribe("pulseira/criada/#");
+        // MQTT: apenas garantir que o Manager existe (sem subscrever aqui)
+        MqttClientManager.getInstance(this);
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -115,33 +115,34 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
         super.onPause();
         try {
             unregisterReceiver(mqttReceiver);
-        } catch (Exception e) {
-            // Ignorar erro se receiver não estiver registado
-        }
+        } catch (Exception ignored) {}
     }
 
-    // --- CORREÇÃO: RECEIVER APENAS ATUALIZA UI (Sem duplicação de notificação) ---
+    // Receiver apenas para atualizar UI (sem criar notificações)
     private final BroadcastReceiver mqttReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context ctx, Intent intent) {
             String topic = intent.getStringExtra("topic");
+            if (topic == null) return;
 
-            if (topic != null) {
-                // 1. Atualiza sempre a lista (API Call)
+            // Atualizar dados sempre que há eventos de pulseira
+            if (topic.startsWith("pulseira/")) {
                 getPulseirasAPI();
+            }
 
-                // 2. Feedback visual simples (Toast) pois o user já está com a app aberta.
-                // A notificação de sistema (barra de topo) já é gerada pelo MqttClientManager.
-                if (isPaciente && topic.startsWith("pulseira/atualizada/")) {
-                    Toast.makeText(ctx, "O estado da sua pulseira foi atualizado!", Toast.LENGTH_LONG).show();
-                } else if (!isPaciente && topic.startsWith("pulseira/criada/")) {
-                    Toast.makeText(ctx, "Nova pulseira recebida!", Toast.LENGTH_SHORT).show();
-                }
+            // Feedback visual simples (app aberta)
+            if (isPaciente && topic.startsWith("pulseira/atualizada/")) {
+                Toast.makeText(ctx,
+                        "O estado da sua pulseira foi atualizado!",
+                        Toast.LENGTH_LONG).show();
+
+            } else if (!isPaciente && topic.startsWith("pulseira/criada/")) {
+                Toast.makeText(ctx,
+                        "Nova pulseira recebida!",
+                        Toast.LENGTH_SHORT).show();
             }
         }
     };
-
-    // (O método criarNotificacao foi removido daqui pois era redundante)
 
     private void getPulseirasAPI() {
         progressBar.setVisibility(View.VISIBLE);
@@ -158,13 +159,19 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
         } else {
             urlBuilder.append("status=Em%20espera&prioridade=Pendente&");
         }
+
         urlBuilder.append("expand=userprofile&auth_key=").append(authKey);
 
-        JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET, urlBuilder.toString(), null,
+        JsonObjectRequest req = new JsonObjectRequest(
+                Request.Method.GET,
+                urlBuilder.toString(),
+                null,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     try {
-                        JSONArray data = response.has("data") ? response.getJSONArray("data") : response.optJSONArray("items");
+                        JSONArray data = response.has("data")
+                                ? response.getJSONArray("data")
+                                : response.optJSONArray("items");
 
                         ArrayList<Pulseira> novas = new ArrayList<>();
                         if (data != null) {
@@ -194,8 +201,8 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
     private void atualizarInterface(ArrayList<Pulseira> pulseiras) {
         if (pulseiras == null || pulseiras.isEmpty()) {
             layoutSemPulseira.setVisibility(View.VISIBLE);
-            if (isPaciente) cardPulseira.setVisibility(View.GONE);
-            else listViewPulseiras.setVisibility(View.GONE);
+            if (isPaciente && cardPulseira != null) cardPulseira.setVisibility(View.GONE);
+            if (!isPaciente && listViewPulseiras != null) listViewPulseiras.setVisibility(View.GONE);
             return;
         }
 
@@ -203,14 +210,14 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
             Pulseira p = pulseiras.get(0);
             String status = p.getStatus();
 
-            boolean estaFinalizada = status == null ||
+            boolean finalizada = status == null ||
                     status.trim().isEmpty() ||
                     status.equalsIgnoreCase("null") ||
                     status.equalsIgnoreCase("Finalizado") ||
                     status.equalsIgnoreCase("Concluída") ||
                     status.equalsIgnoreCase("Atendido");
 
-            if (estaFinalizada) {
+            if (finalizada) {
                 layoutSemPulseira.setVisibility(View.VISIBLE);
                 cardPulseira.setVisibility(View.GONE);
                 return;
@@ -219,11 +226,11 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
             cardPulseira.setVisibility(View.VISIBLE);
             layoutSemPulseira.setVisibility(View.GONE);
 
-            if (p.getNomePaciente() != null && !p.getNomePaciente().isEmpty()) {
-                tvTitulo.setText("Olá, " + p.getNomePaciente());
-            } else {
-                tvTitulo.setText("A minha Pulseira");
-            }
+            tvTitulo.setText(
+                    p.getNomePaciente() != null && !p.getNomePaciente().isEmpty()
+                            ? "Olá, " + p.getNomePaciente()
+                            : "A minha Pulseira"
+            );
 
             tvCodigoPulseira.setText("#" + p.getCodigo());
 
@@ -281,11 +288,9 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
         }
     }
 
-    // --- CORREÇÃO IMPORTANTE: Removido o mqtt.disconnect() ---
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Não desligamos o MQTT aqui porque o Manager é Singleton e partilhado.
-        // Se desligarmos aqui, a app deixa de receber notificações noutros ecrãs.
+        // Não desligar MQTT aqui (Singleton partilhado)
     }
 }

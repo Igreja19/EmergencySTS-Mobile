@@ -38,7 +38,7 @@ public class LoginActivity extends AppCompatActivity {
         // --- VERIFICAÇÃO AUTOMÁTICA (Se já tiver feito login antes) ---
         if (SharedPrefManager.getInstance(this).isLoggedIn()) {
 
-            // 🔥 IMPORTANTE: Ligar ao MQTT se já estiver logado para receber notificações em background
+            // IMPORTANTE: Ligar ao MQTT se já estiver logado para receber notificações em background
             MqttClientManager.getInstance(this).connect();
 
             Enfermeiro user = SharedPrefManager.getInstance(this).getEnfermeiroBase();
@@ -135,7 +135,7 @@ public class LoginActivity extends AppCompatActivity {
 
                                     Toast.makeText(this, "Login efetuado!", Toast.LENGTH_SHORT).show();
 
-                                    // 🔥 IMPORTANTE: Ligar ao MQTT e Subscrever agora que temos o ID guardado
+                                    // IMPORTANTE: Ligar ao MQTT e Subscrever agora que temos o ID guardado
                                     MqttClientManager.getInstance(this).connect();
 
                                     SharedPrefManager.getInstance(this).navigateOnStart(this);

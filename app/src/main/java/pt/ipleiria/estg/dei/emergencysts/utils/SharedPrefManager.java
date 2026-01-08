@@ -123,31 +123,31 @@ public class SharedPrefManager {
         ed.apply();
     }
 
-    // PACIENTE
-    public void savePaciente(Paciente p) {
-        SharedPreferences.Editor e = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
-
-        e.putInt(KEY_PAC_ID, p.getId()); // AQUI GUARDAS O ID 22
-        e.putString(KEY_PAC_NOME, p.getNome());
-        e.putString(KEY_PAC_EMAIL, p.getEmail());
-        e.putString(KEY_PAC_NASC, p.getDataNascimento());
-        e.putString(KEY_PAC_TEL, p.getTelefone());
-        e.putString(KEY_PAC_SNS, p.getSns());
-        e.putString(KEY_PAC_NIF, p.getNif());
-        e.putString(KEY_PAC_MORADA, p.getMorada());
-
-        e.apply();
-    }
-
-    public Paciente getPaciente() {
+    // --- PACIENTE BASE (login) ---
+    public Paciente getPacienteBase() {
         SharedPreferences sp = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        Enfermeiro base = getEnfermeiroBase();
+        int id = sp.getInt(KEY_ID, -1);
 
-        // ID do Paciente (usar -1 como fallback para segurança)
-        int idPaciente = sp.getInt(KEY_PAC_ID, -1);
+        // Se não houver ID de login, não há paciente logado
+        if (id == -1) return null;
 
         return new Paciente(
-                idPaciente,
+                id,
+                sp.getString(KEY_USERNAME, null),
+                sp.getString(KEY_EMAIL, null),
+                sp.getString(KEY_ROLE, null)
+        );
+    }
+
+    // --- PACIENTE COMPLETO (Perfil) ---
+    public Paciente getPaciente() {
+        SharedPreferences sp = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        Paciente base = getPacienteBase();
+
+        if (base == null) return null;
+
+        return new Paciente(
+                base.getId(),
                 base.getUsername(),
                 sp.getString(KEY_PAC_EMAIL, base.getEmail()),
                 base.getRole(),
@@ -159,6 +159,22 @@ public class SharedPrefManager {
                 sp.getString(KEY_PAC_NIF, "---"),
                 sp.getString(KEY_PAC_MORADA, "---")
         );
+    }
+
+    public void savePaciente(Paciente p) {
+        SharedPreferences.Editor ed = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
+
+        // Guardamos os dados de perfil
+        ed.putString(KEY_PAC_NOME, p.getNome());
+        ed.putString(KEY_PAC_EMAIL, p.getEmail());
+        ed.putString(KEY_PAC_NASC, p.getDataNascimento());
+        ed.putString(KEY_PAC_GENERO, p.getGenero());
+        ed.putString(KEY_PAC_TEL, p.getTelefone());
+        ed.putString(KEY_PAC_SNS, p.getSns());
+        ed.putString(KEY_PAC_NIF, p.getNif());
+        ed.putString(KEY_PAC_MORADA, p.getMorada());
+
+        ed.apply();
     }
 
     // TOKEN

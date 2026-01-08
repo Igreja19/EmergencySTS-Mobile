@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -33,18 +34,37 @@ import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 
 public class DetalhesTriagemActivity extends AppCompatActivity {
 
+    private static final String TAG = "DetalhesTriagem";
     private TextView tvNomeValor, tvDataNascimento, tvSNS, tvTelefoneValor, tvDataTriagem;
     private TextView tvMotivo, tvQueixa, tvDescricao, tvInicio, tvDor, tvAlergias, tvMedicacao;
     private TextView tvPrioridade;
     private View dotPrioridade;
 
-    // NOVOS BOTÕES
     private LinearLayout layoutBotoes;
     private Button btnArquivar, btnEliminar;
 
     private int triagemId;
     private MqttClientManager mqtt;
-    private int pulseiraId = -1; // Para guardar o ID da pulseira para arquivar
+    private int pulseiraId = -1;
+
+    // --- RECEIVER DO MQTT ---
+    private final BroadcastReceiver mqttReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context ctx, Intent intent) {
+            String topic = intent.getStringExtra("topic");
+            Log.d(TAG, "Mensagem MQTT recebida no tópico: " + topic);
+
+            // Verifica se a atualização é sobre esta triagem ou a pulseira associada
+            if (topic != null) {
+                if (topic.contains("triagem/atualizada/" + triagemId) ||
+                        (pulseiraId != -1 && topic.contains("pulseira/atualizada/" + pulseiraId))) {
+
+                    Log.d(TAG, "Atualizando dados da Triagem via MQTT...");
+                    getTriagem(); // Faz novo GET para atualizar a UI
+                }
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,15 +81,14 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         initViews();
         getTriagem();
 
-        // MQTT
+        // Inicializa o MQTT e subscreve os tópicos globais de atualização
         mqtt = MqttClientManager.getInstance(this);
-        if (mqtt != null) {
-
-        }
+        // Usamos o wildcard # para ouvir todas as atualizações e filtrar no onReceive
+        mqtt.subscribe("triagem/atualizada/#");
+        mqtt.subscribe("pulseira/atualizada/#");
     }
 
     private void initViews() {
-        // Inicializar Texto
         tvNomeValor = findViewById(R.id.tvNomeValor);
         tvDataNascimento = findViewById(R.id.tvDataNascimento);
         tvSNS = findViewById(R.id.tvSNS);
@@ -88,27 +107,17 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         ImageView btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
 
-        // --- CONFIGURAÇÃO DOS 2 BOTÕES ---
         layoutBotoes = findViewById(R.id.layoutBotoesAcao);
         btnArquivar = findViewById(R.id.btnArquivar);
         btnEliminar = findViewById(R.id.btnEliminar);
 
         String role = SharedPrefManager.getInstance(this).getKeyRole();
-        if (role == null) role = "";
-
-        // Se for PACIENTE -> Esconde tudo
-        if (role.equalsIgnoreCase("paciente") || role.equalsIgnoreCase("utente")) {
+        if (role != null && (role.equalsIgnoreCase("paciente") || role.equalsIgnoreCase("utente"))) {
             if (layoutBotoes != null) layoutBotoes.setVisibility(View.GONE);
         } else {
-            // Se for ENFERMEIRO -> Mostra e ativa cliques
             if (layoutBotoes != null) layoutBotoes.setVisibility(View.VISIBLE);
-
-            if (btnArquivar != null) {
-                btnArquivar.setOnClickListener(v -> confirmarArquivar());
-            }
-            if (btnEliminar != null) {
-                btnEliminar.setOnClickListener(v -> confirmarEliminar());
-            }
+            if (btnArquivar != null) btnArquivar.setOnClickListener(v -> confirmarArquivar());
+            if (btnEliminar != null) btnEliminar.setOnClickListener(v -> confirmarEliminar());
         }
     }
 
@@ -117,18 +126,18 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
         if (!baseUrl.endsWith("/")) baseUrl += "/";
 
+        // Importante: expand=pulseira para obtermos o pulseiraId para o filtro do MQTT
         String url = baseUrl + "api/triagem/" + triagemId + "?expand=userprofile,pulseira&auth_key=" + token;
 
         JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET, url, null,
                 this::bindData,
-                error -> Toast.makeText(this, "Erro ao carregar dados.", Toast.LENGTH_SHORT).show()
+                error -> Log.e(TAG, "Erro ao carregar triagem: " + error.getMessage())
         );
         VolleySingleton.getInstance(this).addToRequestQueue(req);
     }
 
     private void bindData(JSONObject json) {
         try {
-            // Dados Paciente
             JSONObject up = json.optJSONObject("userprofile");
             if (up != null) {
                 if(tvNomeValor!=null) tvNomeValor.setText(up.optString("nome", "-"));
@@ -137,7 +146,6 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
                 if(tvTelefoneValor!=null) tvTelefoneValor.setText(up.optString("telefone", "-"));
             }
 
-            // Dados Triagem
             if(tvDataTriagem!=null) tvDataTriagem.setText(formatData(json.optString("datatriagem", "-")));
             if(tvMotivo!=null) tvMotivo.setText(json.optString("motivoconsulta", "-"));
             if(tvQueixa!=null) tvQueixa.setText(json.optString("queixaprincipal", "-"));
@@ -147,10 +155,9 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
             if(tvAlergias!=null) tvAlergias.setText(json.optString("alergias", "-"));
             if(tvMedicacao!=null) tvMedicacao.setText(json.optString("medicacao", "-"));
 
-            // Pulseira & Cores
             JSONObject pulseira = json.optJSONObject("pulseira");
             if (pulseira != null) {
-                pulseiraId = pulseira.optInt("id", -1); // Guardar ID para arquivar
+                pulseiraId = pulseira.optInt("id", -1); // Atualiza o ID para o filtro do MQTT
                 String prioridade = pulseira.optString("prioridade", "Pendente");
                 if(tvPrioridade!=null) tvPrioridade.setText(prioridade);
 
@@ -164,7 +171,6 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
                 }
                 if(dotPrioridade!=null) dotPrioridade.setBackgroundResource(res);
             }
-
         } catch (Exception e) { e.printStackTrace(); }
     }
 
@@ -176,10 +182,6 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
                 String[] parts = data.split("T");
                 data = parts[0];
                 if(parts.length > 1 && parts[1].length() >= 5) hora = " " + parts[1].substring(0,5);
-            } else if (data.contains(" ")) {
-                String[] parts = data.split(" ");
-                data = parts[0];
-                if(parts.length > 1) hora = " " + parts[1].substring(0,5);
             }
             if (data.contains("-")) {
                 String[] p = data.split("-");
@@ -189,103 +191,66 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         return data;
     }
 
-    // --- AÇÕES DOS BOTÕES ---
-
     private void confirmarArquivar() {
         if (pulseiraId == -1) {
-            Toast.makeText(this, "Não é possível arquivar (sem pulseira).", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Aguarde o carregamento da pulseira.", Toast.LENGTH_SHORT).show();
             return;
         }
         new AlertDialog.Builder(this)
                 .setTitle("Arquivar Triagem")
-                .setMessage("Deseja marcar como FINALIZADO? (Isto permite ao paciente fazer nova triagem)")
-                .setPositiveButton("Sim, Finalizar", (d, w) -> acaoAPI(true)) // True = Arquivar
-                .setNegativeButton("Cancelar", null)
+                .setMessage("Deseja marcar como FINALIZADO?")
+                .setPositiveButton("Sim", (d, w) -> acaoAPI(true))
+                .setNegativeButton("Não", null)
                 .show();
     }
 
     private void confirmarEliminar() {
         new AlertDialog.Builder(this)
-                .setTitle("PERIGO: Eliminar")
-                .setMessage("Apagar permanentemente da base de dados?")
-                .setPositiveButton("Sim, Apagar", (d, w) -> acaoAPI(false)) // False = Eliminar
+                .setTitle("Eliminar")
+                .setMessage("Apagar permanentemente?")
+                .setPositiveButton("Apagar", (d, w) -> acaoAPI(false))
                 .setNegativeButton("Cancelar", null)
                 .show();
     }
 
-    // --- AQUI ESTÁ A CORREÇÃO PRINCIPAL ---
     private void acaoAPI(boolean isArquivar) {
         String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
         String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
         if (!baseUrl.endsWith("/")) baseUrl += "/";
 
         String url;
-        final String methodParam; // Define se é PUT ou DELETE
+        final String method;
 
         if (isArquivar) {
-            // ARQUIVAR (FINALIZAR):
-            // 1. Chama a API da Pulseira
-            // 2. Adiciona o sinal "?arquivar=1" para o PHP saber que deve escrever "Finalizado"
             url = baseUrl + "api/pulseira/" + pulseiraId + "?auth_key=" + token + "&arquivar=1";
-            methodParam = "PUT"; // PUT = Atualizar
+            method = "PUT";
         } else {
-            // ELIMINAR (APAGAR MESMO):
-            // 1. Chama a API da Triagem
             url = baseUrl + "api/triagem/" + triagemId + "?auth_key=" + token;
-            methodParam = "DELETE"; // DELETE = Apagar
+            method = "DELETE";
         }
 
         StringRequest req = new StringRequest(Request.Method.POST, url,
                 response -> {
-                    if (isArquivar) {
-                        Toast.makeText(DetalhesTriagemActivity.this, "Arquivado (Finalizado) com sucesso!", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(DetalhesTriagemActivity.this, "Eliminado permanentemente!", Toast.LENGTH_SHORT).show();
-                    }
-                    finish(); // Fecha e volta à lista
+                    Toast.makeText(this, "Operação realizada!", Toast.LENGTH_SHORT).show();
+                    finish();
                 },
-                error -> {
-                    String erro = "Erro de conexão";
-                    if (error.networkResponse != null) {
-                        erro += " (" + error.networkResponse.statusCode + ")";
-                    }
-                    Toast.makeText(DetalhesTriagemActivity.this, erro, Toast.LENGTH_SHORT).show();
-                }
+                error -> Toast.makeText(this, "Erro: " + error.getMessage(), Toast.LENGTH_SHORT).show()
         ) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Content-Type", "application/x-www-form-urlencoded");
-                return headers;
-            }
-
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                // Envia _method para o PHP saber o que fazer (PUT ou DELETE)
-                params.put("_method", methodParam);
+                params.put("_method", method);
                 return params;
             }
         };
-
         VolleySingleton.getInstance(this).addToRequestQueue(req);
     }
-
-    // MQTT Receivers
-    private final BroadcastReceiver mqttReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context ctx, Intent intent) {
-            String topic = intent.getStringExtra("topic");
-            if (topic != null && (topic.contains("triagem/atualizada/" + triagemId) || topic.startsWith("pulseira/atualizada"))) {
-                getTriagem();
-            }
-        }
-    };
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     protected void onResume() {
         super.onResume();
+        // Regista o receiver para ouvir mensagens do MQTT que o MqttClientManager envia via Broadcast
         IntentFilter filter = new IntentFilter("MQTT_MESSAGE");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(mqttReceiver, filter, Context.RECEIVER_NOT_EXPORTED);

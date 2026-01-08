@@ -96,14 +96,17 @@ public class MqttClientManager {
                 @Override
                 public void messageArrived(String topic, MqttMessage message) {
                     String payload = new String(message.getPayload());
-                    Log.d(TAG, "Notificação recebida: " + payload);
+                    Log.d(TAG, "Mensagem MQTT: " + topic + " -> " + payload);
 
                     Intent intent = new Intent("MQTT_MESSAGE");
                     intent.putExtra("topic", topic);
                     intent.putExtra("payload", payload);
                     context.sendBroadcast(intent);
 
-                    showSystemNotification(payload);
+                    // SÓ notificações reais
+                    if (topic.startsWith("notificacao/")) {
+                        showSystemNotification(payload);
+                    }
                 }
 
                 @Override
@@ -139,15 +142,32 @@ public class MqttClientManager {
     }
 
     private void subscribeUserTopic() {
-        if (client != null && client.isConnected()) {
-            int userId = SharedPrefManager.getInstance(context).getEnfermeiroBase().getId();
-            String topic = "notificacao/nova/" + userId;
-            try {
-                client.subscribe(topic, 1);
-                Log.d(TAG, "Subscrito ao tópico pessoal: " + topic);
-            } catch (MqttException e) {
-                e.printStackTrace();
+        if (client == null || !client.isConnected()) return;
+
+        SharedPrefManager spm = SharedPrefManager.getInstance(context);
+
+        try {
+            // PACIENTE
+            if (spm.getPacienteBase() != null && spm.getPacienteBase().getId() != -1) {
+
+                int pacienteId = spm.getPacienteBase().getId();
+                // Receber apenas notificações específicas da pulseira do paciente
+                client.subscribe("pulseira/criada/" + pacienteId, 1);
+                client.subscribe("pulseira/atualizada/" + pacienteId, 1);
+
+                Log.d(TAG, "Subscrito como PACIENTE: " + pacienteId);
             }
+
+            // ENFERMEIRO
+            if (spm.getEnfermeiroBase() != null && spm.getEnfermeiroBase().getId() != -1) {
+
+                client.subscribe("notificacao/enfermeiro", 1);
+
+                Log.d(TAG, "Subscrito como ENFERMEIRO");
+            }
+
+        } catch (MqttException e) {
+            Log.e(TAG, "Erro ao subscrever tópicos", e);
         }
     }
 
@@ -200,13 +220,15 @@ public class MqttClientManager {
     }
 
     public void disconnect() {
-        try {
-            if (client != null && client.isConnected()) {
-                client.disconnect();
-                Log.d(TAG, "MQTT Desconectado.");
+        new Thread(() -> {
+            try {
+                if (client != null && client.isConnected()) {
+                    client.disconnect();
+                    Log.d(TAG, "MQTT Desconectado com sucesso.");
+                }
+            } catch (MqttException e) {
+                Log.e(TAG, "Erro ao desconectar MQTT", e);
             }
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
+        }).start();
     }
 }
