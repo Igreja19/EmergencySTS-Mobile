@@ -1,12 +1,16 @@
 package pt.ipleiria.estg.dei.emergencysts.activities.paciente;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.activities.comum.HistoricoActivity;
@@ -35,7 +39,6 @@ public class PacienteActivity extends AppCompatActivity {
         cardHistorico = findViewById(R.id.cardHistorico);
         cardPerfil = findViewById(R.id.cardPerfil);
 
-        // ✅ CORREÇÃO: ir buscar o PACIENTE
         String username = SharedPrefManager.getInstance(this)
                 .getPacienteBase()
                 .getUsername();
@@ -60,6 +63,12 @@ public class PacienteActivity extends AppCompatActivity {
         cardPerfil.setOnClickListener(v ->
                 startActivity(new Intent(this, PerfilPacienteActivity.class))
         );
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
     }
 
     // MQTT deve ser garantido aqui

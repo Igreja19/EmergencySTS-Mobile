@@ -4,4 +4,5 @@
     <color name="green_light">#E4FFF5</color> <!-- Fundo claro (opcional) -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+
 </resources>
