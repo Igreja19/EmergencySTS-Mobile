@@ -5,14 +5,11 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.core.content.ContextCompat;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -50,7 +47,6 @@ public class MqttClientManager {
         return instance;
     }
 
-    // --- A TUA FUNÇÃO PRESERVADA ---
     public void subscribe(String topic) {
         if (client != null && client.isConnected()) {
             try {
@@ -61,7 +57,6 @@ public class MqttClientManager {
             }
         }
     }
-    // -------------------------------
 
     public void connect() {
         if (!SharedPrefManager.getInstance(context).isLoggedIn()) {
@@ -115,44 +110,48 @@ public class MqttClientManager {
                     String payload = new String(message.getPayload());
                     Log.d(TAG, "Mensagem MQTT: " + topic + " -> " + payload);
 
-                    // Broadcast para UI
+                    // Broadcast para UI (mantém para refresh de listas)
                     Intent broadcastIntent = new Intent("MQTT_MESSAGE");
                     broadcastIntent.putExtra("topic", topic);
                     broadcastIntent.putExtra("payload", payload);
                     context.sendBroadcast(broadcastIntent);
 
                     try {
-                        // 1. Ler JSON
                         JSONObject jsonObject = new JSONObject(payload);
 
-                        String titulo = jsonObject.optString("titulo", "Notificação AMSI");
-                        String mensagem = jsonObject.optString("mensagem", payload);
+                        // Ignora mensagens técnicas (sem intenção de notificação)
+                        if (!jsonObject.has("titulo") || !jsonObject.has("mensagem")) {
+                            Log.d(TAG, "Mensagem MQTT técnica ignorada");
+                            return;
+                        }
+
+                        String titulo = jsonObject.getString("titulo");
+                        String mensagem = jsonObject.getString("mensagem");
 
                         Intent intent;
 
-                        // 2. Decidir o Destino
-                        // CASO 1: Atualizada/Concluída -> Histórico
-                        if (mensagem.toLowerCase().contains("atualizada") || titulo.toLowerCase().contains("concluida")) {
+                        if (mensagem.toLowerCase().contains("atualizada")
+                                || titulo.toLowerCase().contains("concluida")) {
+
                             intent = new Intent(context, HistoricoActivity.class);
-                        }
-                        // CASO 2: Nova/Criada -> Lista Pulseiras
-                        else if (titulo.toLowerCase().contains("nova") || mensagem.toLowerCase().contains("criada")) {
+
+                        } else if (titulo.toLowerCase().contains("nova")
+                                || mensagem.toLowerCase().contains("criada")) {
+
                             intent = new Intent(context, MostrarPulseirasActivity.class);
-                        }
-                        // CASO 3: Padrão -> Menu
-                        else {
+
+                        } else {
                             intent = new Intent(context, EnfermeiroActivity.class);
                         }
 
-                        // 3. Mostrar Notificação
                         showNotification(titulo, mensagem, intent);
 
                     } catch (JSONException e) {
                         Log.e(TAG, "Erro JSON: " + e.getMessage());
-                        // Fallback se não for JSON
-                        showNotification("Alerta", payload, new Intent(context, EnfermeiroActivity.class));
+                        // JSON inválido → ignora (não notifica)
                     }
                 }
+
 
                 @Override
                 public void deliveryComplete(IMqttDeliveryToken token) {}
@@ -179,7 +178,6 @@ public class MqttClientManager {
 
         SharedPrefManager spm = SharedPrefManager.getInstance(context);
 
-        // Usamos a tua função 'subscribe' aqui para manter o código limpo
         if (spm.getPacienteBase() != null && spm.getPacienteBase().getId() != -1) {
             int pid = spm.getPacienteBase().getId();
             subscribe("pulseira/criada/" + pid);
@@ -188,16 +186,14 @@ public class MqttClientManager {
         }
 
         if (spm.getEnfermeiroBase() != null && spm.getEnfermeiroBase().getId() != -1) {
-            // Tópico principal do Backend
-            subscribe("mosquitto/triagem");
-            // Tópico legado (por segurança)
-            subscribe("notificacao/enfermeiro");
-            Log.d(TAG, "Subscrito como ENFERMEIRO");
+
+            subscribe("emergencysts/triagem");
+
+            Log.d(TAG, "Subscrito como ENFERMEIRO em: emergencysts/triagem");
         }
     }
 
     private void showNotification(String title, String messageBody, Intent intent) {
-        // Configura o clique na notificação
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
