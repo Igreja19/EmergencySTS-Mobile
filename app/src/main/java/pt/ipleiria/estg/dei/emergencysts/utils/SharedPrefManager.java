@@ -281,4 +281,20 @@ public class SharedPrefManager {
         return ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
                 .getString(KEY_ROLE, null);
     }
+
+
+    //Tema escuro
+    private static final String KEY_THEME = "key_theme";
+
+    public void saveTheme(int mode) {
+        SharedPreferences.Editor ed = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
+        ed.putInt(KEY_THEME, mode);
+        ed.apply();
+    }
+
+    public int getTheme() {
+        return ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                .getInt(KEY_THEME, androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+    }
+
 }

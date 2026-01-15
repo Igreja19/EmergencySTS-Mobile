@@ -35,6 +35,9 @@ public class MqttClientManager {
     private MqttClient client;
     private Context context;
 
+    // NOVO: Variável para impedir múltiplas tentativas ao mesmo tempo
+    private boolean isConnecting = false;
+
     private MqttClientManager(Context context) {
         this.context = context.getApplicationContext();
         createNotificationChannel();
@@ -63,6 +66,20 @@ public class MqttClientManager {
             return;
         }
 
+        // 1. SE JÁ ESTIVER CONECTADO, NÃO FAZ NADA
+        if (client != null && client.isConnected()) {
+            // Log.d(TAG, "Cliente já conectado.");
+            return;
+        }
+
+        // 2. SE JÁ ESTIVER A TENTAR CONECTAR, NÃO FAZ NADA (Evita o erro dos logs!)
+        if (isConnecting) {
+            Log.d(TAG, "Conexão em progresso... aguardando.");
+            return;
+        }
+
+        isConnecting = true; // Marca que começou a tentar
+
         String serverIp = SharedPrefManager.getInstance(context).getServerBase();
         String cleanIp = serverIp.replace("http://", "").replace("https://", "").replace("/", "");
 
@@ -74,14 +91,16 @@ public class MqttClientManager {
         Log.d(TAG, "Conectando ao Broker: " + brokerUrl);
 
         try {
-            if (client != null && client.isConnected()) {
-                return;
-            }
-
-            // ID único para evitar conflitos no broker
-            String clientId = MqttClient.generateClientId();
+            // ID único com timestamp para garantir unicidade
+            String clientId;
             if (SharedPrefManager.getInstance(context).getEnfermeiroBase() != null) {
-                clientId = "Android_Enf_" + SharedPrefManager.getInstance(context).getEnfermeiroBase().getId();
+                clientId = "Android_Enf_" + SharedPrefManager.getInstance(context).getEnfermeiroBase().getId()
+                        + "_" + System.currentTimeMillis();
+            } else if (SharedPrefManager.getInstance(context).getPacienteBase() != null) {
+                clientId = "Android_Pac_" + SharedPrefManager.getInstance(context).getPacienteBase().getId()
+                        + "_" + System.currentTimeMillis();
+            } else {
+                clientId = MqttClient.generateClientId() + "_" + System.currentTimeMillis();
             }
 
             client = new MqttClient(brokerUrl, clientId, new MemoryPersistence());
@@ -90,18 +109,20 @@ public class MqttClientManager {
             options.setUserName("emergencysts");
             options.setPassword("i%POZsi02Kmc".toCharArray());
             options.setAutomaticReconnect(true);
-            options.setCleanSession(false);
+            options.setCleanSession(true);
             options.setConnectionTimeout(10);
 
             client.setCallback(new MqttCallbackExtended() {
                 @Override
                 public void connectComplete(boolean reconnect, String serverURI) {
+                    isConnecting = false; // SUCESSO: Liberta a flag
                     Log.d(TAG, "Conectado ao MQTT!");
-                    subscribeToTopics(); // Chama a lógica de subscrição
+                    subscribeToTopics();
                 }
 
                 @Override
                 public void connectionLost(Throwable cause) {
+                    isConnecting = false; // FALHA: Liberta a flag para tentar de novo
                     Log.e(TAG, "Conexão perdida.");
                 }
 
@@ -110,7 +131,6 @@ public class MqttClientManager {
                     String payload = new String(message.getPayload());
                     Log.d(TAG, "Mensagem MQTT: " + topic + " -> " + payload);
 
-                    // Broadcast para UI (mantém para refresh de listas)
                     Intent broadcastIntent = new Intent("MQTT_MESSAGE");
                     broadcastIntent.putExtra("topic", topic);
                     broadcastIntent.putExtra("payload", payload);
@@ -119,9 +139,7 @@ public class MqttClientManager {
                     try {
                         JSONObject jsonObject = new JSONObject(payload);
 
-                        // Ignora mensagens técnicas (sem intenção de notificação)
                         if (!jsonObject.has("titulo") || !jsonObject.has("mensagem")) {
-                            Log.d(TAG, "Mensagem MQTT técnica ignorada");
                             return;
                         }
 
@@ -129,17 +147,10 @@ public class MqttClientManager {
                         String mensagem = jsonObject.getString("mensagem");
 
                         Intent intent;
-
-                        if (mensagem.toLowerCase().contains("atualizada")
-                                || titulo.toLowerCase().contains("concluida")) {
-
+                        if (mensagem.toLowerCase().contains("atualizada") || titulo.toLowerCase().contains("concluida")) {
                             intent = new Intent(context, HistoricoActivity.class);
-
-                        } else if (titulo.toLowerCase().contains("nova")
-                                || mensagem.toLowerCase().contains("criada")) {
-
+                        } else if (titulo.toLowerCase().contains("nova") || mensagem.toLowerCase().contains("criada")) {
                             intent = new Intent(context, MostrarPulseirasActivity.class);
-
                         } else {
                             intent = new Intent(context, EnfermeiroActivity.class);
                         }
@@ -148,27 +159,26 @@ public class MqttClientManager {
 
                     } catch (JSONException e) {
                         Log.e(TAG, "Erro JSON: " + e.getMessage());
-                        // JSON inválido → ignora (não notifica)
                     }
                 }
-
 
                 @Override
                 public void deliveryComplete(IMqttDeliveryToken token) {}
             });
 
-            if (!client.isConnected()) {
-                new Thread(() -> {
-                    try {
-                        client.connect(options);
-                    } catch (MqttException e) {
-                        Log.e(TAG, "Erro ao conectar: " + e.getMessage());
-                        e.printStackTrace();
-                    }
-                }).start();
-            }
+            // Inicia conexão em background
+            new Thread(() -> {
+                try {
+                    client.connect(options);
+                } catch (MqttException e) {
+                    isConnecting = false; // ERRO: Liberta a flag
+                    Log.e(TAG, "Erro ao conectar: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }).start();
 
         } catch (MqttException e) {
+            isConnecting = false;
             e.printStackTrace();
         }
     }
@@ -186,9 +196,7 @@ public class MqttClientManager {
         }
 
         if (spm.getEnfermeiroBase() != null && spm.getEnfermeiroBase().getId() != -1) {
-
             subscribe("emergencysts/triagem");
-
             Log.d(TAG, "Subscrito como ENFERMEIRO em: emergencysts/triagem");
         }
     }
@@ -202,10 +210,14 @@ public class MqttClientManager {
                 intent,
                 PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
 
+        int color = 0xFF009E4D;
+        try {
+            color = androidx.core.content.ContextCompat.getColor(context, R.color.green_700);
+        } catch (Exception e) {}
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.logo)
-
-                .setColor(androidx.core.content.ContextCompat.getColor(context, R.color.green_700))
+                .setColor(color)
                 .setContentTitle(title)
                 .setContentText(messageBody)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)

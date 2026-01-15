@@ -4,27 +4,22 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Fundo gradiente -->
     <pt.ipleiria.estg.dei.emergencysts.GradientView
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Conteúdo -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- CAdRD SUPERIOR -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="#FFFFFF"
+            android:background="@color/bg_card"
             android:padding="22dp"
             android:elevation="10dp">
-
-            <!-- Seta + título -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -37,14 +32,13 @@
                     android:layout_height="40dp"
                     android:src="@drawable/ic_voltaratras"
                     android:padding="4dp"
-                    app:tint="#222" />
-
+                    app:tint="@color/text_primary" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:text="Consultar Paciente"
-                    android:textColor="#222"
+                    android:textColor="@color/text_primary"
                     android:textStyle="bold"
                     android:textSize="20sp" />
             </LinearLayout>
@@ -54,10 +48,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Pesquise por NIF"
-                android:textColor="#777"
+                android:textColor="@color/text_secondary"
                 android:textSize="14sp" />
-
-            <!-- Search box -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="46dp"
@@ -67,28 +59,25 @@
                 android:layout_marginTop="14dp"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp">
-
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_search"
-                    app:tint="#999" />
-
+                    app:tint="@color/text_hint" />
                 <EditText
                     android:id="@+id/edtNif"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@android:color/transparent"
                     android:hint="Pesquisar paciente..."
-                    android:textColor="#222"
-                    android:textColorHint="#AAA"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_hint"
                     android:paddingStart="8dp"
                     android:inputType="number" />
             </LinearLayout>
 
         </LinearLayout>
 
-        <!-- CARD RESULTADO -->
         <androidx.cardview.widget.CardView
             android:id="@+id/resultCard"
             android:layout_width="match_parent"
@@ -96,8 +85,8 @@
             android:layout_margin="18dp"
             android:visibility="gone"
             app:cardCornerRadius="16dp"
-            app:cardElevation="10dp">
-
+            app:cardElevation="10dp"
+            app:cardBackgroundColor="@color/bg_card">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -105,7 +94,6 @@
                 android:padding="18dp"
                 android:gravity="center_vertical">
 
-                <!-- Texto -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -117,17 +105,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Nome do Paciente"
-                        android:textColor="#222"
+                        android:textColor="@color/text_primary"
                         android:textStyle="bold"
                         android:textSize="18sp" />
-
                     <TextView
                         android:id="@+id/tvSns"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:text="SNS: ---"
-                        android:textColor="#555"
+                        android:textColor="@color/text_secondary"
                         android:textSize="14sp" />
 
                     <TextView
@@ -136,22 +123,19 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:text="NIF: ---"
-                        android:textColor="#555"
+                        android:textColor="@color/text_secondary"
                         android:textSize="14sp" />
                 </LinearLayout>
 
-                <!-- Ícone -->
                 <ImageView
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:src="@drawable/ic_user_placeholder"
-                    app:tint="#888" />
-
+                    app:tint="@color/text_secondary" />
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>
 
-        <!-- ESTADO INICIAL -->
         <LinearLayout
             android:id="@+id/emptyState"
             android:layout_width="match_parent"
@@ -164,16 +148,14 @@
                 android:layout_width="70dp"
                 android:layout_height="70dp"
                 android:src="@drawable/ic_user_placeholder"
-                app:tint="#575555" />
-
+                app:tint="@color/text_secondary" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="Digite um NIF para pesquisar"
-                android:textColor="#575555"
+                android:textColor="@color/text_secondary"
                 android:textSize="15sp" />
-
         </LinearLayout>
 
     </LinearLayout>

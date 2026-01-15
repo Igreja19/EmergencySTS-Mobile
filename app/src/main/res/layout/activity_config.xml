@@ -4,22 +4,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- FUNDO GRADIENT -->
     <pt.ipleiria.estg.dei.emergencysts.GradientView
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- HEADER FULL WIDTH -->
     <LinearLayout
         android:id="@+id/headerSection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#12A84C"
+        android:background="@color/green_700"
         android:gravity="center"
         android:orientation="vertical"
         android:paddingTop="24dp"
         android:paddingBottom="24dp">
-
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
@@ -30,7 +27,6 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- SCROLLVIEW DO CONTEÚDO (ABAIXO DO HEADER) -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -42,7 +38,6 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- ÍCONE CENTRAL -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -53,44 +48,39 @@
                     android:layout_width="110dp"
                     android:layout_height="110dp"
                     android:background="@drawable/bg_circle_white"
+                    android:backgroundTint="@color/bg_card"
                     android:padding="26dp"
                     android:src="@drawable/ic_server"
-                    app:tint="#12A84C" />
+                    app:tint="@color/green_700" />
             </LinearLayout>
 
-            <!-- TÍTULO SECÇÃO -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Configuração do Servidor"
                 android:gravity="center"
-                android:textColor="#333"
+                android:textColor="@color/text_primary"
                 android:textStyle="bold"
                 android:textSize="17sp"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="14dp" />
-
-            <!-- BLOCO BRANCO ARREDONDADO (SEM SOMBRAS) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:background="@drawable/bg_white_rounded"
+                android:backgroundTint="@color/bg_card"
                 android:padding="22dp"
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
                 android:layout_marginTop="10dp">
-
-                <!-- LABEL URL -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="URL do Servidor (IP ou domínio)"
-                    android:textColor="#444"
+                    android:textColor="@color/text_secondary"
                     android:textStyle="bold"
                     android:textSize="15sp" />
-
-                <!-- INPUT URL -->
                 <EditText
                     android:id="@+id/editServerIp"
                     android:layout_width="match_parent"
@@ -99,20 +89,18 @@
                     android:padding="16dp"
                     android:layout_marginTop="10dp"
                     android:background="@drawable/rounded_input"
-                    android:textColor="#000"
-                    android:textColorHint="#999" />
-
-                <!-- LABEL API PATH -->
+                    android:backgroundTint="@color/input_bg"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_hint" />
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Caminho da API"
-                    android:textColor="#444"
+                    android:textColor="@color/text_secondary"
                     android:textStyle="bold"
                     android:textSize="15sp"
                     android:layout_marginTop="20dp" />
 
-                <!-- INPUT API PATH -->
                 <EditText
                     android:id="@+id/editApiPath"
                     android:layout_width="match_parent"
@@ -121,10 +109,10 @@
                     android:padding="16dp"
                     android:layout_marginTop="10dp"
                     android:background="@drawable/rounded_input"
-                    android:textColor="#000"
-                    android:textColorHint="#999" />
+                    android:backgroundTint="@color/input_bg"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_hint" />
 
-                <!-- BOTÃO GUARDAR -->
                 <Button
                     android:id="@+id/btnSave"
                     android:layout_width="match_parent"
@@ -136,10 +124,47 @@
                     android:layout_marginTop="20dp"
                     android:paddingTop="16dp"
                     android:paddingBottom="16dp"
-                    android:background="@drawable/rounded_button" />
+                    android:background="@drawable/rounded_button"
+                    android:backgroundTint="@color/green_700"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Aparência"
+                android:gravity="center"
+                android:textColor="@color/text_primary"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="14dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_white_rounded"
+                android:backgroundTint="@color/bg_card"
+                android:padding="22dp"
+                android:gravity="center_vertical"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_marginBottom="30dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Modo Escuro"
+                    android:textColor="@color/text_primary"
+                    android:textStyle="bold"
+                    android:textSize="15sp" />
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switchDarkMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
             </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
-
 </RelativeLayout>

@@ -38,7 +38,6 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:elevation="10dp"
                     app:tint="#FFFFFF" />
-
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -105,7 +104,6 @@
                     android:shadowDy="1"
                     android:shadowRadius="2"
                     android:gravity="center"/>
-
                 <TextView
                     android:id="@+id/tvEmail"
                     android:layout_width="wrap_content"
@@ -121,17 +119,16 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:background="@drawable/bg_white_rounded"
+                    android:backgroundTint="@color/bg_card"
                     android:padding="16dp"
                     android:gravity="center_vertical"
                     android:layout_marginBottom="12dp"
                     android:elevation="4dp">
-
                     <ImageView
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:src="@drawable/icon_data_24"
-                        app:tint="#555"/>
-
+                        app:tint="@color/green_700"/>
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -144,15 +141,14 @@
                             android:layout_height="wrap_content"
                             android:text="Data de Nascimento"
                             android:textSize="12sp"
-                            android:textColor="#999"/>
-
+                            android:textColor="@color/text_secondary"/>
                         <TextView
                             android:id="@+id/tvDataNasc"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="---"
                             android:textSize="16sp"
-                            android:textColor="#333"
+                            android:textColor="@color/text_primary"
                             android:textStyle="bold"/>
                     </LinearLayout>
 
@@ -171,6 +167,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:background="@drawable/bg_white_rounded"
+                    android:backgroundTint="@color/bg_card"
                     android:padding="16dp"
                     android:gravity="center_vertical"
                     android:layout_marginBottom="12dp"
@@ -180,7 +177,7 @@
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:src="@drawable/icon_telefone_24"
-                        app:tint="#555"/>
+                        app:tint="@color/green_700"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -193,7 +190,7 @@
                             android:layout_height="wrap_content"
                             android:text="Telefone"
                             android:textSize="12sp"
-                            android:textColor="#999"/>
+                            android:textColor="@color/text_secondary"/>
 
                         <TextView
                             android:id="@+id/tvTelefone"
@@ -201,7 +198,7 @@
                             android:layout_height="wrap_content"
                             android:text="---"
                             android:textSize="16sp"
-                            android:textColor="#333"/>
+                            android:textColor="@color/text_primary"/>
                     </LinearLayout>
                 </LinearLayout>
 
@@ -210,6 +207,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:background="@drawable/bg_white_rounded"
+                    android:backgroundTint="@color/bg_card"
                     android:padding="16dp"
                     android:gravity="center_vertical"
                     android:layout_marginBottom="12dp"
@@ -219,7 +217,7 @@
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:src="@drawable/icon_sns_26"
-                        app:tint="#555"/>
+                        app:tint="@color/green_700"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -232,7 +230,7 @@
                             android:layout_height="wrap_content"
                             android:text="Número SNS"
                             android:textSize="12sp"
-                            android:textColor="#999"/>
+                            android:textColor="@color/text_secondary"/>
 
                         <TextView
                             android:id="@+id/tvSns"
@@ -240,7 +238,7 @@
                             android:layout_height="wrap_content"
                             android:text="---"
                             android:textSize="16sp"
-                            android:textColor="#333"/>
+                            android:textColor="@color/text_primary"/>
                     </LinearLayout>
                 </LinearLayout>
 
@@ -249,6 +247,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:background="@drawable/bg_white_rounded"
+                    android:backgroundTint="@color/bg_card"
                     android:padding="16dp"
                     android:gravity="center_vertical"
                     android:layout_marginBottom="12dp"
@@ -258,7 +257,7 @@
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:src="@drawable/icon_nif_24"
-                        app:tint="#555"/>
+                        app:tint="@color/green_700"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -271,7 +270,7 @@
                             android:layout_height="wrap_content"
                             android:text="NIF"
                             android:textSize="12sp"
-                            android:textColor="#999"/>
+                            android:textColor="@color/text_secondary"/>
 
                         <TextView
                             android:id="@+id/tvNif"
@@ -279,7 +278,7 @@
                             android:layout_height="wrap_content"
                             android:text="---"
                             android:textSize="16sp"
-                            android:textColor="#333"/>
+                            android:textColor="@color/text_primary"/>
                     </LinearLayout>
                 </LinearLayout>
 
@@ -288,6 +287,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:background="@drawable/bg_white_rounded"
+                    android:backgroundTint="@color/bg_card"
                     android:padding="16dp"
                     android:gravity="center_vertical"
                     android:layout_marginBottom="12dp"
@@ -297,7 +297,7 @@
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:src="@drawable/icon_morada_24"
-                        app:tint="#555"/>
+                        app:tint="@color/green_700"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -310,7 +310,7 @@
                             android:layout_height="wrap_content"
                             android:text="Morada"
                             android:textSize="12sp"
-                            android:textColor="#999"/>
+                            android:textColor="@color/text_secondary"/>
 
                         <TextView
                             android:id="@+id/tvMorada"
@@ -318,7 +318,7 @@
                             android:layout_height="wrap_content"
                             android:text="---"
                             android:textSize="16sp"
-                            android:textColor="#333"/>
+                            android:textColor="@color/text_primary"/>
                     </LinearLayout>
                 </LinearLayout>
 

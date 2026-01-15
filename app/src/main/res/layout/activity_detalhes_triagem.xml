@@ -4,46 +4,41 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- FUNDO GRADIENT -->
     <pt.ipleiria.estg.dei.emergencysts.GradientView
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- CONTEÚDO PRINCIPAL -->
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- HEADER -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="90dp"
-            android:background="#FFFFFF"
+            android:background="@color/bg_card"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
             android:paddingTop="22dp">
-
             <ImageView
                 android:id="@+id/btnBack"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:padding="4dp"
-                android:src="@drawable/ic_voltaratras" />
-
+                android:src="@drawable/ic_voltaratras"
+                app:tint="@color/text_primary" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:text="Detalhes da Triagem"
-                android:textColor="#333"
+                android:textColor="@color/text_primary"
                 android:textStyle="bold"
                 android:textSize="20sp" />
         </LinearLayout>
 
-        <!-- ÁREA SCROLL -->
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -58,7 +53,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- CARD VERDE: Dados do paciente -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -66,23 +60,21 @@
                     android:padding="16dp"
                     android:layout_marginBottom="16dp"
                     android:background="@drawable/card_green_rounded">
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Dados do Paciente"
-                        android:textColor="#00894A"
+                        android:textColor="@color/green_700"
                         android:textStyle="bold"
                         android:textSize="16sp"
                         android:layout_marginBottom="8dp" />
-
                     <TextView
                         android:id="@+id/tvNome"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Nome"
                         android:textStyle="bold"
-                        android:textColor="#00894A" />
+                        android:textColor="@color/green_700" />
 
                     <TextView
                         android:id="@+id/tvNomeValor"
@@ -90,14 +82,13 @@
                         android:layout_height="wrap_content"
                         android:text="Henrique Silva"
                         android:layout_marginBottom="8dp"
-                        android:textColor="#000000" />
-
+                        android:textColor="@color/text_primary" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Data de Nascimento             SNS"
                         android:textStyle="bold"
-                        android:textColor="#00894A" />
+                        android:textColor="@color/green_700" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -109,14 +100,15 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="15/03/1990" />
-
+                            android:text="15/03/1990"
+                            android:textColor="@color/text_primary" />
                         <TextView
                             android:id="@+id/tvSNS"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="123456789" />
+                            android:text="123456789"
+                            android:textColor="@color/text_primary" />
                     </LinearLayout>
 
                     <TextView
@@ -125,7 +117,7 @@
                         android:layout_height="wrap_content"
                         android:text="Telefone"
                         android:textStyle="bold"
-                        android:textColor="#00894A"
+                        android:textColor="@color/green_700"
                         android:layout_marginTop="8dp" />
 
                     <TextView
@@ -133,10 +125,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="+351 912 345 678"
-                        android:textColor="#000000" />
+                        android:textColor="@color/text_primary" />
                 </LinearLayout>
 
-                <!-- CARD INFORMAÇÃO CLÍNICA -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -144,12 +135,11 @@
                     android:padding="16dp"
                     android:layout_marginBottom="16dp"
                     android:background="@drawable/bg_white_rounded">
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Informação Clínica"
-                        android:textColor="#333333"
+                        android:textColor="@color/text_primary"
                         android:textStyle="bold"
                         android:textSize="16sp"
                         android:layout_marginBottom="12dp" />
@@ -159,7 +149,7 @@
                         android:layout_height="wrap_content"
                         android:text="Data/Hora de Registo"
                         android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:id="@+id/tvDataTriagem"
@@ -167,121 +157,118 @@
                         android:layout_height="wrap_content"
                         android:text="--/--/---- --:--"
                         android:textSize="16sp"
-                        android:textColor="#0055AA"
+                        android:textColor="@color/green_700"
                         android:layout_marginBottom="12dp" />
-
-                    <!-- Motivo -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Motivo da Consulta"
                         android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:id="@+id/tvMotivo"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Consulta de urgência devido a dores intensas"
+                        android:textColor="@color/text_secondary"
                         android:layout_marginBottom="12dp" />
-
-                    <!-- Queixa -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Queixa Principal"
                         android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:id="@+id/tvQueixa"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Dores abdominais"
+                        android:textColor="@color/text_secondary"
                         android:layout_marginBottom="12dp" />
 
-                    <!-- Descrição -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Descrição de Sintomas"
                         android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:id="@+id/tvDescricao"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Náuseas, vómitos e dores abdominais"
+                        android:textColor="@color/text_secondary"
                         android:layout_marginBottom="12dp" />
 
-                    <!-- Início -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Início dos Sintomas"
                         android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:id="@+id/tvInicio"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Há 6 horas"
+                        android:textColor="@color/text_secondary"
                         android:layout_marginBottom="12dp" />
 
-                    <!-- Intensidade -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Intensidade da Dor (1-10)"
                         android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:id="@+id/tvDor"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="7 - Forte"
+                        android:textColor="@color/text_secondary"
                         android:layout_marginBottom="12dp" />
 
-                    <!-- Alergias -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Alergias"
                         android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:id="@+id/tvAlergias"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Penicilina"
+                        android:textColor="@color/text_secondary"
                         android:layout_marginBottom="12dp" />
 
-                    <!-- Medicação -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Medicação Atual"
                         android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:id="@+id/tvMedicacao"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Paracetamol 1000mg"
+                        android:textColor="@color/text_secondary"
                         android:layout_marginBottom="12dp" />
 
-                    <!-- Prioridade -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Prioridade da Pulseira"
                         android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textColor="@color/text_primary" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -300,13 +287,12 @@
                             android:id="@+id/tvPrioridade"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:textColor="@color/text_secondary"
                             android:text="Amarelo - Urgente" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </ScrollView>
-
-        <!-- BOTÃO FINAL -->
 
         <LinearLayout
             android:id="@+id/layoutBotoesAcao"
@@ -325,7 +311,6 @@
                 android:backgroundTint="#4CAF50"
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp"/>
-
             <Button
                 android:id="@+id/btnEliminar"
                 android:layout_width="match_parent"

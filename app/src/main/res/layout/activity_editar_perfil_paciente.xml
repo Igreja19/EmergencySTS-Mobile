@@ -24,7 +24,6 @@
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             app:tint="#FFFFFF" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -60,7 +59,7 @@
                     android:background="@drawable/bg_circle_white"
                     android:src="@drawable/icon_editar_32"
                     android:padding="20dp"
-                    app:tint="#16a34a"/>
+                    app:tint="@color/green_700"/>
             </LinearLayout>
 
             <androidx.cardview.widget.CardView
@@ -68,14 +67,30 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 app:cardCornerRadius="14dp"
-                app:cardElevation="4dp">
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/bg_card">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
-                    <TextView android:text="Nome Completo" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                    <EditText android:id="@+id/etNome" android:layout_width="match_parent" android:layout_height="45dp" android:background="@drawable/rounded_input" android:paddingHorizontal="10dp" android:layout_marginTop="8dp" android:hint="Nome"/>
+
+                    <TextView
+                        android:text="Nome Completo"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                    <EditText
+                        android:id="@+id/etNome"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:background="@drawable/rounded_input"
+                        android:paddingHorizontal="10dp"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_hint"
+                        android:hint="Nome"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -84,14 +99,33 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
                 app:cardCornerRadius="14dp"
-                app:cardElevation="4dp">
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/bg_card">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
-                    <TextView android:text="Email" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                    <EditText android:id="@+id/etEmail" android:inputType="textEmailAddress" android:layout_width="match_parent" android:layout_height="45dp" android:background="@drawable/rounded_input" android:paddingHorizontal="10dp" android:layout_marginTop="8dp" android:hint="Email"/>
+
+                    <TextView
+                        android:text="Email"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <EditText
+                        android:id="@+id/etEmail"
+                        android:inputType="textEmailAddress"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:background="@drawable/rounded_input"
+                        android:paddingHorizontal="10dp"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_hint"
+                        android:hint="Email"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -100,14 +134,33 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
                 app:cardCornerRadius="14dp"
-                app:cardElevation="4dp">
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/bg_card">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
-                    <TextView android:text="Telefone" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                    <EditText android:id="@+id/etTelefone" android:inputType="phone" android:layout_width="match_parent" android:layout_height="45dp" android:background="@drawable/rounded_input" android:paddingHorizontal="10dp" android:layout_marginTop="8dp" android:hint="Telefone"/>
+
+                    <TextView
+                        android:text="Telefone"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <EditText
+                        android:id="@+id/etTelefone"
+                        android:inputType="phone"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:background="@drawable/rounded_input"
+                        android:paddingHorizontal="10dp"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_hint"
+                        android:hint="Telefone"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -116,14 +169,34 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
                 app:cardCornerRadius="14dp"
-                app:cardElevation="4dp">
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/bg_card">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
-                    <TextView android:text="Morada" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                    <EditText android:id="@+id/etMorada" android:gravity="top|start" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="80dp" android:background="@drawable/rounded_input" android:padding="10dp" android:layout_marginTop="8dp" android:hint="Morada"/>
+
+                    <TextView
+                        android:text="Morada"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <EditText
+                        android:id="@+id/etMorada"
+                        android:gravity="top|start"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="80dp"
+                        android:background="@drawable/rounded_input"
+                        android:padding="10dp"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_hint"
+                        android:hint="Morada"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -132,17 +205,55 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
                 app:cardCornerRadius="14dp"
-                app:cardElevation="4dp">
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/bg_card">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
-                    <TextView android:text="NIF" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                    <EditText android:id="@+id/etNif" android:inputType="number" android:maxLength="9" android:layout_width="match_parent" android:layout_height="45dp" android:background="@drawable/rounded_input" android:paddingHorizontal="10dp" android:layout_marginTop="6dp" android:hint="NIF"/>
 
-                    <TextView android:text="Nº Utente (SNS)" android:textStyle="bold" android:layout_marginTop="16dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                    <EditText android:id="@+id/etSns" android:inputType="number" android:maxLength="9" android:layout_width="match_parent" android:layout_height="45dp" android:background="@drawable/rounded_input" android:paddingHorizontal="10dp" android:layout_marginTop="6dp" android:hint="SNS"/>
+                    <TextView
+                        android:text="NIF"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <EditText
+                        android:id="@+id/etNif"
+                        android:inputType="number"
+                        android:maxLength="9"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:background="@drawable/rounded_input"
+                        android:paddingHorizontal="10dp"
+                        android:layout_marginTop="6dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_hint"
+                        android:hint="NIF"/>
+
+                    <TextView
+                        android:text="Nº Utente (SNS)"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginTop="16dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <EditText
+                        android:id="@+id/etSns"
+                        android:inputType="number"
+                        android:maxLength="9"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:background="@drawable/rounded_input"
+                        android:paddingHorizontal="10dp"
+                        android:layout_marginTop="6dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_hint"
+                        android:hint="SNS"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -153,10 +264,9 @@
                 android:text="Guardar Alterações"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
-                android:backgroundTint="#2E7D32"
+                android:backgroundTint="@color/green_700"
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="24dp" />
-
         </LinearLayout>
     </ScrollView>
 
@@ -165,6 +275,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:visibility="gone"/>
-
+        android:visibility="gone"
+        android:indeterminateTint="@color/green_700"/>
 </RelativeLayout>

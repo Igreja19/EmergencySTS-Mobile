@@ -10,6 +10,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.SwitchCompat;
+import android.widget.CompoundButton;
 
 public class ConfigActivity extends AppCompatActivity {
 
@@ -21,12 +24,21 @@ public class ConfigActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_config);
 
+        int savedTheme = SharedPrefManager.getInstance(this).getTheme();
+        AppCompatDelegate.setDefaultNightMode(savedTheme);
         SharedPrefManager pref = SharedPrefManager.getInstance(this);
 
         // Ligação aos campos
         editServerIp = findViewById(R.id.editServerIp);
         editApiPath  = findViewById(R.id.editApiPath);
         btnSave      = findViewById(R.id.btnSave);
+        SwitchCompat switchDarkMode = findViewById(R.id.switchDarkMode);
+
+        if (savedTheme == AppCompatDelegate.MODE_NIGHT_YES) {
+            switchDarkMode.setChecked(true);
+        } else {
+            switchDarkMode.setChecked(false);
+        }
 
         // Preencher valores guardados
         editServerIp.setText(pref.getServerBase());
@@ -54,6 +66,20 @@ public class ConfigActivity extends AppCompatActivity {
             Intent i = new Intent(ConfigActivity.this, LoginActivity.class);
             startActivity(i);
             finish(); // Fecha a ConfigActivity
+        });
+
+        switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPrefManager prefManager = SharedPrefManager.getInstance(ConfigActivity.this);
+
+            if (isChecked) {
+                // Ativar Escuro
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                prefManager.saveTheme(AppCompatDelegate.MODE_NIGHT_YES);
+            } else {
+                // Ativar Claro
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                prefManager.saveTheme(AppCompatDelegate.MODE_NIGHT_NO);
+            }
         });
     }
 }

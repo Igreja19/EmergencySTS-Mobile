@@ -4,12 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 🌈 FUNDO GRADIENTE -->
     <pt.ipleiria.estg.dei.emergencysts.GradientView
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 📜 CONTEÚDO SCROLLÁVEL -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -20,7 +18,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- 🔙 BOTÃO VOLTAR + TÍTULO -->
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="wrap_content"
@@ -33,50 +30,44 @@
                     android:layout_width="30dp"
                     android:layout_height="40dp"
                     android:padding="4dp"
-                    app:tint="#222" />
-
+                    app:tint="@color/text_primary" />
                 <TextView
                     android:text="Dados do Paciente"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:textColor="#222"
+                    android:textColor="@color/text_primary"
                     android:layout_marginStart="12dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
-            <!-- 🟩 CARD DO PACIENTE -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="6dp"
+                app:cardBackgroundColor="@color/bg_card"
                 android:layout_marginTop="18dp">
-
                 <LinearLayout
                     android:padding="22dp"
                     android:orientation="vertical"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <!-- NOME -->
                     <TextView
                         android:id="@+id/tvNome"
                         android:text="Nome Completo"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="#222"
+                        android:textColor="@color/text_primary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
-
-                    <!-- LINHA: Data Nasc + SNS -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:layout_marginTop="14dp">
 
-                        <!-- Coluna Data -->
                         <LinearLayout
                             android:orientation="vertical"
                             android:layout_weight="1"
@@ -86,21 +77,19 @@
                             <TextView
                                 android:text="Data de Nascimento"
                                 android:textStyle="bold"
-                                android:textColor="#444"
+                                android:textColor="@color/text_secondary"
                                 android:textSize="14sp"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content" />
-
                             <TextView
                                 android:id="@+id/tvDataNasc"
                                 android:text="---"
                                 android:textSize="14sp"
-                                android:textColor="#666"
+                                android:textColor="@color/text_secondary"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content" />
                         </LinearLayout>
 
-                        <!-- Coluna SNS -->
                         <LinearLayout
                             android:orientation="vertical"
                             android:layout_weight="1"
@@ -110,7 +99,7 @@
                             <TextView
                                 android:text="SNS"
                                 android:textStyle="bold"
-                                android:textColor="#444"
+                                android:textColor="@color/text_secondary"
                                 android:textSize="14sp"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content" />
@@ -119,18 +108,17 @@
                                 android:id="@+id/tvSns"
                                 android:text="---"
                                 android:textSize="14sp"
-                                android:textColor="#666"
+                                android:textColor="@color/text_secondary"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content" />
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!-- TELEFONE -->
                     <TextView
                         android:layout_marginTop="14dp"
                         android:text="Telefone"
                         android:textStyle="bold"
-                        android:textColor="#444"
+                        android:textColor="@color/text_secondary"
                         android:textSize="14sp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
@@ -139,16 +127,15 @@
                         android:id="@+id/tvTelefone"
                         android:text="---"
                         android:textSize="14sp"
-                        android:textColor="#666"
+                        android:textColor="@color/text_secondary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
-                    <!-- NIF -->
                     <TextView
                         android:layout_marginTop="14dp"
                         android:text="NIF"
                         android:textStyle="bold"
-                        android:textColor="#444"
+                        android:textColor="@color/text_secondary"
                         android:textSize="14sp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
@@ -157,16 +144,15 @@
                         android:id="@+id/tvNif"
                         android:text="---"
                         android:textSize="14sp"
-                        android:textColor="#666"
+                        android:textColor="@color/text_secondary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
-                    <!-- MORADA -->
                     <TextView
                         android:layout_marginTop="14dp"
                         android:text="Morada"
                         android:textStyle="bold"
-                        android:textColor="#444"
+                        android:textColor="@color/text_secondary"
                         android:textSize="14sp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
@@ -175,16 +161,15 @@
                         android:id="@+id/tvMorada"
                         android:text="---"
                         android:textSize="14sp"
-                        android:textColor="#666"
+                        android:textColor="@color/text_secondary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
-                    <!-- GENERO -->
                     <TextView
                         android:layout_marginTop="14dp"
                         android:text="Género"
                         android:textStyle="bold"
-                        android:textColor="#444"
+                        android:textColor="@color/text_secondary"
                         android:textSize="14sp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
@@ -193,7 +178,7 @@
                         android:id="@+id/tvGenero"
                         android:text="---"
                         android:textSize="14sp"
-                        android:textColor="#666"
+                        android:textColor="@color/text_secondary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
