@@ -235,21 +235,6 @@ public class HistoricoActivity extends AppCompatActivity implements TriagemListe
     }
 
     @Override
-    public void onArquivarClick(int id) {
-        Triagem t = encontrarTriagem(id);
-        if (t != null && t.getPulseira() != null) { // Getter
-            new AlertDialog.Builder(this)
-                    .setTitle("Arquivar")
-                    .setMessage("Marcar como ATENDIDO?")
-                    .setPositiveButton("Sim", (d, w) -> arquivarTriagemAPI(t))
-                    .setNegativeButton("Não", null)
-                    .show();
-        } else {
-            Toast.makeText(this, "Erro: Triagem sem pulseira.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
     public void onEliminarClick(int id) {
         new AlertDialog.Builder(this)
                 .setTitle("Eliminar")
@@ -257,41 +242,6 @@ public class HistoricoActivity extends AppCompatActivity implements TriagemListe
                 .setPositiveButton("Eliminar", (d, w) -> eliminarTriagemPermanente(id))
                 .setNegativeButton("Cancelar", null)
                 .show();
-    }
-
-    private Triagem encontrarTriagem(int id) {
-        for (Triagem t : listaTriagens) {
-            if (t.getId() == id) return t;
-        }
-        return null;
-    }
-
-    private void arquivarTriagemAPI(Triagem t) {
-        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
-        String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
-        String url = baseUrl + "api/pulseira/" + t.getPulseira().getId() + "?auth_key=" + token + "&arquivar=1"; // Getter
-
-        StringRequest request = new StringRequest(Request.Method.POST, url,
-                response -> {
-                    Toast.makeText(this, "Arquivado com sucesso!", Toast.LENGTH_SHORT).show();
-                    carregarHistorico();
-                },
-                error -> Toast.makeText(this, "Erro ao arquivar.", Toast.LENGTH_SHORT).show()
-        ) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Content-Type", "application/x-www-form-urlencoded");
-                return headers;
-            }
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-                params.put("_method", "PUT");
-                return params;
-            }
-        };
-        VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
 
     private void eliminarTriagemPermanente(int idTriagem) {

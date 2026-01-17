@@ -57,7 +57,6 @@ public class TriagemAdapter extends BaseAdapter {
             holder.tvEnfermeiro = convertView.findViewById(R.id.tvEnfermeiro);
             holder.dotPrioridade = convertView.findViewById(R.id.dotPrioridade);
             holder.layoutBotoes = convertView.findViewById(R.id.layoutBotoesAcao);
-            holder.btnArquivar = convertView.findViewById(R.id.btnArquivar);
             holder.btnEliminar = convertView.findViewById(R.id.btnEliminar);
             holder.layoutEnfermeiroInfo = convertView.findViewById(R.id.layoutEnfermeiroInfo);
 
@@ -115,10 +114,6 @@ public class TriagemAdapter extends BaseAdapter {
             holder.tvEnfermeiro.setText("Enf. " + enfNome);
 
             // Cliques nos Botões
-            holder.btnArquivar.setOnClickListener(v -> {
-                if (listener != null) listener.onArquivarClick(t.getId());
-            });
-
             holder.btnEliminar.setOnClickListener(v -> {
                 if (listener != null) listener.onEliminarClick(t.getId());
             });
@@ -135,6 +130,6 @@ public class TriagemAdapter extends BaseAdapter {
         TextView tvNome, tvSNS, tvStatus, tvData, tvHora, tvQueixa, tvEnfermeiro;
         View dotPrioridade;
         LinearLayout layoutBotoes, layoutEnfermeiroInfo;
-        ImageView btnArquivar, btnEliminar;
+        ImageView btnEliminar;
     }
 }

@@ -303,15 +303,6 @@
             android:layout_marginTop="16dp">
 
             <Button
-                android:id="@+id/btnArquivar"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:text="Arquivar Triagem"
-                android:textColor="#FFFFFF"
-                android:backgroundTint="#4CAF50"
-                android:textStyle="bold"
-                android:layout_marginBottom="12dp"/>
-            <Button
                 android:id="@+id/btnEliminar"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
