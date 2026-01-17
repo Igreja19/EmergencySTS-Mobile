@@ -263,8 +263,6 @@ public class SharedPrefManager {
 
             case "enfermeiro":
             case "medico":
-            case "admin":
-            case "administrador":
                 next = new Intent(context, EnfermeiroActivity.class);
                 break;
 

@@ -45,9 +45,9 @@ public class LoginActivity extends AppCompatActivity {
             String role = user.getRole();
 
             // Se por acaso um médico ficou logado, fazemos logout forçado
-            if (role != null && role.equalsIgnoreCase("medico")) {
+            if (role != null && (role.equalsIgnoreCase("medico") || role.equalsIgnoreCase("admin") || role.equalsIgnoreCase("administrador"))) {
                 SharedPrefManager.getInstance(this).logout();
-                Toast.makeText(this, "Acesso Médico disponível apenas na Web.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Acesso disponível apenas na Web.", Toast.LENGTH_LONG).show();
             } else {
                 // Login Válido: Redireciona para a atividade correta
                 Intent intent;
@@ -123,6 +123,11 @@ public class LoginActivity extends AppCompatActivity {
                                 // Barrar o médico
                                 if (role.equalsIgnoreCase("medico")) {
                                     Toast.makeText(this, "Acesso negado: Médicos devem usar a plataforma Web.", Toast.LENGTH_LONG).show();
+                                    return;
+                                }
+
+                                if (role.equalsIgnoreCase("admin") || role.equalsIgnoreCase("administrador")) {
+                                    Toast.makeText(this, "Acesso negado: Admins devem usar a plataforma Web.", Toast.LENGTH_LONG).show();
                                     return;
                                 }
 
