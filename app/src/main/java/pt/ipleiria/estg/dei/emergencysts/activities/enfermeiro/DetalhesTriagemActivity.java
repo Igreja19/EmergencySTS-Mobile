@@ -20,7 +20,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 
 import org.json.JSONObject;
 
@@ -41,13 +40,12 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
     private View dotPrioridade;
 
     private LinearLayout layoutBotoes;
-    private Button btnEliminar; // btnArquivar removido
+    private Button btnEliminar;
 
     private int triagemId;
     private MqttClientManager mqtt;
     private int pulseiraId = -1;
 
-    // --- RECEIVER DO MQTT ---
     private final BroadcastReceiver mqttReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context ctx, Intent intent) {
@@ -81,9 +79,7 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         initViews();
         getTriagem();
 
-        // Inicializa o MQTT e subscreve os tópicos globais de atualização
         mqtt = MqttClientManager.getInstance(this);
-        // Usamos o wildcard # para ouvir todas as atualizações e filtrar no onReceive
         mqtt.subscribe("triagem/atualizada/#");
         mqtt.subscribe("pulseira/atualizada/#");
     }
@@ -115,18 +111,13 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
             if (layoutBotoes != null) layoutBotoes.setVisibility(View.GONE);
         } else {
             if (layoutBotoes != null) layoutBotoes.setVisibility(View.VISIBLE);
-            // Listener do botão arquivar removido
             if (btnEliminar != null) btnEliminar.setOnClickListener(v -> confirmarEliminar());
         }
     }
 
     private void getTriagem() {
-        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
-        String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
-        if (!baseUrl.endsWith("/")) baseUrl += "/";
-
-        // Importante: expand=pulseira para obtermos o pulseiraId para o filtro do MQTT
-        String url = baseUrl + "api/triagem/" + triagemId + "?expand=userprofile,pulseira&auth_key=" + token;
+        String url = VolleySingleton.getInstance(this)
+                .getAPIUrl(VolleySingleton.ENDPOINT_TRIAGEM + "/" + triagemId + "?expand=userprofile,pulseira");
 
         JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET, url, null,
                 this::bindData,
@@ -190,47 +181,37 @@ public class DetalhesTriagemActivity extends AppCompatActivity {
         return data;
     }
 
-    // Método confirmarArquivar removido
-
     private void confirmarEliminar() {
         new AlertDialog.Builder(this)
                 .setTitle("Eliminar")
                 .setMessage("Apagar permanentemente?")
-                .setPositiveButton("Apagar", (d, w) -> eliminarTriagemAPI())
+                .setPositiveButton("Apagar", (d, w) -> eliminarTriagemAPI()) // Alterado para chamar o metodo direto
                 .setNegativeButton("Cancelar", null)
                 .show();
     }
 
-    // Renomeado de acaoAPI para eliminarTriagemAPI e simplificado
     private void eliminarTriagemAPI() {
-        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
-        String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
-        if (!baseUrl.endsWith("/")) baseUrl += "/";
+        String url = VolleySingleton.getInstance(this).getAPIUrl(VolleySingleton.ENDPOINT_TRIAGEM + "/" + triagemId + "?expand=userprofile,pulseira");
 
-        String url = baseUrl + "api/triagem/" + triagemId + "?auth_key=" + token;
+        Map<String, String> params = new HashMap<>();
+        params.put("_method", "DELETE");
 
-        StringRequest req = new StringRequest(Request.Method.POST, url,
+        VolleySingleton.getInstance(this).apiRequest(
+                Request.Method.POST,
+                VolleySingleton.ENDPOINT_TRIAGEM + "/" + triagemId + "?expand=userprofile,pulseira",
+                params,
                 response -> {
-                    Toast.makeText(this, "Eliminado com sucesso!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Triagem eliminada!", Toast.LENGTH_SHORT).show();
                     finish();
                 },
                 error -> Toast.makeText(this, "Erro: " + error.getMessage(), Toast.LENGTH_SHORT).show()
-        ) {
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-                params.put("_method", "DELETE");
-                return params;
-            }
-        };
-        VolleySingleton.getInstance(this).addToRequestQueue(req);
+        );
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     protected void onResume() {
         super.onResume();
-        // Regista o receiver para ouvir mensagens do MQTT que o MqttClientManager envia via Broadcast
         IntentFilter filter = new IntentFilter("MQTT_MESSAGE");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(mqttReceiver, filter, Context.RECEIVER_NOT_EXPORTED);

@@ -12,10 +12,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.Request;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.StringRequest;
-
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,14 +21,9 @@ import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.activities.enfermeiro.DetalhesTriagemActivity;
 import pt.ipleiria.estg.dei.emergencysts.adapters.TriagemAdapter;
 import pt.ipleiria.estg.dei.emergencysts.listeners.TriagemListener;
-import pt.ipleiria.estg.dei.emergencysts.modelo.Paciente;
-import pt.ipleiria.estg.dei.emergencysts.modelo.Pulseira;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Triagem;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
-import pt.ipleiria.estg.dei.emergencysts.utils.PulseiraBDHelper;
-import pt.ipleiria.estg.dei.emergencysts.utils.PulseiraJsonParser;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
-import pt.ipleiria.estg.dei.emergencysts.utils.TriagemJsonParser;
 
 public class HistoricoActivity extends AppCompatActivity implements TriagemListener {
 
@@ -49,6 +40,8 @@ public class HistoricoActivity extends AppCompatActivity implements TriagemListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_historico);
 
+        VolleySingleton.getInstance(this).setTriagemListener(this);
+
         tvTitulo = findViewById(R.id.tvTitulo);
         tvTotalTriagens = findViewById(R.id.tvTotalTriagens);
         btnBack = findViewById(R.id.btnBack);
@@ -64,7 +57,6 @@ public class HistoricoActivity extends AppCompatActivity implements TriagemListe
         isPaciente = role != null && (role.equalsIgnoreCase("paciente") || role.equalsIgnoreCase("utente"));
 
         tvTitulo.setText(isPaciente ? "O Meu Histórico" : "Histórico Geral");
-
         btnBack.setOnClickListener(v -> finish());
 
         if (swipeRefreshLayout != null) {
@@ -76,8 +68,7 @@ public class HistoricoActivity extends AppCompatActivity implements TriagemListe
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
             if (position >= 0 && position < listaTriagens.size()) {
-                Triagem t = listaTriagens.get(position);
-                onTriagemClick(t.getId());
+                onTriagemClick(listaTriagens.get(position).getId());
             }
         });
     }
@@ -85,150 +76,36 @@ public class HistoricoActivity extends AppCompatActivity implements TriagemListe
     @Override
     protected void onResume() {
         super.onResume();
+        VolleySingleton.getInstance(this).setTriagemListener(this);
         carregarHistorico();
     }
 
     private void carregarHistorico() {
         if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(true);
-
-        String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
-        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
-        if (!baseUrl.endsWith("/")) baseUrl += "/";
-
-        String url = baseUrl + "api/triagem?auth_key=" + token + "&expand=paciente,pulseira,userprofile";
-
-        JsonArrayRequest req = new JsonArrayRequest(Request.Method.GET, url, null,
-                response -> {
-                    if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
-                    try {
-                        listaTriagens.clear();
-
-                        //  OFFLINE: Limpar BD antiga
-                        PulseiraBDHelper db = PulseiraBDHelper.getInstance(this);
-                        db.removeAllPulseiras();
-
-                        for (int i = 0; i < response.length(); i++) {
-                            JSONObject obj = response.getJSONObject(i);
-                            Triagem t = TriagemJsonParser.parserJsonTriagem(obj);
-
-                            String prioridade = "Pendente";
-                            String status = "Desconhecido";
-
-                            if (t.getPulseira() != null) {
-                                if (t.getPulseira().getPrioridade() != null) prioridade = t.getPulseira().getPrioridade();
-                                if (t.getPulseira().getStatus() != null) status = t.getPulseira().getStatus();
-                            }
-
-                            // Filtros
-                            if (prioridade.equalsIgnoreCase("Pendente")) continue;
-
-                            if (!isPaciente) {
-                                String s = status.trim();
-                                if (s.equalsIgnoreCase("Finalizado") ||
-                                        s.equalsIgnoreCase("Concluída") ||
-                                        s.equalsIgnoreCase("Concluida") ||
-                                        s.equalsIgnoreCase("Atendido")) {
-                                    continue;
-                                }
-                            }
-
-                            listaTriagens.add(t);
-
-                            // OFFLINE: Guardar na BD Local
-                            if (t.getPulseira() != null) {
-                                Pulseira p = t.getPulseira();
-
-                                // Usar Getters da Triagem e Setters da Pulseira
-                                p.setMotivo(t.getMotivoconsulta());
-                                p.setQueixa(t.getQueixaprincipal());
-                                p.setDescricao(t.getDescricaosintomas());
-                                p.setInicioSintomas(t.getIniciosintomas());
-                                p.setDor(String.valueOf(t.getIntensidadedor()));
-                                p.setAlergias(t.getAlergias());
-                                p.setMedicacao(t.getMedicacao());
-
-                                // Dados do Paciente
-                                if (t.getPaciente() != null) {
-                                    p.setNomePaciente(t.getPaciente().getNome());
-                                    p.setSns(t.getPaciente().getSns());
-                                    p.setTelefone(t.getPaciente().getTelefone());
-                                }
-
-                                db.adicionarPulseira(p);
-                            }
-                        }
-
-                        adapter.notifyDataSetChanged();
-                        if (tvTotalTriagens != null) tvTotalTriagens.setText("Total: " + listaTriagens.size());
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                },
-                error -> {
-                    if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
-
-                    Toast.makeText(this, "Modo Offline: A carregar dados locais...", Toast.LENGTH_LONG).show();
-                    carregarHistoricoOffline();
-                }
-        );
-
-        req.setShouldCache(false);
-        VolleySingleton.getInstance(this).addToRequestQueue(req);
+        VolleySingleton.getInstance(this).getHistoricoTriagensAPI(isPaciente);
     }
 
-    private void carregarHistoricoOffline() {
-        PulseiraBDHelper db = PulseiraBDHelper.getInstance(this);
-        ArrayList<Pulseira> pulseirasOffline = db.getAllPulseiras();
-
+    @Override
+    public void onTriagensLoaded(ArrayList<Triagem> triagens) {
+        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
         listaTriagens.clear();
-
-        for (Pulseira p : pulseirasOffline) {
-            Triagem t = new Triagem();
-            t.setId(p.getId());
-            t.setPulseira(p);
-
-            // Preencher dados médicos
-            t.setMotivoconsulta(p.getMotivo());
-            t.setQueixaprincipal(p.getQueixa());
-            t.setDescricaosintomas(p.getDescricao());
-            t.setIniciosintomas(p.getInicioSintomas());
-            t.setAlergias(p.getAlergias());
-            t.setMedicacao(p.getMedicacao());
-
-            // Passar a data da pulseira para a triagem para aparecer na lista
-            t.setDatatriagem(p.getDataEntrada());
-
-            try {
-                t.setIntensidadedor(Integer.parseInt(p.getDor()));
-            } catch (Exception e) {
-                t.setIntensidadedor(0);
-            }
-
-            // Recriar Paciente
-            Paciente pac = new Paciente();
-            pac.setNome(p.getNomePaciente());
-            pac.setSns(p.getSns());
-            pac.setTelefone(p.getTelefone());
-
-            t.setPaciente(pac);
-
-            listaTriagens.add(t);
-        }
-
+        listaTriagens.addAll(triagens);
         adapter.notifyDataSetChanged();
-        if (tvTotalTriagens != null) tvTotalTriagens.setText("Total (Offline): " + listaTriagens.size());
+        if (tvTotalTriagens != null) tvTotalTriagens.setText("Total: " + listaTriagens.size());
     }
 
-    // INTERFACE TriagemListener e API
+    @Override
+    public void onTriagemError(String error) {
+        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+        Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     public void onTriagemClick(int id) {
-        //  método da PulseiraJsonParser
-        if (!PulseiraJsonParser.isConnectionInternet(this)) {
-            Toast.makeText(this, "Sem internet: Não é possível ver os detalhes.", Toast.LENGTH_SHORT).show();
-            return; // Sai da função e não abre a atividade
+        if (!VolleySingleton.getInstance(this).isInternetConnection()) {
+            Toast.makeText(this, "Sem internet: Detalhes indisponíveis.", Toast.LENGTH_SHORT).show();
+            return;
         }
-
         Intent intent = new Intent(this, DetalhesTriagemActivity.class);
         intent.putExtra("ID_TRIAGEM", id);
         startActivity(intent);
@@ -236,6 +113,10 @@ public class HistoricoActivity extends AppCompatActivity implements TriagemListe
 
     @Override
     public void onEliminarClick(int id) {
+        if (!VolleySingleton.getInstance(this).isInternetConnection()) {
+            Toast.makeText(this, "Apenas Online.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         new AlertDialog.Builder(this)
                 .setTitle("Eliminar")
                 .setMessage("Tem a certeza?")
@@ -245,24 +126,16 @@ public class HistoricoActivity extends AppCompatActivity implements TriagemListe
     }
 
     private void eliminarTriagemPermanente(int idTriagem) {
-        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
-        String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
-        String url = baseUrl + "api/triagem/" + idTriagem + "?auth_key=" + token;
+        String url = VolleySingleton.getInstance(this).getAPIUrl(VolleySingleton.ENDPOINT_TRIAGEM + "/" + idTriagem);
+        Map<String, String> params = new HashMap<>();
+        params.put("_method", "DELETE");
 
-        StringRequest request = new StringRequest(Request.Method.POST, url,
+        VolleySingleton.getInstance(this).apiRequest(Request.Method.POST, url, params,
                 response -> {
                     Toast.makeText(this, "Eliminado.", Toast.LENGTH_SHORT).show();
-                    carregarHistorico();
+                    carregarHistorico(); // Recarrega
                 },
                 error -> Toast.makeText(this, "Erro ao eliminar.", Toast.LENGTH_SHORT).show()
-        ) {
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-                params.put("_method", "DELETE");
-                return params;
-            }
-        };
-        VolleySingleton.getInstance(this).addToRequestQueue(request);
+        );
     }
 }

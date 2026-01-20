@@ -18,7 +18,6 @@ public class DetalhesPacienteActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detalhes_paciente);
 
-        // 🔗 Ligar elementos do XML
         btnBack    = findViewById(R.id.btnBack);
         tvNome     = findViewById(R.id.tvNome);
         tvNif      = findViewById(R.id.tvNif);
@@ -28,10 +27,10 @@ public class DetalhesPacienteActivity extends AppCompatActivity {
         tvMorada   = findViewById(R.id.tvMorada);
         tvDataNasc = findViewById(R.id.tvDataNasc);
 
-        // 🔙 Botão voltar
+        //Botão voltar
         btnBack.setOnClickListener(v -> finish());
 
-        // 📥 RECEBER DADOS ENVIADOS
+        //RECEBER DADOS ENVIADOS
         String nome     = getIntent().getStringExtra("nome");
         String nif      = getIntent().getStringExtra("nif");
         String sns      = getIntent().getStringExtra("sns");
@@ -40,7 +39,7 @@ public class DetalhesPacienteActivity extends AppCompatActivity {
         String morada   = getIntent().getStringExtra("morada");
         String dataNasc = getIntent().getStringExtra("datanascimento");
 
-        // 🖼️ MOSTRAR NO ECRÃ
+        //MOSTRAR NO ECRÃ
         tvNome.setText(nome);
         tvNif.setText(nif);
         tvSns.setText(sns);

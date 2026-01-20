@@ -44,10 +44,8 @@ public class EditarPerfilPacienteActivity extends AppCompatActivity {
         etSns = findViewById(R.id.etSns);
         progressBar = findViewById(R.id.progressBar);
 
-        // Preencher campos com dados atuais
         carregarDadosAtuais();
 
-        // Ações dos botões
         btnCancel.setOnClickListener(v -> finish());
         btnSaveBottom.setOnClickListener(v -> guardarAlteracoes());
     }
@@ -80,14 +78,9 @@ public class EditarPerfilPacienteActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
 
         final Paciente original = SharedPrefManager.getInstance(this).getPaciente();
-        final String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
-        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
-        if (!baseUrl.endsWith("/")) baseUrl += "/";
 
-        // URL com token para autenticação
-        String url = baseUrl + "api/paciente/" + original.getId() + "?auth_key=" + token;
+        String url = VolleySingleton.getInstance(this).getAPIUrl(VolleySingleton.ENDPOINT_PACIENTE_PERFIL);
 
-        // POST com overriding para contornar problemas de PUT no servidor
         StringRequest request = new StringRequest(Request.Method.POST, url,
                 response -> {
                     progressBar.setVisibility(View.GONE);
@@ -110,15 +103,12 @@ public class EditarPerfilPacienteActivity extends AppCompatActivity {
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
 
-                // Informa o Yii2 que este POST deve ser tratado como um PUT
                 params.put("_method", "PUT");
 
-                // Envio dos dados no formato Paciente[campo]
                 params.put("Paciente[nome]", nome);
                 params.put("Paciente[telefone]", telefone);
                 params.put("Paciente[morada]", morada);
 
-                // IMPORTANTE: Só envia se mudou para não disparar a regra 'unique' do NIF/SNS/Email
                 if (!email.equalsIgnoreCase(original.getEmail())) {
                     params.put("Paciente[email]", email);
                 }
@@ -128,8 +118,6 @@ public class EditarPerfilPacienteActivity extends AppCompatActivity {
                 if (!sns.equals(original.getSns())) {
                     params.put("Paciente[sns]", sns);
                 }
-
-                // Campos obrigatórios que não mudam nesta activity mas o modelo exige
                 if (original.getGenero() != null) {
                     params.put("Paciente[genero]", original.getGenero());
                 }

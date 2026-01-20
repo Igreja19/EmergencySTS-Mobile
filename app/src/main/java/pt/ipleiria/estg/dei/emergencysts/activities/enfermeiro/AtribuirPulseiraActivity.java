@@ -41,9 +41,16 @@ public class AtribuirPulseiraActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_atribuir_pulseira);
 
+        if (VolleySingleton.getInstance(this).isInternetConnection()) {
+            carregarDadosTriagem();
+        } else {
+            Toast.makeText(this, "Sem internet: Não é possível carregar os dados.", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
         inicializarCampos();
 
-        // Configuração do Spinner
         String[] cores = {"Selecione a Prioridade...", "Vermelho", "Laranja", "Amarelo", "Verde", "Azul"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, cores);
         spinnerPrioridade.setAdapter(adapter);
@@ -62,10 +69,7 @@ public class AtribuirPulseiraActivity extends AppCompatActivity {
             return;
         }
 
-        // --- INICIALIZAÇÃO MQTT ---
-        // Agora o MqttClientManager utiliza internamente o user 'emergencysts' e a password definida
         mqtt = MqttClientManager.getInstance(this);
-        // Subscreve ao tópico específico desta pulseira para ouvir atualizações externas
         mqtt.subscribe("pulseira/atualizada/" + pulseiraId);
 
         carregarDadosTriagem();
@@ -74,6 +78,11 @@ public class AtribuirPulseiraActivity extends AppCompatActivity {
         if (btnVoltar != null) btnVoltar.setOnClickListener(v -> finish());
 
         btnAtribuir.setOnClickListener(v -> {
+            if (!VolleySingleton.getInstance(this).isInternetConnection()) {
+                Toast.makeText(this, "Sem internet. Não é possível atribuir a pulseira.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             String prioridade = spinnerPrioridade.getSelectedItem().toString();
             if (prioridade.equals("Selecione a Prioridade...")) {
                 Toast.makeText(this, "Selecione uma cor.", Toast.LENGTH_SHORT).show();
@@ -100,9 +109,7 @@ public class AtribuirPulseiraActivity extends AppCompatActivity {
     }
 
     private void carregarDadosTriagem() {
-        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
-        String authKey = SharedPrefManager.getInstance(this).getKeyAccessToken();
-        String url = baseUrl + "api/pulseira/" + pulseiraId + "?expand=triagem,userprofile&auth_key=" + authKey;
+        String url = VolleySingleton.getInstance(this).getAPIUrl(VolleySingleton.ENDPOINT_PULSEIRA + "/" + pulseiraId);
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
                 response -> {
@@ -131,7 +138,6 @@ public class AtribuirPulseiraActivity extends AppCompatActivity {
         String authKey = SharedPrefManager.getInstance(this).getKeyAccessToken();
         String url = baseUrl + "api/pulseira/" + pulseiraId + "?auth_key=" + authKey;
 
-        // Nota: O PHP deve estar configurado para disparar o MqttService::publish() após este PUT
         StringRequest request = new StringRequest(Request.Method.POST, url, // Método POST com _method=PUT para Volley/Yii2
                 response -> {
                     Toast.makeText(this, "Prioridade atribuída! O paciente será notificado.", Toast.LENGTH_LONG).show();

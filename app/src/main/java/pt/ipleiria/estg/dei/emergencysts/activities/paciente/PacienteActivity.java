@@ -71,7 +71,6 @@ public class PacienteActivity extends AppCompatActivity {
         }
     }
 
-    // MQTT deve ser garantido aqui
     @Override
     protected void onResume() {
         super.onResume();
@@ -81,7 +80,7 @@ public class PacienteActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Isso garante que notificações cheguem mesmo que a Activity seja destruída
+        //garante que notificações cheguem mesmo que a Activity seja destruída
     }
 
     @Override

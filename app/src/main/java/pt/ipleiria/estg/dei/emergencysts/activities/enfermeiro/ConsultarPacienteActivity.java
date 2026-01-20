@@ -23,7 +23,7 @@ import org.json.JSONObject;
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Paciente;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
-import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
+import pt.ipleiria.estg.dei.emergencysts.utils.PacienteJsonParser; // Import mais limpo
 
 public class ConsultarPacienteActivity extends AppCompatActivity {
 
@@ -49,7 +49,6 @@ public class ConsultarPacienteActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
 
-        // Quando escrever 9 dígitos
         edtNif.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
@@ -62,21 +61,23 @@ public class ConsultarPacienteActivity extends AppCompatActivity {
                     resultCard.setVisibility(View.GONE);
                     return;
                 }
+                // Só pesquisa se tiver 9 digitos
                 if (nif.length() == 9) searchPaciente(nif);
             }
         });
     }
 
     private void searchPaciente(String nif) {
+        if (!VolleySingleton.getInstance(this).isInternetConnection()) {
+            Toast.makeText(this, "Sem ligação à Internet", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         emptyState.setVisibility(View.GONE);
         resultCard.setVisibility(View.GONE);
 
-        String baseUrl = SharedPrefManager.getInstance(this).getServerUrl();
-        String token = SharedPrefManager.getInstance(this).getKeyAccessToken();
-
-        // CORREÇÃO IMPORTANTE
-        String url = baseUrl + "api/paciente?nif=" + nif + "&auth_key=" + token;
+        String url = VolleySingleton.getInstance(this)
+                .getAPIUrl(VolleySingleton.ENDPOINT_PACIENTE + "?nif=" + nif);
 
         JsonArrayRequest request = new JsonArrayRequest(
                 Request.Method.GET,
@@ -90,20 +91,17 @@ public class ConsultarPacienteActivity extends AppCompatActivity {
     }
 
     private void handleResponse(JSONArray array) {
-        System.out.println("JSON RECEBIDO: " + array.toString());
-
         if (array.length() == 0) {
             showNotFound();
             return;
         }
 
         try {
-            // Usa o novo Parser para converter o primeiro resultado
             JSONObject jsonPaciente = array.getJSONObject(0);
-            Paciente p = pt.ipleiria.estg.dei.emergencysts.utils.PacienteJsonParser.parserJsonPaciente(jsonPaciente);
+            Paciente p = PacienteJsonParser.parserJsonPaciente(jsonPaciente);
 
             if (p != null) {
-                // Atualizar UI com os dados do objeto Paciente
+                // Atualizar UI
                 tvNome.setText(p.getNome());
                 tvNif.setText("NIF: " + p.getNif());
                 tvSns.setText("SNS: " + p.getSns());
@@ -111,7 +109,7 @@ public class ConsultarPacienteActivity extends AppCompatActivity {
                 resultCard.setVisibility(View.VISIBLE);
                 emptyState.setVisibility(View.GONE);
 
-                // Passar dados para a próxima atividade via Intent
+                // Configurar clique para detalhes
                 resultCard.setOnClickListener(v -> {
                     Intent intent = new Intent(ConsultarPacienteActivity.this, DetalhesPacienteActivity.class);
                     intent.putExtra("nome", p.getNome());
@@ -134,7 +132,7 @@ public class ConsultarPacienteActivity extends AppCompatActivity {
     }
 
     private void showNotFound() {
-        Toast.makeText(this, "Paciente não foi encontrado", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Paciente não encontrado", Toast.LENGTH_SHORT).show();
         resultCard.setVisibility(View.GONE);
         emptyState.setVisibility(View.VISIBLE);
     }

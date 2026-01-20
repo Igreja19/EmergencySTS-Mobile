@@ -18,9 +18,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
             android:orientation="vertical"
-            android:gravity="center"
+            android:gravity="center_horizontal"
             android:paddingHorizontal="32dp"
             android:paddingTop="64dp"
             android:paddingBottom="24dp">
@@ -31,16 +30,17 @@
                 android:layout_marginBottom="8dp"
                 android:gravity="center"
                 android:text="@string/emergency_sts"
-                android:textColor="@color/green_700"
+                android:textColor="#006400"
                 android:textSize="22sp"
                 android:textStyle="bold" />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
                 android:gravity="center"
                 android:text="@string/area_do_enfermeiro"
-                android:textColor="@color/green_700"
+                android:textColor="#006400"
                 android:textSize="14sp" />
 
             <androidx.cardview.widget.CardView
@@ -51,8 +51,8 @@
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="18dp"
                 app:cardElevation="8dp"
-                app:cardUseCompatPadding="true"
-                app:cardBackgroundColor="@color/bg_card">
+                app:cardUseCompatPadding="true">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -66,12 +66,13 @@
                         android:layout_height="56dp"
                         android:layout_marginBottom="8dp"
                         android:src="@drawable/ic_mostrar_pulseira"
-                        app:tint="@color/green_700" />
+                        app:tint="#009E4D" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/mostrar_pulseira"
-                        android:textColor="@color/green_700"
+                        android:textColor="#009E4D"
                         android:textStyle="bold" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -84,8 +85,7 @@
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="18dp"
                 app:cardElevation="8dp"
-                app:cardUseCompatPadding="true"
-                app:cardBackgroundColor="@color/bg_card">
+                app:cardUseCompatPadding="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -100,13 +100,13 @@
                         android:layout_height="56dp"
                         android:layout_marginBottom="8dp"
                         android:src="@drawable/ic_consultar_paciente"
-                        app:tint="@color/green_700" />
+                        app:tint="#009E4D" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/consultar_paciente"
-                        android:textColor="@color/green_700"
+                        android:textColor="#009E4D"
                         android:textStyle="bold" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -119,8 +119,7 @@
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="18dp"
                 app:cardElevation="8dp"
-                app:cardUseCompatPadding="true"
-                app:cardBackgroundColor="@color/bg_card">
+                app:cardUseCompatPadding="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -135,13 +134,13 @@
                         android:layout_height="56dp"
                         android:layout_marginBottom="8dp"
                         android:src="@drawable/ic_historico"
-                        app:tint="@color/green_700" />
+                        app:tint="#009E4D" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/historico_triagem"
-                        android:textColor="@color/green_700"
+                        android:textColor="#009E4D"
                         android:textStyle="bold" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -151,10 +150,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
                 app:cardCornerRadius="18dp"
                 app:cardElevation="8dp"
-                app:cardUseCompatPadding="true"
-                app:cardBackgroundColor="@color/bg_card">
+                app:cardUseCompatPadding="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -169,13 +168,13 @@
                         android:layout_height="56dp"
                         android:layout_marginBottom="8dp"
                         android:src="@drawable/ic_perfil"
-                        app:tint="@color/green_700" />
+                        app:tint="#009E4D" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/perfil"
-                        android:textColor="@color/green_700"
+                        android:textColor="#009E4D"
                         android:textStyle="bold" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

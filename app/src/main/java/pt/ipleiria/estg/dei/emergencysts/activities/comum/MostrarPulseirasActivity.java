@@ -118,7 +118,6 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
         } catch (Exception ignored) {}
     }
 
-    // Receiver apenas para atualizar UI (sem criar notificações)
     private final BroadcastReceiver mqttReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context ctx, Intent intent) {
@@ -199,6 +198,7 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
     }
 
     private void atualizarInterface(ArrayList<Pulseira> pulseiras) {
+
         if (pulseiras == null || pulseiras.isEmpty()) {
             layoutSemPulseira.setVisibility(View.VISIBLE);
             if (isPaciente && cardPulseira != null) cardPulseira.setVisibility(View.GONE);
