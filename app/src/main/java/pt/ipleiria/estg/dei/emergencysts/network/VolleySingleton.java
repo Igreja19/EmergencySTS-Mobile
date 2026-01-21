@@ -15,12 +15,14 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import pt.ipleiria.estg.dei.emergencysts.listeners.PulseiraListener;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Enfermeiro;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Paciente;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Pulseira;
@@ -29,6 +31,7 @@ import pt.ipleiria.estg.dei.emergencysts.modelo.Triagem;
 // Parsers
 import pt.ipleiria.estg.dei.emergencysts.utils.PacienteJsonParser;
 import pt.ipleiria.estg.dei.emergencysts.utils.PulseiraBDHelper;
+import pt.ipleiria.estg.dei.emergencysts.utils.PulseiraJsonParser;
 import pt.ipleiria.estg.dei.emergencysts.utils.SharedPrefManager;
 import pt.ipleiria.estg.dei.emergencysts.utils.TriagemJsonParser;
 import pt.ipleiria.estg.dei.emergencysts.utils.UserJsonParser;
@@ -58,6 +61,7 @@ public class VolleySingleton {
     private TriagemListener triagemListener;
 
     private PulseiraBDHelper dbHelper;
+    private PulseiraListener pulseiraListener;
 
     private VolleySingleton(Context context) {
         this.ctx = context.getApplicationContext();
@@ -467,5 +471,54 @@ public class VolleySingleton {
             fullUrl += (fullUrl.contains("?") ? "&" : "?") + "auth_key=" + token;
         }
         return fullUrl;
+    }
+
+    public void setPulseiraListener(PulseiraListener listener) { this.pulseiraListener = listener; }
+
+    public void getPulseirasAtivasAPI(boolean isPaciente) {
+        if (!isInternetConnection()) {
+            Toast.makeText(ctx, "Modo Offline: A mostrar últimos dados.", Toast.LENGTH_SHORT).show();
+            ArrayList<Pulseira> locais = dbHelper.getAllPulseiras();
+            if (pulseiraListener != null) {
+                pulseiraListener.onPulseirasLoaded(locais);
+            }
+            return;
+        }
+
+        String baseUrl = SharedPrefManager.getInstance(ctx).getServerUrl();
+        String authKey = SharedPrefManager.getInstance(ctx).getKeyAccessToken();
+        StringBuilder urlBuilder = new StringBuilder(baseUrl);
+        urlBuilder.append("api/pulseira?");
+
+        if (isPaciente) {
+            urlBuilder.append("sort=-id&");
+        } else {
+            urlBuilder.append("status=Em%20espera&prioridade=Pendente&");
+        }
+        urlBuilder.append("expand=userprofile&auth_key=").append(authKey);
+
+        JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET, urlBuilder.toString(), null,
+                response -> {
+                    try {
+                        JSONArray data = response.has("data") ? response.getJSONArray("data") : response.optJSONArray("items");
+
+                        ArrayList<Pulseira> listaOnline = PulseiraJsonParser.parserJsonPulseiras(data);
+
+                        dbHelper.sincronizarPulseiras(listaOnline);
+
+                        if (pulseiraListener != null) {
+                            pulseiraListener.onPulseirasLoaded(listaOnline);
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> {
+                    ArrayList<Pulseira> locais = dbHelper.getAllPulseiras();
+                    if (pulseiraListener != null) pulseiraListener.onPulseirasLoaded(locais);
+                }
+        );
+        addToRequestQueue(req);
     }
 }
