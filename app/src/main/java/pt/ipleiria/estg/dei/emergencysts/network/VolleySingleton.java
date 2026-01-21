@@ -215,7 +215,6 @@ public class VolleySingleton {
 
                         SharedPrefManager.getInstance(ctx).saveEnfermeiro(enf);
 
-                        // SUCESSO: Navegar
                         if (loginListener != null) loginListener.onValidateLogin(token, username, enf.getRole());
 
                     } catch (Exception e) {
@@ -256,7 +255,6 @@ public class VolleySingleton {
 
                         SharedPrefManager.getInstance(ctx).savePaciente(pac);
 
-                        // SUCESSO: Navegar
                         if (loginListener != null) loginListener.onValidateLogin(token, username, pac.getRole());
 
                     } catch (Exception e) {

@@ -100,7 +100,6 @@ public class PulseiraBDHelper extends SQLiteOpenHelper {
         insertPulseira(db, p);
     }
 
-    // Helper privado para inserir usando a base de dados já aberta
     private void insertPulseira(SQLiteDatabase db, Pulseira p) {
         ContentValues values = new ContentValues();
         values.put(COL_ID, p.getId());

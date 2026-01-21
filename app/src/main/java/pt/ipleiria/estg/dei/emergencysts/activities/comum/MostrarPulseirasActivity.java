@@ -93,10 +93,8 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
     protected void onResume() {
         super.onResume();
 
-        // 1. IMPORTANTE: Definir esta Activity como o Listener para receber os dados
         VolleySingleton.getInstance(this).setPulseiraListener(this);
 
-        // 2. Pedir os dados ao Singleton
         getPulseirasAPI();
 
         IntentFilter filter = new IntentFilter("MQTT_MESSAGE");
@@ -121,12 +119,10 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
             String topic = intent.getStringExtra("topic");
             if (topic == null) return;
 
-            // Atualizar dados sempre que há eventos de pulseira
             if (topic.startsWith("pulseira/")) {
                 getPulseirasAPI();
             }
 
-            // Feedback visual
             if (isPaciente && topic.startsWith("pulseira/atualizada/")) {
                 Toast.makeText(ctx, "O estado da sua pulseira foi atualizado!", Toast.LENGTH_LONG).show();
             } else if (!isPaciente && topic.startsWith("pulseira/criada/")) {
@@ -139,11 +135,8 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
         progressBar.setVisibility(View.VISIBLE);
         layoutSemPulseira.setVisibility(View.GONE);
 
-        // CHAMADA LIMPA: Toda a lógica de rede e BD está agora no VolleySingleton
         VolleySingleton.getInstance(this).getPulseirasAtivasAPI(isPaciente);
     }
-
-    // --- MÉTODOS DA INTERFACE PulseiraListener ---
 
     @Override
     public void onPulseirasLoaded(ArrayList<Pulseira> pulseiras) {
@@ -160,8 +153,6 @@ public class MostrarPulseirasActivity extends AppCompatActivity implements Pulse
             startActivity(intent);
         }
     }
-
-    // ---------------------------------------------
 
     private void atualizarInterface(ArrayList<Pulseira> pulseiras) {
 
