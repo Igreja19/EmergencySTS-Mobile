@@ -27,7 +27,6 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
 
     private EditText etNome, etEmail, etTelefone, etMorada, etNif, etSns;
     private ProgressBar progressBar;
-
     private Enfermeiro original;
 
     @Override
@@ -35,9 +34,7 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editar_perfil_enfermeiro);
 
-        ImageView btnCancel = findViewById(R.id.btnCancel);
-        Button btnSaveBottom = findViewById(R.id.btnSaveBottom);
-
+        // Inicialização de UI
         etNome = findViewById(R.id.etNome);
         etEmail = findViewById(R.id.etEmail);
         etTelefone = findViewById(R.id.etTelefone);
@@ -46,11 +43,14 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
         etSns = findViewById(R.id.etSns);
         progressBar = findViewById(R.id.progressBar);
 
-        // 1. Carregar e GUARDAR o original
+        ImageView btnCancel = findViewById(R.id.btnCancel);
+        Button btnSaveBottom = findViewById(R.id.btnSaveBottom);
+
+        // Carregar dados guardados
         original = SharedPrefManager.getInstance(this).getEnfermeiro();
         carregarDadosAtuais();
 
-        // Ações dos botões
+        // Listeners
         btnCancel.setOnClickListener(v -> finish());
         btnSaveBottom.setOnClickListener(v -> guardarAlteracoes());
     }
@@ -67,41 +67,34 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
     }
 
     private void guardarAlteracoes() {
-        final String nome = etNome.getText().toString().trim();
-        final String email = etEmail.getText().toString().trim();
-
-        if (nome.isEmpty() || email.isEmpty()) {
-            Toast.makeText(this, "Nome e Email são obrigatórios!", Toast.LENGTH_SHORT).show();
-            return;
+        // Verifica se o objeto original existe antes de tudo
+        if (original == null) {
+            original = SharedPrefManager.getInstance(this).getEnfermeiro();
+            if (original == null || original.getUserId() <= 0) {
+                Toast.makeText(this, "Erro: Dados do enfermeiro não encontrados.", Toast.LENGTH_LONG).show();
+                return;
+            }
         }
 
         progressBar.setVisibility(View.VISIBLE);
 
-        if (original == null) original = SharedPrefManager.getInstance(this).getEnfermeiro();
-
-        String url = VolleySingleton.getInstance(this).getAPIUrl(VolleySingleton.ENDPOINT_ENFERMEIRO + "/" + original.getId());
-
+        // URL: O VolleySingleton já coloca a auth_key no fim, não mexa aqui.
+        String url = VolleySingleton.getInstance(this).getAPIUrl(VolleySingleton.ENDPOINT_ENFERMEIRO + "/" + original.getUserId());
         StringRequest request = new StringRequest(Request.Method.POST, url,
                 response -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Perfil atualizado com sucesso!", Toast.LENGTH_LONG).show();
                     atualizarSharedPrefsLocalmente();
+                    Toast.makeText(this, "Perfil atualizado com sucesso!", Toast.LENGTH_LONG).show();
                     finish();
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
                     if (error.networkResponse != null) {
-                        String body = new String(error.networkResponse.data);
-                        Log.e("API_ERRO", "Status: " + error.networkResponse.statusCode + " Body: " + body);
-
-                        String msg = "Erro ao guardar.";
-                        if(error.networkResponse.statusCode == 422) msg = "Erro: Dados duplicados ou inválidos.";
-                        if(error.networkResponse.statusCode == 401) msg = "Sessão expirada.";
-
-                        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(this, "Erro de ligação ao servidor", Toast.LENGTH_SHORT).show();
+                        // Verifique o Logcat para ler o erro real do Yii2 (ex: validação falhou)
+                        String errorData = new String(error.networkResponse.data);
+                        Log.e("API_ERRO", "Status: " + error.networkResponse.statusCode + " Body: " + errorData);
                     }
+                    Toast.makeText(this, "Erro ao guardar alterações", Toast.LENGTH_SHORT).show();
                 }
         ) {
             @Override
@@ -110,33 +103,18 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
 
                 params.put("_method", "PUT");
 
-                // Campos que enviamos sempre
-                params.put("Enfermeiro[nome]", etNome.getText().toString());
-                params.put("Enfermeiro[telefone]", etTelefone.getText().toString());
-                params.put("Enfermeiro[morada]", etMorada.getText().toString());
+                params.put("Enfermeiro[nome]", etNome.getText().toString().trim());
+                params.put("Enfermeiro[email]", etEmail.getText().toString().trim());
+                params.put("Enfermeiro[telefone]", etTelefone.getText().toString().trim());
+                params.put("Enfermeiro[morada]", etMorada.getText().toString().trim());
+                params.put("Enfermeiro[nif]", etNif.getText().toString().trim());
+                params.put("Enfermeiro[sns]", etSns.getText().toString().trim());
 
-
-                String novoEmail = etEmail.getText().toString();
-                if (!novoEmail.equalsIgnoreCase(original.getEmail())) {
-                    params.put("Enfermeiro[email]", novoEmail);
-                }
-
-                String novoNif = etNif.getText().toString();
-                if (!novoNif.equals(original.getNif())) {
-                    params.put("Enfermeiro[nif]", novoNif);
-                }
-
-                String novoSns = etSns.getText().toString();
-                if (!novoSns.equals(original.getSns())) {
-                    params.put("Enfermeiro[sns]", novoSns);
+                if (original.getDataNascimento() != null) {
+                    params.put("Enfermeiro[datanascimento]", original.getDataNascimento());
                 }
 
                 return params;
-            }
-
-            @Override
-            public String getBodyContentType() {
-                return "application/x-www-form-urlencoded; charset=UTF-8";
             }
 
             @Override
@@ -146,7 +124,8 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
                 if (token != null) {
                     headers.put("Authorization", "Bearer " + token);
                 }
-                headers.put("X-HTTP-Method-Override", "PUT"); // Segurança extra
+                // Garante que o servidor entenda que enviamos um formulário
+                headers.put("Accept", "application/json");
                 return headers;
             }
         };
@@ -156,12 +135,12 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
 
     private void atualizarSharedPrefsLocalmente() {
         if (original != null) {
-            original.setNome(etNome.getText().toString());
-            original.setEmail(etEmail.getText().toString());
-            original.setTelefone(etTelefone.getText().toString());
-            original.setMorada(etMorada.getText().toString());
-            original.setNif(etNif.getText().toString());
-            original.setSns(etSns.getText().toString());
+            original.setNome(etNome.getText().toString().trim());
+            original.setEmail(etEmail.getText().toString().trim());
+            original.setTelefone(etTelefone.getText().toString().trim());
+            original.setMorada(etMorada.getText().toString().trim());
+            original.setNif(etNif.getText().toString().trim());
+            original.setSns(etSns.getText().toString().trim());
 
             SharedPrefManager.getInstance(this).saveEnfermeiro(original);
         }

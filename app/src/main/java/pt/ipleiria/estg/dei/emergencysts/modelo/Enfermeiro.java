@@ -2,20 +2,25 @@ package pt.ipleiria.estg.dei.emergencysts.modelo;
 
 import java.util.Calendar;
 
+/**
+ * Modelo Enfermeiro
+ * Representa a junção lógica de User + UserProfile no lado Android
+ */
 public class Enfermeiro {
 
+    /* =========================================================
+     * Dados de autenticação (tabela user)
+     * ========================================================= */
     private int userId;
     private String username;
     private String email;
     private String role;
-
     private String nome;
     private String dataNascimento; // formato YYYY-MM-DD
     private String telefone;
     private String sns;
     private String nif;
     private String morada;
-
 
     public Enfermeiro(int userId, String username, String email, String role) {
         this.userId = userId;
@@ -24,12 +29,19 @@ public class Enfermeiro {
         this.role = role;
     }
 
-    public Enfermeiro(int userId, String username, String email, String role,
-                      String nome, String dataNascimento,
-                      String telefone, String sns, String nif, String morada) {
-
+    public Enfermeiro(
+            int userId,
+            String username,
+            String email,
+            String role,
+            String nome,
+            String dataNascimento,
+            String telefone,
+            String sns,
+            String nif,
+            String morada
+    ) {
         this(userId, username, email, role);
-
         this.nome = nome;
         this.dataNascimento = dataNascimento;
         this.telefone = telefone;
@@ -38,28 +50,59 @@ public class Enfermeiro {
         this.morada = morada;
     }
 
-    public int getId() { return userId; }
-    public String getUsername() { return username; }
-    public String getEmail() { return email; }
-    public String getRole() { return role; }
+    public int getUserId() {
+        return userId;
+    }
 
-    public String getNome() { return nome; }
-    public String getDataNascimento() { return dataNascimento; }
-    public String getTelefone() { return telefone; }
-    public String getSns() { return sns; }
-    public String getNif() { return nif; }
-    public String getMorada() { return morada; }
+    public String getUsername() {
+        return username;
+    }
 
+    public String getEmail() {
+        return email;
+    }
 
+    public String getRole() {
+        return role;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public String getDataNascimento() {
+        return dataNascimento;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public String getSns() {
+        return sns;
+    }
+
+    public String getNif() {
+        return nif;
+    }
+
+    public String getMorada() {
+        return morada;
+    }
+
+    /**
+     * Calcula a idade a partir da data de nascimento
+     */
     public String getIdadeFormatada() {
-
         try {
-            if (dataNascimento == null || dataNascimento.trim().isEmpty())
+            if (dataNascimento == null || dataNascimento.trim().isEmpty()) {
                 return "-- anos";
+            }
 
             String[] parts = dataNascimento.split("-");
-            if (parts.length != 3)
+            if (parts.length != 3) {
                 return "-- anos";
+            }
 
             int ano = Integer.parseInt(parts[0]);
             int mes = Integer.parseInt(parts[1]);
@@ -83,11 +126,39 @@ public class Enfermeiro {
         }
     }
 
-    public void setNome(String nome) { this.nome = nome; }
-    public void setDataNascimento(String dataNascimento) { this.dataNascimento = dataNascimento; }
-    public void setTelefone(String telefone) { this.telefone = telefone; }
-    public void setSns(String sns) { this.sns = sns; }
-    public void setNif(String nif) { this.nif = nif; }
-    public void setEmail(String email) { this.email = email; }
-    public void setMorada(String morada) { this.morada = morada; }
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public void setDataNascimento(String dataNascimento) {
+        this.dataNascimento = dataNascimento;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public void setSns(String sns) {
+        this.sns = sns;
+    }
+
+    public void setNif(String nif) {
+        this.nif = nif;
+    }
+
+    public void setMorada(String morada) {
+        this.morada = morada;
+    }
 }

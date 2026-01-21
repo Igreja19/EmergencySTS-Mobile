@@ -30,9 +30,10 @@ public class LoginActivity extends AppCompatActivity implements LoginListener {
 
         if (SharedPrefManager.getInstance(this).isLoggedIn()) {
             Enfermeiro user = SharedPrefManager.getInstance(this).getEnfermeiroBase();
-            String savedRole = (user != null) ? user.getRole() : "Enfermeiro";
-            navegarParaActivity(savedRole);
-            return;
+            if (user != null) {
+                navegarParaActivity(user.getRole(), user.getUsername());
+                return;
+            }
         }
 
         etUsername = findViewById(R.id.etUsername);
@@ -73,9 +74,7 @@ public class LoginActivity extends AppCompatActivity implements LoginListener {
     public void onValidateLogin(String token, String username, String role) {
         btnLogin.setEnabled(true);
         btnLogin.setText("Login");
-
-        Toast.makeText(this, "Bem-vindo " + username, Toast.LENGTH_SHORT).show();
-        navegarParaActivity(role);
+        navegarParaActivity(role, username);
     }
 
     @Override
@@ -85,32 +84,36 @@ public class LoginActivity extends AppCompatActivity implements LoginListener {
         Toast.makeText(this, error, Toast.LENGTH_LONG).show();
     }
 
-    private void navegarParaActivity(String rawRole) {
+    private void navegarParaActivity(String rawRole, String username) {
         try {
             MqttClientManager.getInstance(this).connect();
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         String role = (rawRole == null) ? "Enfermeiro" : rawRole.trim();
-
-        System.out.println(">>> A NAVEGAR PARA ROLE: " + role);
-
         Intent intent;
 
         if (role.equalsIgnoreCase("paciente") || role.equalsIgnoreCase("utente")) {
-            // Se for paciente
+            if (username != null && !username.isEmpty()) {
+                Toast.makeText(this, "Bem-vindo " + username, Toast.LENGTH_SHORT).show();
+            }
             intent = new Intent(this, PacienteActivity.class);
         }
         else if (role.equalsIgnoreCase("medico")) {
-            // Se for médico (bloqueia)
             SharedPrefManager.getInstance(this).logout();
-            Toast.makeText(this, "Médicos: usem a Web.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Médicos usam o painel Web.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        else if (role.equalsIgnoreCase("admin") || role.equalsIgnoreCase("administrador")) {
+            SharedPrefManager.getInstance(this).logout();
+            Toast.makeText(this, "Administradores usem o painel Web.", Toast.LENGTH_LONG).show();
             return;
         }
         else {
-            // Se for Enfermeiro, Admin, Administrador, ou qualquer outra coisa -> Vai para Enfermeiro
+            if (username != null && !username.isEmpty()) {
+                Toast.makeText(this, "Bem-vindo " + username, Toast.LENGTH_SHORT).show();
+            }
             intent = new Intent(this, EnfermeiroActivity.class);
         }
 
