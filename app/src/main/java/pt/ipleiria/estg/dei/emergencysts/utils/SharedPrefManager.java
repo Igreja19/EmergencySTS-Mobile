@@ -64,7 +64,7 @@ public class SharedPrefManager {
     public void userLogin(Enfermeiro user, String accessToken) {
         SharedPreferences.Editor e = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
 
-        e.putInt(KEY_ID, user.getUserId());
+        e.putInt(KEY_ID, user.getId());
         e.putString(KEY_USERNAME, user.getUsername());
         e.putString(KEY_EMAIL, user.getEmail());
         e.putString(KEY_ROLE, user.getRole());
@@ -96,7 +96,7 @@ public class SharedPrefManager {
         Enfermeiro base = getEnfermeiroBase();
 
         return new Enfermeiro(
-                base.getUserId(),
+                base.getId(),
                 base.getUsername(),
                 sp.getString(KEY_ENF_EMAIL, base.getEmail()),
                 base.getRole(),

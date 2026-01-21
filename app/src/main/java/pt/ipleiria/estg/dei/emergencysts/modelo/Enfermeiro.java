@@ -50,7 +50,7 @@ public class Enfermeiro {
         this.morada = morada;
     }
 
-    public int getUserId() {
+    public int getId() {
         return userId;
     }
 

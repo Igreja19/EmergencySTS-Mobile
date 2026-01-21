@@ -3,21 +3,15 @@ package pt.ipleiria.estg.dei.emergencysts.activities.enfermeiro;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
-
 import java.util.HashMap;
 import java.util.Map;
-
 import pt.ipleiria.estg.dei.emergencysts.R;
 import pt.ipleiria.estg.dei.emergencysts.modelo.Enfermeiro;
 import pt.ipleiria.estg.dei.emergencysts.network.VolleySingleton;
@@ -43,16 +37,13 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
         etSns = findViewById(R.id.etSns);
         progressBar = findViewById(R.id.progressBar);
 
-        ImageView btnCancel = findViewById(R.id.btnCancel);
-        Button btnSaveBottom = findViewById(R.id.btnSaveBottom);
-
         // Carregar dados guardados
         original = SharedPrefManager.getInstance(this).getEnfermeiro();
         carregarDadosAtuais();
 
         // Listeners
-        btnCancel.setOnClickListener(v -> finish());
-        btnSaveBottom.setOnClickListener(v -> guardarAlteracoes());
+        findViewById(R.id.btnCancel).setOnClickListener(v -> finish());
+        findViewById(R.id.btnSaveBottom).setOnClickListener(v -> guardarAlteracoes());
     }
 
     private void carregarDadosAtuais() {
@@ -67,19 +58,23 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
     }
 
     private void guardarAlteracoes() {
-        // Verifica se o objeto original existe antes de tudo
-        if (original == null) {
-            original = SharedPrefManager.getInstance(this).getEnfermeiro();
-            if (original == null || original.getUserId() <= 0) {
-                Toast.makeText(this, "Erro: Dados do enfermeiro não encontrados.", Toast.LENGTH_LONG).show();
-                return;
-            }
+        if (original == null) return;
+
+        final String nome = etNome.getText().toString().trim();
+        final String email = etEmail.getText().toString().trim();
+
+        // Validação idêntica à do Paciente
+        if (nome.isEmpty() || email.isEmpty()) {
+            Toast.makeText(this, "Nome e Email são obrigatórios!", Toast.LENGTH_SHORT).show();
+            return;
         }
 
         progressBar.setVisibility(View.VISIBLE);
 
-        // URL: O VolleySingleton já coloca a auth_key no fim, não mexa aqui.
-        String url = VolleySingleton.getInstance(this).getAPIUrl(VolleySingleton.ENDPOINT_ENFERMEIRO + "/" + original.getUserId());
+        // URL usando getId() como no Paciente
+        String url = VolleySingleton.getInstance(this).getAPIUrl(VolleySingleton.ENDPOINT_ENFERMEIRO + "/" + original.getId());
+
+        // Alterado para Method.POST para suportar o spoofing do _method PUT
         StringRequest request = new StringRequest(Request.Method.POST, url,
                 response -> {
                     progressBar.setVisibility(View.GONE);
@@ -89,22 +84,17 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
-                    if (error.networkResponse != null) {
-                        // Verifique o Logcat para ler o erro real do Yii2 (ex: validação falhou)
-                        String errorData = new String(error.networkResponse.data);
-                        Log.e("API_ERRO", "Status: " + error.networkResponse.statusCode + " Body: " + errorData);
-                    }
+                    String body = (error.networkResponse != null) ? new String(error.networkResponse.data) : "Erro de rede";
+                    Log.e("API_ERRO", body);
                     Toast.makeText(this, "Erro ao guardar alterações", Toast.LENGTH_SHORT).show();
                 }
         ) {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-
-                params.put("_method", "PUT");
-
-                params.put("Enfermeiro[nome]", etNome.getText().toString().trim());
-                params.put("Enfermeiro[email]", etEmail.getText().toString().trim());
+                params.put("_method", "PUT"); // Essencial para o Yii2 reconhecer como update via POST
+                params.put("Enfermeiro[nome]", nome);
+                params.put("Enfermeiro[email]", email);
                 params.put("Enfermeiro[telefone]", etTelefone.getText().toString().trim());
                 params.put("Enfermeiro[morada]", etMorada.getText().toString().trim());
                 params.put("Enfermeiro[nif]", etNif.getText().toString().trim());
@@ -124,7 +114,6 @@ public class EditarPerfilEnfermeiroActivity extends AppCompatActivity {
                 if (token != null) {
                     headers.put("Authorization", "Bearer " + token);
                 }
-                // Garante que o servidor entenda que enviamos um formulário
                 headers.put("Accept", "application/json");
                 return headers;
             }

@@ -94,7 +94,7 @@ public class MqttClientManager {
             // ID único com timestamp para garantir unicidade
             String clientId;
             if (SharedPrefManager.getInstance(context).getEnfermeiroBase() != null) {
-                clientId = "Android_Enf_" + SharedPrefManager.getInstance(context).getEnfermeiroBase().getUserId()
+                clientId = "Android_Enf_" + SharedPrefManager.getInstance(context).getEnfermeiroBase().getId()
                         + "_" + System.currentTimeMillis();
             } else if (SharedPrefManager.getInstance(context).getPacienteBase() != null) {
                 clientId = "Android_Pac_" + SharedPrefManager.getInstance(context).getPacienteBase().getId()
@@ -195,7 +195,7 @@ public class MqttClientManager {
             Log.d(TAG, "Subscrito como PACIENTE");
         }
 
-        if (spm.getEnfermeiroBase() != null && spm.getEnfermeiroBase().getUserId() != -1) {
+        if (spm.getEnfermeiroBase() != null && spm.getEnfermeiroBase().getId() != -1) {
             subscribe("emergencysts/triagem");
             Log.d(TAG, "Subscrito como ENFERMEIRO em: emergencysts/triagem");
         }
