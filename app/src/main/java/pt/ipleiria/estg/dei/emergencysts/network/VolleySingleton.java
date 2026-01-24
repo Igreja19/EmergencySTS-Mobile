@@ -51,6 +51,8 @@ public class VolleySingleton {
     public static final String ENDPOINT_ENFERMEIRO_PERFIL = "api/enfermeiro/perfil";
     public static final String ENDPOINT_TRIAGEM = "api/triagem";
     public static final String ENDPOINT_PULSEIRA = "api/pulseira";
+    public static final String ENDPOINT_TOTAL_USERS = "api/total";
+    public static final String ENDPOINT_ESTATISTICAS = "api/estatisticas";
 
     private static VolleySingleton instance;
     private RequestQueue requestQueue;
@@ -215,6 +217,7 @@ public class VolleySingleton {
 
                         SharedPrefManager.getInstance(ctx).saveEnfermeiro(enf);
 
+                        // SUCESSO: Navegar
                         if (loginListener != null) loginListener.onValidateLogin(token, username, enf.getRole());
 
                     } catch (Exception e) {
@@ -255,6 +258,7 @@ public class VolleySingleton {
 
                         SharedPrefManager.getInstance(ctx).savePaciente(pac);
 
+                        // SUCESSO: Navegar
                         if (loginListener != null) loginListener.onValidateLogin(token, username, pac.getRole());
 
                     } catch (Exception e) {

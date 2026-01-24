@@ -95,6 +95,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         tools:visibility="gone"/>
 
+
     <androidx.cardview.widget.CardView
         android:id="@+id/cardPulseira"
         android:layout_width="match_parent"
@@ -177,5 +178,26 @@
                 app:layout_constraintTop_toBottomOf="@id/tvEstadoBadge" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
+    <LinearLayout
+        android:id="@+id/footerSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/bg_card"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingTop="22dp"
+        android:paddingBottom="22dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
+        <TextView
+            android:id="@+id/tvTotalPulseiras"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Total de pulseiras: 0"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
